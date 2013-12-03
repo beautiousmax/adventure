@@ -15,108 +15,86 @@ class Map(object):
         self.saw_in_the_distance = False
         #set neighboring squares saw_in_the_distance to True if they haven't been discovered yet
 
-#This bit is pure folly.
-#Don't look at it, unless with loving care.
-#It may be salvageable.
-#The idea is to add items that may be pocketed in an inventory to each map square
-#as well as cute descriptions of each place on the map (not all farmland was created equal, ya know)
 
+#nifty item dropper, check it out!
+#makes a list of a weighted, randomly selected, list of awesome stuff.
+#to be used for inventory items.
+#maybe even for mobs
+#or adventure stuff
 """
-class Items(object):
-    def __init__(self, name, rarity, use):
-        self.name = name
-        #with this, the idea is to somehow say 'yes, make this item accessable, this time around'
-        self.rarity = rarity
-        self.use = use
+def dropper(rareness):
+    results = {'super rare': 100,
+               'rare': 50,
+               'uncommon': 25,
+               'common': 5,
+               'super common': 2}
+    for i in results:
+        if rareness == i:
+            return random.randint(0, results[x]) == 1
 
 
-#calculate the odds of an item dropping -
-def rare_maybe(x):
-    if x == "super rare":
-        if random.randint(0, 100) == 1:
-            return True
-        else:
-            return False
+items = {"thing": "rare",
+         "another thing": "common",
+         "better stuff": "super rare",
+         "rocks": "super common",
+         "lollipops": "common"}
 
-    if x == "rare":
-        if random.randint(0, 50) == 1:
-            return True
-        else:
-            return False
+countdown = random.randint(0, 10)
+drops = []
+while countdown > 0:
+    for k, x in items.items():
+        if dropper(x) is True:
+            drops.append(k)
+    countdown -= 1
 
-    if x == "uncommon":
-        if random.randint(0, 25) == 1:
-            return True
-        else:
-            return False
+print drops
+"""
 
-    if x == "common":
-        if random.randint(0, 5) == 1:
-            return True
-        else:
-            return False
+master_items = {"rock": "super common",
+                "stick": "common",
+                "pinecone": "super common",
+                "hunting knife": "uncommon",
+                "emerald necklace": "super rare",
+                "pixie dust": "rare",
+                "broken glass": "uncommon",
+                "shovel": "uncommon",
+                "mushrooms": "uncommon"}
 
-    if x == "super common":
-        if random.randint(0, 2) == 1:
-            return True
-        else:
-            return False
+master_mobs = {"are squirrels": "common",
+               "an old witch": "rare",
+               "a pack of wolves": "uncommon",
+               "some wood nymphs": "super rare",
+
+               "a few cows": "common",
+               "a farmer": "rare"}
 
 
+## these still don't do anything, yet, but are cleaned up a bit more
 class Forest(object):
-    def __init__(self, mob, description, items, name="forest"):
+    def __init__(self, mobs, description, items, name="forest"):
         self.name = name
-        self.mob = mob
-        self.description = description
+        self.mobs = mobs
         self.items = items
+        self.description = description
 
-        mobs_lst = ["are squirrels",
-                    "an old witch",
-                    "a pack of wolves",
-                    "some wood nymphs"]
-        self.mob = random.choice(mobs_lst)
         description_lst = ["laced with dark magic",
                            "the home of the Tin Woodsman",
                            "filled with happy woodland animals",
                            "covered in shadow"]
-        self.description = random.choice(description_lst)
 
-        items_lst = []
-        hidden_items_lst = [Items("rock", rare_maybe("common"), "weapon"),
-                            Items("stick", rare_maybe("common"), "weapon"),
-                            Items("pinecone", rare_maybe("super common"), "n"),
-                            Items("hunting knife", rare_maybe("uncommon"), "weapon"),
-                            Items("emerald necklace", rare_maybe("super rare"), "jewelry")]
-        for i in hidden_items_lst:
-            if i[Items.rarity] is True:
-                items_lst.append(i)
 
 
 class Farmland(object):
-    def __init__(self, mob, description, items, name="farmland"):
+    def __init__(self, mobs, description, items, name="farmland"):
         self.name = name
-        self.mob = mob
-        self.description = description
+        self.mobs = mobs
         self.items = items
+        self.description = description
 
-        mobs_lst = ["a few cows",
-                    "a farmer"]
-        self.mob = random.choice(mobs_lst)
 
         description_lst = ["just barren fields",
                            "rows and rows of beans and squash",
                            "protected from evil by an ancient spell"]
-        self.description = random.choice(description_lst)
-
-        hidden_items_lst = [Items("broken glass", rare_maybe("uncommon"), "n"),
-                            Items("shovel", rare_maybe("uncommon"), "weapon"),
-                            Items("mushrooms", rare_maybe("uncommon"), "n")]
-        items_lst = []
-        for i in hidden_items_lst:
-            if i[Items.rarity] is True:
-                items_lst.append(i)
-
-"""
 
 
 def change_direction(direction):
@@ -125,8 +103,7 @@ def change_direction(direction):
     for place in map_squares:
         if place.location == new_loc:
             return place
-    print "Can't go further %s!" % direction
-    print
+    print "Can't go further %s! \n" % direction
     return current
 
 #functionality of this will need to be expanded some
@@ -139,8 +116,7 @@ def find_neighbors():
         (n, "north"),
         (e, "east"),
         (s, "south"),
-        (w, "west")
-    ]
+        (w, "west")]
     not_on_map = []
     on_map = []
 
@@ -150,6 +126,13 @@ def find_neighbors():
         elif i not in grid:
             not_on_map.append("nothing further %s" % i[1])
 
+#heh yeah, tell me about it
+    for i in on_map:
+        for square in map_squares:
+            if i == square.location:
+                if square.discovered_yet is False:
+                    return square.saw_in_the_distance is True
+
     print ', '.join(not_on_map)
 
 
@@ -158,28 +141,22 @@ def commands(words):
 
     if words.lower() == "help":
         print "Available commands are 'go north', 'go east', 'go south', and 'go west'"
-        commands(raw_input("What would you like to do? "))
 
     if words.lower() == "go north":
         current = change_direction("north")
-        print "You now are at %s, which is %s." % (current.location, current.land)
-        find_neighbors()
 
     if words.lower() == "go east":
         current = change_direction("east")
-        print "You now are at %s, which is %s." % (current.location, current.land)
-        find_neighbors()
 
     if words.lower() == "go south":
         current = change_direction("south")
-        print "You now are at %s, which is %s." % (current.location, current.land)
-        find_neighbors()
 
     if words.lower() == "go west":
         current = change_direction("west")
-        print "You now are at %s, which is %s." % (current.location, current.land)
-        find_neighbors()
+
+    print "You are at %s, which is %s. \n" % (current.location, current.land)
     current.discovery()
+    find_neighbors()
 
 
 def start_game():
@@ -187,10 +164,8 @@ def start_game():
     #place player
     current = map_squares[4]
     current.discovery()
-    print "You are at square %s, which is %s." % (current.location, current.land)
     find_neighbors()
-    print
-    print "Available commands are 'go north', 'go east', 'go south', and 'go west'"
+    commands("help")
     return current
 
 #generate map
@@ -198,7 +173,7 @@ grid = [00, 01, 02, 10, 11, 12, 20, 21, 22]
 #grid to be generated by function, eventually. Maybe with individual arrays for each row?? crazy talk
 
 land_type = ["forest", "farmland"]
-#to be replaced with classes that have attributes and items in them.. see failures above
+#to be replaced with classes that have attributes and items in them.
 #and not to be limited to forest and farmland:
 #castles, small towns, swamps, mountains, the like
 
@@ -210,5 +185,4 @@ for loc in grid:
 start_game()
 if __name__ == "__main__":
     while True:
-        print
-        commands(raw_input("What would you like to do? "))
+        commands(raw_input("What would you like to do? \n"))
