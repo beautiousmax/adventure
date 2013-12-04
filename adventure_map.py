@@ -26,15 +26,13 @@ class Map(object):
 #maybe even for mobs
 #or adventure stuff
 
-def dropper(rareness):
-    results = {'super rare': 100,
-               'rare': 50,
-               'uncommon': 25,
-               'common': 5,
-               'super common': 2}
-    for i in results:
-        if rareness == i:
-            return random.randint(0, results[i]) == 1
+results = {'super rare': 100,
+           'rare': 50,
+           'uncommon': 25,
+           'common': 5,
+           'super common': 2}
+
+dropper = lambda rareness: random.randint(0, results[rareness]) == 1
 
 
 def drops(lizst):
@@ -117,6 +115,7 @@ def change_direction(direction):
     print "Can't go further %s! \n" % direction
     return current
 
+
 #functionality of this will need to be expanded some
 def find_neighbors():
     n = int(current.location) - 10
@@ -137,7 +136,7 @@ def find_neighbors():
         elif i not in grid:
             not_on_map.append("nothing further %s" % i[1])
 
-#heh yeah, tell me about it
+#DOESN'T WORK. editing the list it is looking at, bad idea.
     for i in on_map:
         for square in map_squares:
             if i == square.location:
