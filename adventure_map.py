@@ -1,5 +1,9 @@
 __author__ = 'Clara'
 
+"""
+This is Adventure. It is a text based adventure full of adventures.
+"""
+
 import random
 
 
@@ -11,17 +15,17 @@ class Map(object):
         self.saw_in_the_distance = saw_in_the_distance
 
     def discovery(self):
+        #For purposes of 'looking at a map' and seeing where you have traveled to
+        #with a vague idea of what's in the neighboring places
         self.discovered_yet = True
         self.saw_in_the_distance = False
-        #set neighboring squares saw_in_the_distance to True if they haven't been discovered yet
 
 
-#nifty item dropper, check it out!
 #makes a list of a weighted, randomly selected, list of awesome stuff.
 #to be used for inventory items.
 #maybe even for mobs
 #or adventure stuff
-"""
+
 def dropper(rareness):
     results = {'super rare': 100,
                'rare': 50,
@@ -30,26 +34,25 @@ def dropper(rareness):
                'super common': 2}
     for i in results:
         if rareness == i:
-            return random.randint(0, results[x]) == 1
+            return random.randint(0, results[i]) == 1
 
 
-items = {"thing": "rare",
-         "another thing": "common",
-         "better stuff": "super rare",
-         "rocks": "super common",
-         "lollipops": "common"}
+def drops(lizst):
+    #gives each item a few chances to drop
+    countdown = random.randint(0, 10)
+    drops_i = []
+    while countdown > 0:
+        for k, x in lizst.items():
+            if dropper(x) is True:
+                drops_i.append(k)
+        countdown -= 1
 
-countdown = random.randint(0, 10)
-drops = []
-while countdown > 0:
-    for k, x in items.items():
-        if dropper(x) is True:
-            drops.append(k)
-    countdown -= 1
 
-print drops
-"""
-
+#for now, all the things are in one dict.
+#To accommodate slicing for the weird things that would appear only in special map types,
+#I will make separate dictionaries and just zip them together when I want them all together.
+#At least, that's the plan for now.
+#Same goes for mobs.
 master_items = {"rock": "super common",
                 "stick": "common",
                 "pinecone": "super common",
@@ -69,7 +72,6 @@ master_mobs = {"are squirrels": "common",
                "a farmer": "rare"}
 
 
-## these still don't do anything, yet, but are cleaned up a bit more
 class Forest(object):
     def __init__(self, mobs, description, items, name="forest"):
         self.name = name
@@ -77,11 +79,10 @@ class Forest(object):
         self.items = items
         self.description = description
 
-        description_lst = ["laced with dark magic",
-                           "the home of the Tin Woodsman",
-                           "filled with happy woodland animals",
-                           "covered in shadow"]
-
+forest_description = ["laced with dark magic",
+                          "the home of the Tin Woodsman",
+                          "filled with happy woodland animals",
+                          "covered in shadow"]
 
 
 class Farmland(object):
@@ -91,10 +92,20 @@ class Farmland(object):
         self.items = items
         self.description = description
 
+farmland_description = ["just barren fields",
+                            "rows and rows of beans and squash",
+                            "protected from evil by an ancient spell"]
 
-        description_lst = ["just barren fields",
-                           "rows and rows of beans and squash",
-                           "protected from evil by an ancient spell"]
+
+class Mountains(object):
+    def __init__(self, mobs, description, name="mountains"):
+        self.mobs = mobs
+        self.description = description
+        self.name = name
+
+mountains_description = ["a very high place",
+                         "lots of cliffs and stuff",
+                         "home to Tim the Enchanter"]
 
 
 def change_direction(direction):
@@ -131,7 +142,7 @@ def find_neighbors():
         for square in map_squares:
             if i == square.location:
                 if square.discovered_yet is False:
-                    return square.saw_in_the_distance is True
+                    square.saw_in_the_distance = True
 
     print ', '.join(not_on_map)
 
@@ -140,7 +151,7 @@ def commands(words):
     global current
 
     if words.lower() == "help":
-        print "Available commands are 'go north', 'go east', 'go south', and 'go west'"
+        print "Available commands are 'look around', 'go north', 'go east', 'go south', and 'go west'"
 
     if words.lower() == "go north":
         current = change_direction("north")
@@ -154,7 +165,10 @@ def commands(words):
     if words.lower() == "go west":
         current = change_direction("west")
 
-    print "You are at %s, which is %s. \n" % (current.location, current.land)
+    if words.lower() == "look around":
+        print "This place is %s." % current.land.description
+
+    print "You are at %s, which is %s. \n" % (current.location, current.land.name)
     current.discovery()
     find_neighbors()
 
@@ -166,15 +180,19 @@ def start_game():
     current.discovery()
     find_neighbors()
     commands("help")
-    return current
 
 #generate map
 grid = [00, 01, 02, 10, 11, 12, 20, 21, 22]
 #grid to be generated by function, eventually. Maybe with individual arrays for each row?? crazy talk
+#I am thinking *HUGE grids, 1000 + squares
+#will want a way to create mountain chains across different parts of the map
+#*relatively huge
 
-land_type = ["forest", "farmland"]
-#to be replaced with classes that have attributes and items in them.
-#and not to be limited to forest and farmland:
+land_type = [Forest(drops(master_mobs), random.choice(forest_description), drops(master_items)),
+             Farmland(drops(master_mobs), random.choice(farmland_description), drops(master_items)),
+             Mountains(drops(master_mobs), random.choice(mountains_description))]
+
+#Not to be limited to forest and farmland:
 #castles, small towns, swamps, mountains, the like
 
 map_squares = []
