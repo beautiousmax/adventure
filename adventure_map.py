@@ -78,9 +78,9 @@ class Forest(object):
         self.description = description
 
 forest_description = ["laced with dark magic",
-                          "the home of the Tin Woodsman",
-                          "filled with happy woodland animals",
-                          "covered in shadow"]
+                      "the home of the Tin Woodsman",
+                      "filled with happy woodland animals",
+                      "covered in shadow"]
 
 
 class Farmland(object):
@@ -91,8 +91,8 @@ class Farmland(object):
         self.description = description
 
 farmland_description = ["just barren fields",
-                            "rows and rows of beans and squash",
-                            "protected from evil by an ancient spell"]
+                        "rows and rows of beans and squash",
+                        "protected from evil by an ancient spell"]
 
 
 class Mountains(object):
