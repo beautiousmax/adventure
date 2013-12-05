@@ -136,7 +136,7 @@ def find_neighbors():
         elif i not in grid:
             not_on_map.append("nothing further %s" % i[1])
 
-#DOESN'T WORK. editing the list it is looking at, bad idea.
+#DOESN'T WORK.
     for i in on_map:
         for square in map_squares:
             if i == square.location:
@@ -167,7 +167,9 @@ def commands(words):
     if words.lower() == "look around":
         print "This place is %s." % current.land.description
 
-    print "You are at %s, which is %s. \n" % (current.location, current.land.name)
+    print "You are at %s, which is %s. Discovered is %s.\n" % (current.location, current.land.name,
+                                                               current.discovered_yet)
+    #DOESN'T WORK
     current.discovery()
     find_neighbors()
 
@@ -190,9 +192,6 @@ grid = [00, 01, 02, 10, 11, 12, 20, 21, 22]
 land_type = [Forest(drops(master_mobs), random.choice(forest_description), drops(master_items)),
              Farmland(drops(master_mobs), random.choice(farmland_description), drops(master_items)),
              Mountains(drops(master_mobs), random.choice(mountains_description))]
-
-#Not to be limited to forest and farmland:
-#castles, small towns, swamps, mountains, the like
 
 map_squares = []
 
