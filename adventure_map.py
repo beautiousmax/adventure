@@ -136,7 +136,6 @@ def find_neighbors():
 #commands to be separate functions.
 #because, testing
 #also, some really intense ones will be added later on
-
 #future commands: dialogue stuff, attacks, localized movement
 def commands(words):
     global current
