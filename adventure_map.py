@@ -28,7 +28,8 @@ dropper = lambda rareness: random.randint(0, results[rareness]) == 1
 
 
 def drops(lizst):
-    #gives each item a few chances to drop
+    """ gives each item a few chances to drop
+    """
     countdown = random.randint(0, 10)
     drops_i = []
     while countdown > 0:
@@ -57,10 +58,8 @@ master_items = {"rock": "super common",
 master_mobs = {"are squirrels": "common",
                "an old witch": "rare",
                "a pack of wolves": "uncommon",
-               "some wood nymphs": "super rare",
+               "some wood nymphs": "super rare",}
 
-               "a few cows": "common",
-               "a farmer": "rare"}
 
 
 class Forest(object):
@@ -74,7 +73,10 @@ forest_description = ["laced with dark magic",
                       "the home of the Tin Woodsman",
                       "filled with happy woodland animals",
                       "covered in shadow"]
-
+forest_mobs = {"are squirrels": "common",
+               "an old witch": "rare",
+               "a pack of wolves": "uncommon",
+               "some wood nymphs": "super rare"}
 
 class Farmland(object):
     def __init__(self, mobs, description, items, name="farmland"):
@@ -86,7 +88,8 @@ class Farmland(object):
 farmland_description = ["just barren fields",
                         "rows and rows of beans and squash",
                         "protected from evil by an ancient spell"]
-
+farmland_mobs = {"a few cows": "common",
+                 "a farmer": "rare"}
 
 class Mountains(object):
     def __init__(self, mobs, description, name="mountains"):
@@ -99,16 +102,10 @@ mountains_description = ["a very high place",
                          "home to Tim the Enchanter"]
 
 
-#fix this
-def find_the_neighbors():
-    pass
-
-#this is going to get out of hand fast.
-#commands to be separate functions.
-#because, testing
-#also, some really intense ones will be added later on
-#future commands: dialogue stuff, attacks, localized movement
 def commands(words):
+    """ Command handler. Duh.
+    Anything needing more than one line of code gets its own function.
+    """
     global current
 
     if words.lower() == "help":
@@ -131,7 +128,6 @@ def commands(words):
 
     if words.lower() == "inventory":
         print inventory
-
 
 
 def look_around():
@@ -175,8 +171,8 @@ rows = 100
 columns = 100
 name_guy = 0
 
-land_type = [Forest(drops(master_mobs), random.choice(forest_description), drops(master_items)),
-             Farmland(drops(master_mobs), random.choice(farmland_description), drops(master_items)),
+land_type = [Forest(drops(forest_mobs), random.choice(forest_description), drops(master_items)),
+             Farmland(drops(farmland_mobs), random.choice(farmland_description), drops(master_items)),
              Mountains(drops(master_mobs), random.choice(mountains_description))]
 
 map_squares = {}
@@ -191,10 +187,12 @@ while rows > 0:
 
 
 def start_game():
+    """ Places player in the center of the map.
+    Gives help for command options.
+    """
     global current
     #place player
     current = map_squares[5555]
-    #find_neighbors()
     commands("help")
     print "You are in a %s." % current.land.name
 
