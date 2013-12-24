@@ -145,20 +145,6 @@ def commands(words):
     if words.lower() == "inventory":
         print inventory
 
-    #this is really annoying.
-    #print "You are at the %s.\n" % (current.land.name,)
-    #find_neighbors()
-
-
-def start_game():
-    global current
-    #place player
-    current = map_squares[1000]
-    #find_neighbors()
-    commands("help")
-
-inventory = []
-
 
 land_type = [Forest(drops(master_mobs), random.choice(forest_description), drops(master_items)),
              Farmland(drops(master_mobs), random.choice(farmland_description), drops(master_items)),
@@ -197,6 +183,16 @@ while rows > 0:
         name_guy += 1
     rows -= 1
     columns = 100
+
+
+def start_game():
+    global current
+    #place player
+    current = map_squares[5555]
+    #find_neighbors()
+    commands("help")
+
+inventory = []
 
 
 start_game()
