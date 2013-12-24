@@ -8,12 +8,10 @@ import random
 
 
 class Map(object):
-    def __init__(self, location, land, discovered_yet=False, saw_in_the_distance=False):
+    def __init__(self, location, land, discovered_yet=False):
         self.location = location
         self.land = land
         self.discovered_yet = discovered_yet
-        self.saw_in_the_distance = saw_in_the_distance
-
 
 #makes a list of a weighted, randomly selected, list of awesome stuff.
 #to be used for inventory items.
@@ -129,29 +127,35 @@ def commands(words):
         change_direction("west")
 
     if words.lower() == "look around":
-        if current.land.name != "mountains":
-
-            if current.discovered_yet is False:
-                print "This place is %s. Items you found are: " % current.land.description
-                print current.land.items
-                for i in current.land.items:
-                    inventory.append(i)
-                current.discovered_yet = True
-            else:
-                print "This place is %s. You have already visited here." % current.land.description
-        else:
-            print "This place is %s. There is nothing here." % current.land.description
+        look_around()
 
     if words.lower() == "inventory":
         print inventory
 
 
-land_type = [Forest(drops(master_mobs), random.choice(forest_description), drops(master_items)),
-             Farmland(drops(master_mobs), random.choice(farmland_description), drops(master_items)),
-             Mountains(drops(master_mobs), random.choice(mountains_description))]
+
+def look_around():
+    """ Tells player a description of current square.
+    Sets square to 'discovered', and neighbor squares to seen in the distance.
+    For the time being, puts all items into inventory.
+    """
+    if current.land.name != "mountains":
+        if current.discovered_yet is False:
+            print "This place is %s. Items you found are: " % current.land.description
+            print current.land.items
+            for i in current.land.items:
+                inventory.append(i)
+                current.discovered_yet = True
+        else:
+            print "This place is %s. You have already visited here." % current.land.description
+    else:
+        print "This place is %s. There is nothing here." % current.land.description
 
 
 def change_direction(direction):
+    """ Changes the square to be one square over in the desired direction after checking to see if is on the map
+    and if it wouldn't be wrapping the edges pac man style
+    """
     global map_squares
     global current
     dir_shift = {"north": -100, "south": 100, "east": 1, "west": -1}
@@ -166,13 +170,14 @@ def change_direction(direction):
         current = map_squares[new_loc]
         print "You are now in a %s." % current.land.name
 
-#generate map
-#makes a square grid
-#who wouldn't want a square map anyways?
 
 rows = 100
 columns = 100
 name_guy = 0
+
+land_type = [Forest(drops(master_mobs), random.choice(forest_description), drops(master_items)),
+             Farmland(drops(master_mobs), random.choice(farmland_description), drops(master_items)),
+             Mountains(drops(master_mobs), random.choice(mountains_description))]
 
 map_squares = {}
 
@@ -191,6 +196,7 @@ def start_game():
     current = map_squares[5555]
     #find_neighbors()
     commands("help")
+    print "You are in a %s." % current.land.name
 
 inventory = []
 
