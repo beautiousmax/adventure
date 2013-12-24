@@ -100,37 +100,10 @@ mountains_description = ["a very high place",
                          "lots of cliffs and stuff",
                          "home to Tim the Enchanter"]
 
-#fix this
-def change_direction(direction):
-    dir_shift = {"north": -10, "south": 10, "east": 1, "west": -1}
-    new_loc = (current.location + dir_shift[direction])
-    for place in map_squares:
-        if place.location == new_loc:
-            return place
-    print "Can't go further %s! \n" % direction
-    return current
 
 #fix this
-def find_neighbors():
-    n = int(current.location) - 100
-    e = int(current.location) + 1
-    s = int(current.location) + 100
-    w = int(current.location) - 1
-    neighbors = [
-        (n, "north"),
-        (e, "east"),
-        (s, "south"),
-        (w, "west")]
-    not_on_map = []
-    on_map = []
-
-    for i in neighbors:
-        if i[0] == map_squares[i]:
-            on_map.append(i)
-        elif i[0] != map_squares[i]:
-            not_on_map.append("nothing further %s" % i[1])
-    print ', '.join(not_on_map)
-
+def find_the_neighbors():
+    pass
 
 #this is going to get out of hand fast.
 #commands to be separate functions.
@@ -144,16 +117,16 @@ def commands(words):
         print "Available commands are 'look around', 'go north', 'go east', 'go south', and 'go west'"
 
     if words.lower() == "go north":
-        current = change_direction("north")
+        change_direction("north")
 
     if words.lower() == "go east":
-        current = change_direction("east")
+        change_direction("east")
 
     if words.lower() == "go south":
-        current = change_direction("south")
+        change_direction("south")
 
     if words.lower() == "go west":
-        current = change_direction("west")
+        change_direction("west")
 
     if words.lower() == "look around":
         if current.land.name != "mountains":
@@ -180,7 +153,7 @@ def commands(words):
 def start_game():
     global current
     #place player
-    current = map_squares[555]
+    current = map_squares[1000]
     #find_neighbors()
     commands("help")
 
@@ -191,13 +164,29 @@ land_type = [Forest(drops(master_mobs), random.choice(forest_description), drops
              Farmland(drops(master_mobs), random.choice(farmland_description), drops(master_items)),
              Mountains(drops(master_mobs), random.choice(mountains_description))]
 
+
+def change_direction(direction):
+    global map_squares
+    global current
+    dir_shift = {"north": -100, "south": 100, "east": 1, "west": -1}
+    new_loc = (int(current.location) + int(dir_shift[direction]))
+    if new_loc < 0 or new_loc > 10000:
+        print "Can't go further %s!" % direction
+    elif direction == "east" and new_loc % 100 == 0:
+        print "Can't go further east!"
+    elif direction == "west" and int(current.location) % 100 == 0:
+        print "Can't go further west!"
+    else:
+        current = map_squares[new_loc]
+        print "You are now in a %s." % current.land.name
+
 #generate map
 #makes a square grid
 #who wouldn't want a square map anyways?
 
 rows = 100
 columns = 100
-name_guy = rows
+name_guy = 0
 
 map_squares = {}
 
