@@ -58,7 +58,7 @@ master_items = {"rock": "super common",
 master_mobs = {"are squirrels": "common",
                "an old witch": "rare",
                "a pack of wolves": "uncommon",
-               "some wood nymphs": "super rare",}
+               "some wood nymphs": "super rare"}
 
 
 
@@ -73,10 +73,10 @@ forest_description = ["laced with dark magic",
                       "the home of the Tin Woodsman",
                       "filled with happy woodland animals",
                       "covered in shadow"]
-forest_mobs = {"are squirrels": "common",
-               "an old witch": "rare",
-               "a pack of wolves": "uncommon",
-               "some wood nymphs": "super rare"}
+forest_mobs = {"old witch": "rare",
+               "wolves": "uncommon",
+               "squirrels": "common",
+               "wood nymphs": "super rare"}
 
 class Farmland(object):
     def __init__(self, mobs, description, items, name="farmland"):
@@ -88,8 +88,8 @@ class Farmland(object):
 farmland_description = ["just barren fields",
                         "rows and rows of beans and squash",
                         "protected from evil by an ancient spell"]
-farmland_mobs = {"a few cows": "common",
-                 "a farmer": "rare"}
+farmland_mobs = {"cows": "common",
+                 "farmer": "rare"}
 
 class Mountains(object):
     def __init__(self, mobs, description, name="mountains"):
@@ -165,6 +165,19 @@ def change_direction(direction):
     else:
         current = map_squares[new_loc]
         print "You are now in a %s." % current.land.name
+        meet_monster(current.land.mobs)
+
+
+def meet_monster(mob):
+    """ Determine if a mob is hostile or not.
+    Decide how many mobs there are.
+    """
+    hungry = random.randint(0, 2)
+    mob_size = random.randint(1, 11)
+    if hungry == 1:
+        print "%s %s have caught your scent and are about to attack!" % (mob_size, mob)
+    else:
+        print "%s %s are nearby, peacefully singing and dancing together." % (mob_size, mob)
 
 
 rows = 100
@@ -172,8 +185,8 @@ columns = 100
 name_guy = 0
 
 land_type = [Forest(drops(forest_mobs), random.choice(forest_description), drops(master_items)),
-             Farmland(drops(farmland_mobs), random.choice(farmland_description), drops(master_items)),
-             Mountains(drops(master_mobs), random.choice(mountains_description))]
+             Farmland(random.choice(farmland_mobs.keys()), random.choice(farmland_description), drops(master_items)),
+             Mountains(random.choice(master_mobs.keys()), random.choice(mountains_description))]
 
 map_squares = {}
 
@@ -191,15 +204,18 @@ def start_game():
     Gives help for command options.
     """
     global current
+    global health
     #place player
     current = map_squares[5555]
+    health = 100
     commands("help")
     print "You are in a %s." % current.land.name
 
 inventory = []
 
-
 start_game()
 if __name__ == "__main__":
     while True:
         commands(raw_input())
+
+
