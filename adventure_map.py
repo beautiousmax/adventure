@@ -38,6 +38,8 @@ def drops(lizst):
                 drops_i.append(k)
         countdown -= 1
         return drops_i
+#Idea: countdown is global. For throwing items back, re-searching places, set countdown to like 2 or whatnot.
+#For super awesome chests or loot drops, set it to 50 or something.
 
 
 #for now, all the things are in one dict.
@@ -175,7 +177,7 @@ def change_direction(direction):
 
 def meet_monster(mob):
     """ Determine if a mob is hostile or not.
-    Decide how many mobs there are.
+    Decide how many there are.
     """
     hungry = random.randint(0, 2)
     mob_size = random.randint(1, 11)
@@ -183,6 +185,8 @@ def meet_monster(mob):
         print "%s %s have caught your scent and are about to attack!" % (mob_size, mob)
     else:
         print "%s %s are nearby, peacefully singing and dancing together." % (mob_size, mob)
+#gotta make the hostile mobs chase you! otherwise, where's the fun?
+#no health for mobs per se, because, let's face it: squirrels and old witches both have the same amount of defence.
 
 
 def throw(thing):
@@ -192,6 +196,12 @@ def throw(thing):
         print "You tossed out a %s!" % thing
     else:
         print "You throw like a girl. Nothing happened."
+#next, throw stuff AT something.
+#need odds of hitting it.
+#as game goes on, achievement unlocked style, throwing gets better?
+
+
+#tackle next: reusable weapons.
 
 
 rows = 100
