@@ -7,7 +7,11 @@ import adventure_map
 class TestForGreatness(unittest.TestCase):
 
     def test_change_direction(self):
-        x = adventure_map.current.location
-        self.assertTrue(x in adventure_map.grid)
-        adventure_map.current = adventure_map.change_direction("north")
-        self.assertTrue(adventure_map.current.location == x - 10)
+        adventure_map.current = adventure_map.map_squares[100]
+        adventure_map.change_direction("north")
+        assert adventure_map.current == adventure_map.map_squares[0]
+        adventure_map.change_direction("north")
+        assert adventure_map.current == adventure_map.map_squares[0]
+
+    def test_map_coolness(self):
+        assert len(adventure_map.map_squares) == 10000

@@ -61,7 +61,6 @@ master_mobs = {"are squirrels": "common",
                "some wood nymphs": "super rare"}
 
 
-
 class Forest(object):
     def __init__(self, mobs, description, items, name="forest"):
         self.name = name
@@ -78,6 +77,7 @@ forest_mobs = {"old witch": "rare",
                "squirrels": "common",
                "wood nymphs": "super rare"}
 
+
 class Farmland(object):
     def __init__(self, mobs, description, items, name="farmland"):
         self.name = name
@@ -90,6 +90,7 @@ farmland_description = ["just barren fields",
                         "protected from evil by an ancient spell"]
 farmland_mobs = {"cows": "common",
                  "farmer": "rare"}
+
 
 class Mountains(object):
     def __init__(self, mobs, description, name="mountains"):
@@ -106,8 +107,6 @@ def commands(words):
     """ Command handler. Duh.
     Anything needing more than one line of code gets its own function.
     """
-    global current
-
     if words.lower() == "help":
         print "Available commands are 'look around', 'go north', 'go east', 'go south', and 'go west'"
 
@@ -129,6 +128,9 @@ def commands(words):
     if words.lower() == "inventory":
         print inventory
 
+    if words.lower()[0:5] == "throw":
+        throw(words[6:])
+
 
 def look_around():
     """ Tells player a description of current square.
@@ -136,14 +138,17 @@ def look_around():
     For the time being, puts all items into inventory.
     """
     if current.land.name != "mountains":
-        if current.discovered_yet is False:
-            print "This place is %s. Items you found are: " % current.land.description
-            print current.land.items
-            for i in current.land.items:
-                inventory.append(i)
-                current.discovered_yet = True
+        if len(current.land.items) > 0:
+            if current.discovered_yet is False:
+                print "This place is %s. Items you found are: " % current.land.description
+                print current.land.items
+                for i in current.land.items:
+                    inventory.append(i)
+                    current.discovered_yet = True
+            else:
+                print "This place is %s. You have already visited here." % current.land.description
         else:
-            print "This place is %s. You have already visited here." % current.land.description
+            print "This place is %s. There is nothing here." % current.land.description
     else:
         print "This place is %s. There is nothing here." % current.land.description
 
@@ -178,6 +183,15 @@ def meet_monster(mob):
         print "%s %s have caught your scent and are about to attack!" % (mob_size, mob)
     else:
         print "%s %s are nearby, peacefully singing and dancing together." % (mob_size, mob)
+
+
+def throw(thing):
+    global inventory
+    if thing in inventory:
+        inventory.remove(thing)
+        print "You tossed out a %s!" % thing
+    else:
+        print "You throw like a girl. Nothing happened."
 
 
 rows = 100
