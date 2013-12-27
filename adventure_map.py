@@ -5,7 +5,7 @@ This is Adventure. It is a text based adventure full of adventures.
 """
 
 import random
-
+from collections import Counter
 
 class Map(object):
     def __init__(self, location, land, discovered_yet=False):
@@ -52,6 +52,7 @@ master_items = {"rock": "super common",
                 "pinecone": "super common",
                 "hunting knife": "uncommon",
                 "emerald necklace": "super rare",
+                "red lamborghini": "super rare",
                 "pixie dust": "rare",
                 "broken glass": "uncommon",
                 "shovel": "uncommon",
@@ -128,7 +129,7 @@ def commands(words):
         look_around()
 
     if words.lower() == "inventory":
-        print inventory
+        print Counter(inventory)
 
     if words.lower()[0:5] == "throw":
         throw(words[6:])
@@ -140,19 +141,17 @@ def look_around():
     For the time being, puts all items into inventory.
     """
     if current.land.name != "mountains":
-        if len(current.land.items) > 0:
-            if current.discovered_yet is False:
-                print "This place is %s. Items you found are: " % current.land.description
-                print current.land.items
-                for i in current.land.items:
-                    inventory.append(i)
-                    current.discovered_yet = True
-            else:
-                print "This place is %s. You have already visited here." % current.land.description
+        if len(str(current.land.items)) > 0:
+            print "This place is %s. Items you found are: " % current.land.description
+            print current.land.items
+            for i in current.land.items:
+                inventory.append(i)
         else:
             print "This place is %s. There is nothing here." % current.land.description
     else:
         print "This place is %s. There is nothing here." % current.land.description
+    current.discovered_yet = True
+    #need a way to not have the stuff be picked up again on a second pass over
 
 
 def change_direction(direction):
@@ -171,38 +170,56 @@ def change_direction(direction):
         print "Can't go further west!"
     else:
         current = map_squares[new_loc]
-        print "You are now in a %s." % current.land.name
+        print "You are now in %s." % current.land.name
         meet_monster(current.land.mobs)
 
 
+mob_size = 0
+chase_crew = []
+
+
+#i don't know, the monsters sneak up on you (or not) super predictably.
+#put this on a random timer of some kind?
 def meet_monster(mob):
     """ Determine if a mob is hostile or not.
     Decide how many there are.
     """
+    global mob_size
+    global chase_crew
     hungry = random.randint(0, 2)
     mob_size = random.randint(1, 11)
     if hungry == 1:
+        chase_crew.append(mob * mob_size)
         print "%s %s have caught your scent and are about to attack!" % (mob_size, mob)
     else:
         print "%s %s are nearby, peacefully singing and dancing together." % (mob_size, mob)
 #gotta make the hostile mobs chase you! otherwise, where's the fun?
 #no health for mobs per se, because, let's face it: squirrels and old witches both have the same amount of defence.
 
+throwing_accuracy = 0
+
 
 def throw(thing):
     global inventory
+    global throwing_accuracy
+    global mob_size
     if thing in inventory:
         inventory.remove(thing)
+        if current.land.name != "mountains":
+            if random.randint(0, 10) == 1:
+                current.land.items.append(thing)
         print "You tossed out a %s!" % thing
+        if random.randint(0, 50) <= throwing_accuracy and attack_mode is True:
+            print "You hit one!"
+            mob_size -= 1
+        throwing_accuracy += 1
     else:
         print "You throw like a girl. Nothing happened."
-#next, throw stuff AT something.
-#need odds of hitting it.
-#as game goes on, achievement unlocked style, throwing gets better?
-
+#needs work
 
 #tackle next: reusable weapons.
-
+#or mobs cause damage.
+#or food / sleep to regen health.
 
 rows = 100
 columns = 100
@@ -233,13 +250,13 @@ def start_game():
     current = map_squares[5555]
     health = 100
     commands("help")
-    print "You are in a %s." % current.land.name
+    print "You are in %s." % current.land.name
 
 inventory = []
 
 start_game()
 if __name__ == "__main__":
-    while True:
+    while health > 0:
         commands(raw_input())
 
 
