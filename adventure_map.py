@@ -28,43 +28,6 @@ results = {'super rare': 100,
 dropper = lambda rareness: random.randint(0, results[rareness]) == 1
 
 
-def drops(set):
-    """ gives each item a few chances to drop
-    """
-    countdown = random.randint(0, 10)
-    drops_i = []
-    while countdown > 0:
-        for k, x in set.items():
-            if dropper(x) is True:
-                drops_i.append(k)
-        countdown -= 1
-        return drops_i
-#Idea: countdown is global. For throwing items back, re-searching places, set countdown to like 2 or whatnot.
-#For super awesome chests or loot drops, set it to 50 or something.
-
-
-#for now, all the things are in one dict.
-#To accommodate slicing for the weird things that would appear only in special map types,
-#I will make separate dictionaries and just zip them together when I want them all together.
-#At least, that's the plan for now.
-#Same goes for mobs.
-master_items = {"rock": "super common",
-                "stick": "common",
-                "pinecone": "super common",
-                "hunting knife": "uncommon",
-                "emerald necklace": "super rare",
-                "red lamborghini": "super rare",
-                "pixie dust": "rare",
-                "broken glass": "uncommon",
-                "shovel": "uncommon",
-                "mushrooms": "uncommon"}
-
-master_mobs = {"are squirrels": "common",
-               "an old witch": "rare",
-               "a pack of wolves": "uncommon",
-               "some wood nymphs": "super rare"}
-
-
 class Forest(object):
     def __init__(self, mobs, description, items, name="forest"):
         self.name = name
@@ -107,6 +70,43 @@ mountains_description = ["a very high place",
                          "home to Tim the Enchanter"]
 
 
+def drops(set):
+    """ Gives each item a few chances to drop, makes a list of dropped items.
+    """
+    countdown = random.randint(0, 10)
+    drops_i = []
+    while countdown > 0:
+        for k, x in set.items():
+            if dropper(x) is True:
+                drops_i.append(k)
+        countdown -= 1
+        return drops_i
+
+#For super awesome chests or loot drops, set countdown to 50 and only include rare or super rare.
+
+
+#for now, all the things are in one dict.
+#To accommodate slicing for the weird things that would appear only in special map types,
+#I will make separate dictionaries and just zip them together when I want them all together.
+#At least, that's the plan for now.
+#Same goes for mobs.
+master_items = {"rock": "super common",
+                "stick": "common",
+                "pinecone": "super common",
+                "hunting knife": "uncommon",
+                "emerald necklace": "super rare",
+                "red lamborghini": "super rare",
+                "pixie dust": "rare",
+                "broken glass": "uncommon",
+                "shovel": "uncommon",
+                "mushrooms": "uncommon"}
+
+master_mobs = {"are squirrels": "common",
+               "an old witch": "rare",
+               "a pack of wolves": "uncommon",
+               "some wood nymphs": "super rare"}
+
+
 def commands(words):
     """ Command handler.
     Anything needing more than one line of code gets its own function.
@@ -132,12 +132,17 @@ def look_around():
     Sets square to 'discovered', and neighbor squares to seen in the distance.
     For the time being, puts all items into inventory.
     """
+    global first_glance
     if current.land.name != "mountains":
         if len(str(current.land.items)) > 0:
             print "This place is %s. Items you found are: " % current.land.description
             print current.land.items
             for i in current.land.items:
                 inventory.append(i)
+            if first_glance == False:
+                print "Time to learn new commands! 'inventory' will tell you what you are carrying." \
+                      "You can throw items by using the 'throw [item]' command."
+                first_glance = True
         else:
             print "This place is %s. There is nothing here." % current.land.description
     else:
@@ -212,15 +217,17 @@ def throw(thing):
             mob_size -= 1
         throwing_accuracy += 1
     else:
-        print "You throw like a girl. Nothing happened."
-#needs work!
+        print "Your throwing is rotten. Nothing happened."
 #specify which mob you killed perhaps.
 
 #tackle next: reusable weapons. You don't want to 'throw' your really rare bow, for example.
-#mobs cause damage - you should kill them or scare them off or something.
+#mobs cause damage - you should kill them or scare them off.
+#player death - always a good goal
 #ways to regen health.
+#player needs to win the game eventually. Add in the magic castle that is locked.
 
 inventory = []
+first_glance = False
 
 
 def start_game():
@@ -263,5 +270,3 @@ start_game()
 if __name__ == "__main__":
     while health > 0:
         commands(raw_input())
-
-
