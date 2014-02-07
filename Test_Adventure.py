@@ -17,5 +17,6 @@ class TestForGreatness(unittest.TestCase):
         assert len(adventure_map.map_squares) == 10000
 
     def test_discovered_stuff(self):
+        assert not adventure_map.current.discovered_yet
         adventure_map.look_around()
-        assert adventure_map.current.discovered_yet is True
+        assert adventure_map.current.discovered_yet

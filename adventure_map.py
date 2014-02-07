@@ -7,13 +7,14 @@ This is Adventure. It is a text based adventure full of adventures.
 import random
 from collections import Counter
 
+
 class Map(object):
     def __init__(self, location, land, discovered_yet=False):
         self.location = location
         self.land = land
         self.discovered_yet = discovered_yet
 
-#makes a list of a weighted, randomly selected, list of awesome stuff.
+#makes a list of a weighted, randomly selected, list of stuff.
 #to be used for inventory items.
 #maybe even for mobs
 #or adventure stuff
@@ -27,13 +28,13 @@ results = {'super rare': 100,
 dropper = lambda rareness: random.randint(0, results[rareness]) == 1
 
 
-def drops(lizst):
+def drops(set):
     """ gives each item a few chances to drop
     """
     countdown = random.randint(0, 10)
     drops_i = []
     while countdown > 0:
-        for k, x in lizst.items():
+        for k, x in set.items():
             if dropper(x) is True:
                 drops_i.append(k)
         countdown -= 1
@@ -107,23 +108,14 @@ mountains_description = ["a very high place",
 
 
 def commands(words):
-    """ Command handler. Duh.
+    """ Command handler.
     Anything needing more than one line of code gets its own function.
     """
     if words.lower() == "help":
         print "Available commands are 'look around', 'go north', 'go east', 'go south', and 'go west'"
 
-    if words.lower() == "go north":
-        change_direction("north")
-
-    if words.lower() == "go east":
-        change_direction("east")
-
-    if words.lower() == "go south":
-        change_direction("south")
-
-    if words.lower() == "go west":
-        change_direction("west")
+    if words.lower().startswith("go"):
+        change_direction(words.split("go "[-1]))
 
     if words.lower() == "look around":
         look_around()
@@ -178,16 +170,17 @@ mob_size = 0
 chase_crew = []
 
 
-#i don't know, the monsters sneak up on you (or not) super predictably.
-#put this on a random timer of some kind?
+#this sucks: the monsters sneak up on you (or not) super predictably, always upon arrival.
+#try putting this on a random timer of some kind, rather than movement triggered?
+#or randomly every 5 - 9 commands or so.
 def meet_monster(mob):
     """ Determine if a mob is hostile or not.
     Decide how many there are.
     """
     global mob_size
     global chase_crew
-    hungry = random.randint(0, 2)
-    mob_size = random.randint(1, 11)
+    hungry = random.randint(0, 5)
+    mob_size = random.randint(1, 5)
     if hungry == 1:
         chase_crew.append(mob * mob_size)
         print "%s %s have caught your scent and are about to attack!" % (mob_size, mob)
@@ -200,6 +193,11 @@ throwing_accuracy = 0
 
 
 def throw(thing):
+    """ Player chooses item in inventory, throws it.
+    The throw removes the item from inventory.
+    There is the chance of it landing back into the area's item cache, so the player may pick it up again for re-use.
+    Each throw makes accuracy better, for potential hits on aggressive mobs.
+    """
     global inventory
     global throwing_accuracy
     global mob_size
@@ -209,35 +207,20 @@ def throw(thing):
             if random.randint(0, 10) == 1:
                 current.land.items.append(thing)
         print "You tossed out a %s!" % thing
-        if random.randint(0, 50) <= throwing_accuracy and attack_mode is True:
+        if random.randint(0, 50) <= throwing_accuracy:
             print "You hit one!"
             mob_size -= 1
         throwing_accuracy += 1
     else:
         print "You throw like a girl. Nothing happened."
-#needs work
+#needs work!
+#specify which mob you killed perhaps.
 
-#tackle next: reusable weapons.
-#or mobs cause damage.
-#or food / sleep to regen health.
+#tackle next: reusable weapons. You don't want to 'throw' your really rare bow, for example.
+#mobs cause damage - you should kill them or scare them off or something.
+#ways to regen health.
 
-rows = 100
-columns = 100
-name_guy = 0
-
-land_type = [Forest(drops(forest_mobs), random.choice(forest_description), drops(master_items)),
-             Farmland(random.choice(farmland_mobs.keys()), random.choice(farmland_description), drops(master_items)),
-             Mountains(random.choice(master_mobs.keys()), random.choice(mountains_description))]
-
-map_squares = {}
-
-while rows > 0:
-    while columns > 0:
-        map_squares[name_guy] = Map(str(name_guy), (random.choice(land_type)))
-        columns -= 1
-        name_guy += 1
-    rows -= 1
-    columns = 100
+inventory = []
 
 
 def start_game():
@@ -246,14 +229,36 @@ def start_game():
     """
     global current
     global health
-    #place player
     current = map_squares[5555]
     health = 100
     commands("help")
     print "You are in %s." % current.land.name
 
-inventory = []
 
+land_type = [Forest(drops(forest_mobs), random.choice(forest_description), drops(master_items)),
+             Farmland(random.choice(farmland_mobs.keys()), random.choice(farmland_description), drops(master_items)),
+             Mountains(random.choice(master_mobs.keys()), random.choice(mountains_description))]
+
+map_squares = {}
+
+
+def map_generator():
+    """ Makes a grid 100 x 100. Each square is assigned a land type - forest, farmland, mountains, etc.
+    """
+    global map_squares
+    rows = 100
+    columns = 100
+    name_guy = 0
+    while rows > 0:
+        while columns > 0:
+            map_squares[name_guy] = Map(str(name_guy), (random.choice(land_type)))
+            columns -= 1
+            name_guy += 1
+        rows -= 1
+        columns = 100
+
+
+map_generator()
 start_game()
 if __name__ == "__main__":
     while health > 0:
