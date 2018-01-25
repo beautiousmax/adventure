@@ -5,7 +5,7 @@ from commands import commands_manager
 p.name = input("Welcome to the world, adventurer! What name would you like to be "
                "known as in this land? \n")
 
-print("Nice to meet you, {}!".format(p.name))
+print(f"Nice to meet you, {p.name}!")
 print()
 print("Use commands to interact with your world. At any time, type 'help' "
       "to see all available commands.")
@@ -24,8 +24,10 @@ while p.health > 0:
 # you can lose health in fights
 # buy stuff, trade, go on quests, apply for jobs
 # player death
-# ways to regen health - eat food or magic pills
 # mini games to earn money, classic
-# add time dimension, takes x seconds to travel, etc, every 'day' at work earn salary
+# add time dimension, takes x seconds to travel, night / day
 # have the interview process include drug testing - screen for mushrooms, magic pills, etc
 # multiplayer
+# quests - throw away 100 cigarette butts, clean up the city!, etc
+# deal with multiple buildings on a square at a time.. maybe unique names?
+#

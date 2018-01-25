@@ -1,13 +1,13 @@
 from text import *
 import re
+import random
 
 
 def formatted_items(item_list):
     formatted = []
     for item in item_list:
         if item.quantity > 1:
-            formatted.append(
-                "{} {}".format(numbers[item.quantity], item.plural))
+            formatted.append(f"{numbers[item.quantity]} {item.plural}")
         else:
             formatted.append(item.name)
     return formatted
@@ -16,9 +16,9 @@ def formatted_items(item_list):
 def comma_separated(words):
     if len(words) >= 3:
         commas = ", ".join(words[0:-1])
-        return "{} and {}".format(commas, words[-1])
+        return f"{commas} and {words[-1]}"
     elif len(words) == 2:
-        return "{} and {}".format(words[0], words[1])
+        return f"{words[0]} and {words[1]}"
     else:
         return words[0]
 
@@ -62,3 +62,17 @@ def parse_inventory_action(words):
         item_text = " ".join(words_s[0:])
 
     return quantity, item_text
+
+
+def remove_little_words(phrase):
+    if type(phrase) != list:
+        phrase = phrase.split(" ")
+    phrase_words = []
+    for word in phrase:
+        if word not in ('a', 'an', 'the', 'that', 'this'):
+            phrase_words.append(word)
+    return " ".join(phrase_words)
+
+
+def odds(x):
+    return True if random.randint(1, x) == 1 else False

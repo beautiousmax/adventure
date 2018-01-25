@@ -3,8 +3,8 @@ This is Adventure. It is a text based adventure full of adventures.
 """
 import random
 from common_functions import comma_separated, add_dicts_together
-from text import items
-from reusables.numbers import int_to_words
+from text import items, buildings
+from reusables.string_manipulation import int_to_words
 
 
 class Item(object):
@@ -27,8 +27,11 @@ class Item(object):
 
 
 class Building(object):
-    def __init__(self, name):
+    def __init__(self, name, type):
+        self.type = type
         self.name = name
+
+        jobs = self.job_openings()
 
     def job_openings(self):
         job_openings = {}
@@ -42,6 +45,9 @@ class Building(object):
         if self.name in ("bar", "starbucks", "convenience store", "a car dealership", "a food mart"):
             interactions.append("purchase items")
 
+        if self.name == "a car dealership":
+            interactions.append("haggle")
+
         return interactions
 
 
@@ -52,15 +58,17 @@ class Mob(object):
 
     skills = {}
     health = 100
+    # TODO add conversation flows, job interviews, quests
 
 
 class Player(object):
     def __init__(self, name, location):
         self.name = name
         self.location = location
+        self.money = 0
 
     building_local = None
-    inventory = [Item(name="money", quantity=0, plural="money")]
+    inventory = []
     skills = {}
     job = {}
     health = 100
@@ -73,31 +81,33 @@ class Player(object):
                 if item.quantity == 0:
                     formatted.append("no cash")
                 else:
-                    formatted.append("{} dollars".format(int_to_words(item.quantity)))
+                    formatted.append(f"{int_to_words(self.money)} dollars")
 
             elif item.quantity > 1:
-                formatted.append("{} {}".format(int_to_words(item.quantity), item.plural))
+                formatted.append(f"{int_to_words(item.quantity)} {item.plural}")
             else:
                 formatted.append(item.name)
         return formatted
 
     def status(self):
-        print("Currently, you have {}% health. \nYou are located on map "
-              "coordinates {}, which is {}.".format(self.health, self.location, the_map[self.location].square_type))
+        print(f"Currently, you have {self.health}% health. \n You are located on map coordinates "
+              f"{self.location}, which is {the_map[self.location].square_type}.")
+        if p.building_local:
+            print(f"You are inside {p.building_local}.")
 
         if self.skills:
             for k, v in self.skills.items():
                 if v >= 100:
-                    print("You have mastered {}.".format(k))
+                    print(f"You have mastered {k}.")
                 else:
-                    print("You have learned {}% of {}.".format(v, k))
+                    print(f"You have learned {v}% of {k}.")
         else:
             print("You don't have any skills.")
 
-        print("You have {} in your inventory.".format(comma_separated(self.formatted_inventory())))
+        print(f"You have {comma_separated(self.formatted_inventory())} in your inventory.")
 
         if self.job:
-            print("You have a job as a {}.".format(self.job))
+            print(f"You have a job as a {self.job}.")
         else:
             print("You do not have a job, and you are not contributing to society.")
 
@@ -116,17 +126,16 @@ class MapSquare(object):
         return self
 
     def generate_items(self):
-        self.items = drops(add_dicts_together(items["master"], items[self.square_type]),
-                           anything_buts=("building", "residence"))
+        self.items = drops(add_dicts_together(items["master"], items[self.square_type]))
 
     def generate_buildings(self):
-        self.buildings = drops(add_dicts_together(items["master"], items[self.square_type]),
-                               specific_types=("building", "residence"))
+        self.buildings = drops(add_dicts_together(buildings["master"], buildings[self.square_type]))
+        # TODO generate items for wares
+        # TODO generate mobs for inside buildings
 
 
-def drops(dictionary, specific_types=None, anything_buts=None):
+def drops(dictionary):
     drops_i = []
-    d = {}
 
     results = {'super rare': 100,
                'rare': 50,
@@ -134,13 +143,7 @@ def drops(dictionary, specific_types=None, anything_buts=None):
                'common': 5,
                'super common': 2}
 
-    if specific_types or anything_buts:
-        if specific_types and anything_buts is None:
-            d = {k: v for (k, v) in dictionary.items() if "type" in v and v["type"] in specific_types}
-        elif anything_buts and specific_types is None:
-            d = {k: v for (k, v) in dictionary.items() if "type" in v and v["type"] not in anything_buts or "type" not in v}
-    else:
-        d = dictionary
+    d = dictionary
 
     for k, v in d.items():
         quantity = 0
