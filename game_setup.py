@@ -16,7 +16,7 @@ while p.health > 0:
 
 
 # things I want to add
-# walk around (or swim in the ocean) to buildings, visit them
+# walk around (or swim in the ocean) to buildings in a single square, visit them
     # travel - in a car, on foot, swim, boat
 # interact with mobs in buildings, and "wild" mobs
 # talk, or start fights
@@ -24,10 +24,10 @@ while p.health > 0:
 # you can lose health in fights
 # buy stuff, trade, go on quests, apply for jobs
 # player death
-# mini games to earn money, classic
+# mini games to earn money
 # add time dimension, takes x seconds to travel, night / day
 # have the interview process include drug testing - screen for mushrooms, magic pills, etc
 # multiplayer
 # quests - throw away 100 cigarette butts, clean up the city!, etc
-# deal with multiple buildings on a square at a time.. maybe unique names?
+# deal with multiple buildings of the same sort on a square at a time.. maybe unique names?
 #

@@ -10,7 +10,8 @@ command_list = {"help": True,
                 "status": True,
                 "pick up something": False,
                 "eat something": False,
-                "visit a building": False}
+                "visit a building": False,
+                "buy something": False}
 
 
 def commands_manager(words):
@@ -38,8 +39,7 @@ def commands_manager(words):
             command_list["visit a building"] = False
 
     elif words[0] == "go":
-        if p.building_local is None:
-            change_direction(" ".join(words[1:]))
+        change_direction(" ".join(words[1:]))
 
     elif words[0] == "visit":
         interact_with_building(" ".join(words[1:]))
@@ -51,7 +51,7 @@ def commands_manager(words):
         look_around()
 
     elif " ".join(words) == "inventory":
-        print(f"You have {comma_separated(p.formatted_inventory())} in your inventory.")
+        print(f"You have {p.formatted_inventory()} in your inventory.")
 
     elif " ".join(words[0:2]) == "pick up":
         pick_up(" ".join(words[2:]))
@@ -78,6 +78,7 @@ def change_direction(direction):
     go n
     go sw
     """
+    leave_building()
     x = p.location[0]
     y = p.location[1]
     if direction.lower() in ("n", "ne", "nw", "north", "northeast", "northwest"):
@@ -98,13 +99,21 @@ def change_direction(direction):
 
 
 def look_around():
-    if the_map[p.location].items:
-        print(f"You can see {comma_separated(formatted_items(the_map[p.location].items))} near you.")
-    if the_map[p.location].buildings:
-        print(f"The buildings here are {comma_separated(formatted_items(the_map[p.location].buildings))}")
-    if the_map[p.location].items == [] and the_map[p.location].buildings == []:
-        print("Nothing seems to be nearby.")
-    # TODO generate more items to look at / find
+    if p.building_local is None:
+        if the_map[p.location].items:
+            print(f"You can see {comma_separated(formatted_items(the_map[p.location].items))} near you.")
+        if the_map[p.location].buildings:
+            print(f"The buildings here are {comma_separated(formatted_items(the_map[p.location].buildings))}")
+        if the_map[p.location].items == [] and the_map[p.location].buildings == []:
+            print("Nothing seems to be nearby.")
+    # TODO generate more items to look at / find after picking up stuff?
+
+    else:
+        if p.building_local.wares:
+            print(f"This {p.building_local.name} has these items for sale: {p.building_local.wares}")
+            # TODO make this output prettier
+        if p.building_local.mobs:
+            print(f"The people here are {p.building_local.mobs}")
 
 
 def pick_up(words):
@@ -187,16 +196,14 @@ def eat_food(words):
             print(f"Regenerated {regenerate}% health by eating {item_eaten.name}.")
 
     food = [x for x in p.inventory if x.type == "food"]
-    if "perishable" in item_text:
+    if item_text and "perishable" in item_text:
         food = [x for x in p.inventory if x.type == "food" and x.perishable]
 
-    if item_text is "all":
+    if item_text is None and quantity is "all":
         for i in food:
             eat(i, i.quantity)
-        else:
-            print(f"Couldn't eat {item_text}.")
 
-    if "food" in item_text:
+    elif "food" in item_text:
         for i in food:
             if isinstance(quantity, int):
                 if i.quantity <= quantity:
@@ -217,6 +224,9 @@ def eat_food(words):
                 if quantity == "all":
                     quantity = i.quantity
                 eat(i, quantity)
+                return
+        else:
+            print(f"Couldn't eat {item_text}")
 
 
 def apply_for_job():
@@ -226,16 +236,17 @@ def apply_for_job():
 
 
 def interact_with_building(words):
-
     for building in the_map[p.location].buildings:
         if remove_little_words(building.name) in remove_little_words(words):
             if building.type == 'building':
                 if odds(8) is True:
-                    print(f"Too bad, {building} is closed right now. Try again later.")
+                    print(f"Too bad, {building.name} is closed right now. Try again later.")
                 else:
                     p.building_local = building
                     command_list['visit a place'] = False
                     command_list['leave the building'] = True
+                    if p.building_local.wares:
+                        command_list['buy something'] = True
                     print(f"You are now inside {building.name}.")
 
             else:
@@ -256,7 +267,8 @@ def leave_building():
     if p.building_local is not None:
         command_list['visit a place'] = True
         command_list['leave the building'] = False
-        print(f"Leaving {p.building_local}")
+        command_list['buy something'] = False
+        print(f"Leaving {p.building_local.name}")
         p.building_local = None
 
 

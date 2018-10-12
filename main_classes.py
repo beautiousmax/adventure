@@ -9,7 +9,7 @@ from reusables.string_manipulation import int_to_words
 
 class Item(object):
     def __init__(self, name, quantity, plural, type=None, perishable=None,
-                 flammable=None, rarity=None, wares=None, jobs=None, mobs=None):
+                 flammable=None, rarity=None, price=None):
         self.name = name
         self.quantity = quantity
         self.plural = plural
@@ -17,28 +17,23 @@ class Item(object):
         self.perishable = perishable or None
         self.flammable = flammable or None
         self.rarity = rarity or None
-        self.wares = wares or None
-        self.jobs = jobs or None
-        self.mobs = mobs or None
+        self.price = price or None
 
     def copy(self):
-        return Item(name=self.name, quantity=self.quantity, plural=self.plural, type=self.type, perishable=self.perishable,
-                    flammable=self.flammable, rarity=self.rarity, wares=self.wares, jobs=self.jobs, mobs=self.mobs)
+        return Item(name=self.name, quantity=self.quantity, plural=self.plural, type=self.type,
+                    perishable=self.perishable, flammable=self.flammable, rarity=self.rarity)
 
 
 class Building(object):
-    def __init__(self, name, type):
-        self.type = type
+    def __init__(self, name, quantity, plural, type=None, rarity=None, wares=None, mobs=None, jobs=None):
         self.name = name
-
-        jobs = self.job_openings()
-
-    def job_openings(self):
-        job_openings = {}
-        for k, v in items[the_map[p.location].square_type][self.name]["jobs"].items():
-            job_openings[k] = {"hired": random.randint(0, 100), "open": random.randint(0, 5)}
-
-        return job_openings
+        self.quantity = quantity
+        self.plural = plural
+        self.type = type or None
+        self.rarity = rarity or None
+        self.wares = drops(wares, Item) if wares else None
+        self.mobs = drops(mobs, Item) if mobs else None
+        self.jobs = jobs
 
     def interactions(self):
         interactions = ["barter goods", "leave building", "apply for a job"]
@@ -87,10 +82,13 @@ class Player(object):
                 formatted.append(f"{int_to_words(item.quantity)} {item.plural}")
             else:
                 formatted.append(item.name)
-        return formatted
+        if formatted != []:
+            return comma_separated(formatted)
+        else:
+            return "nothing"
 
     def status(self):
-        print(f"Currently, you have {self.health}% health. \n You are located on map coordinates "
+        print(f"Currently, you have {self.health}% health. \nYou are located on map coordinates "
               f"{self.location}, which is {the_map[self.location].square_type}.")
         if p.building_local:
             print(f"You are inside {p.building_local}.")
@@ -104,7 +102,7 @@ class Player(object):
         else:
             print("You don't have any skills.")
 
-        print(f"You have {comma_separated(self.formatted_inventory())} in your inventory.")
+        print(f"You have {self.formatted_inventory()} in your inventory.")
 
         if self.job:
             print(f"You have a job as a {self.job}.")
@@ -126,15 +124,13 @@ class MapSquare(object):
         return self
 
     def generate_items(self):
-        self.items = drops(add_dicts_together(items["master"], items[self.square_type]))
+        self.items = drops(add_dicts_together(items["master"], items[self.square_type]), Item)
 
     def generate_buildings(self):
-        self.buildings = drops(add_dicts_together(buildings["master"], buildings[self.square_type]))
-        # TODO generate items for wares
-        # TODO generate mobs for inside buildings
+        self.buildings = drops(add_dicts_together(buildings["master"], buildings[self.square_type]), Building)
 
 
-def drops(dictionary):
+def drops(dictionary, object_in_question):
     drops_i = []
 
     results = {'super rare': 100,
@@ -153,7 +149,7 @@ def drops(dictionary):
                 quantity += 1
             countdown -= 1
         if quantity:
-            drops_i.append(Item(name=k, quantity=quantity, **v))
+            drops_i.append(object_in_question(name=k, quantity=quantity, **v))
 
     return drops_i
 
