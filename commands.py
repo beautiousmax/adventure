@@ -1,6 +1,7 @@
 from main_classes import MapSquare, the_map, p
 from common_functions import formatted_items, comma_separated, parse_inventory_action, odds, remove_little_words
 import random
+from reusables.string_manipulation import int_to_words
 
 command_list = {"help": True,
                 "look around": True,
@@ -65,6 +66,9 @@ def commands_manager(words):
     elif words[0] == "eat":
         eat_food(" ".join(words[1:]))
 
+    elif words[0] == "buy":
+        buy(" ".join(words[1:]))
+
     else:
         print("I don't know that command.")
 
@@ -110,8 +114,14 @@ def look_around():
 
     else:
         if p.building_local.wares:
-            print(f"This {p.building_local.name} has these items for sale: {p.building_local.wares}")
-            # TODO make this output prettier
+            wares = []
+            for x in p.building_local.wares:
+                if x.quantity > 1:
+                    wares.append(f"{int_to_words(x.quantity)} {x.plural}")
+                else:
+                    wares.append(x.name)
+            print(f"This {p.building_local.name} has these items for sale: {comma_separated(wares)}")
+
         if p.building_local.mobs:
             print(f"The people here are {p.building_local.mobs}")
 
@@ -272,22 +282,56 @@ def leave_building():
         p.building_local = None
 
 
-def haggle(item, quantity, price_offered):
+def buy(words):
+    wares = []
+    haggle_for = True
+    quantity, item_text = parse_inventory_action(words)
+
+    if quantity == all and item_text is None:
+        wares = [x for x in p.building_local.wares]
+        ware_list = [f"{ware.plural} x {ware.quantity}" for ware in p.building_local.wares]
+        price_total = sum([ware.price*ware.quantity for ware in p.building_local.wares])
+        print(f"For {comma_separated(ware_list)}, that comes to {price_total}.")
+
+    else:
+        for ware in p.building_local.wares:
+            if item_text in ware.name or item_text == ware.plural:
+                wares = [ware]
+                if quantity == "all":
+                    quantity = ware.quantity
+                    print(f"For {ware.plural} x {ware.quantity}, that comes to ${ware.price*quantity}.")
+                elif quantity > ware.quantity:
+                    print(f"Sorry, we only have {ware.quantity} for sale.")
+                    haggle_for = False
+
+    if haggle_for is True:
+        price_offered = input("Make me an offer:")
+        try:
+            price_offered = int(price_offered.strip(" "))
+        except ValueError:
+            print("I was hoping for a number, sorry.")
+        haggle(wares, quantity, price_offered)
+
+
+def haggle(items, quantity, price_offered):
     if price_offered > p.money:
-        print("Sorry you don't have enough cash to make that offer.")
+        print("Sorry you don't have enough cash to make that offer. Try getting a job.")
         return
 
-    price = item.price * quantity
+    price = sum([item.price for item in items]) * quantity
     if price >= price_offered and price_offered <= p.money:
-        item.quantity = quantity
-        p.inventory.append(item)
-        p.money -= price_offered
-        print("Purchase complete")
-    elif price > price_offered:
-        if odds(price-price_offered) is True:
-            print("Ok, sounds like a deal.")
+        for item in items:
             item.quantity = quantity
             p.inventory.append(item)
             p.money -= price_offered
+        print("Purchase complete")
+
+    elif price > price_offered:
+        if odds(price-price_offered) is True:
+            print("Ok, sounds like a deal.")
+            for item in items:
+                item.quantity = quantity
+                p.inventory.append(item)
+                p.money -= price_offered
         else:
             print("Sorry, I can't sell for that price.")
