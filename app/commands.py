@@ -1,5 +1,5 @@
-from main_classes import MapSquare, the_map, p
-from common_functions import formatted_items, comma_separated, parse_inventory_action, odds, remove_little_words
+from app.main_classes import MapSquare, the_map, p
+from app.common_functions import formatted_items, comma_separated, parse_inventory_action, odds, remove_little_words
 import random
 from reusables.string_manipulation import int_to_words
 

@@ -1,6 +1,6 @@
 import unittest
-from commands import *
-from main_classes import *
+from app.commands import *
+from app.main_classes import *
 
 
 class AdventureTest(unittest.TestCase):

@@ -1,5 +1,5 @@
-from main_classes import p
-from commands import commands_manager
+from app.main_classes import p
+from app.commands import commands_manager
 
 
 p.name = input("Welcome to the world, adventurer! What name would you like to be "

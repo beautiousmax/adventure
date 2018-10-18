@@ -2,8 +2,8 @@
 This is Adventure. It is a text based adventure full of adventures.
 """
 import random
-from common_functions import comma_separated, add_dicts_together
-from text import items, buildings
+from app.common_functions import comma_separated, add_dicts_together
+from data.text import items, buildings
 from reusables.string_manipulation import int_to_words
 
 

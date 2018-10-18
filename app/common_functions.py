@@ -1,4 +1,4 @@
-from text import *
+from data.text import *
 import re
 import random
 
