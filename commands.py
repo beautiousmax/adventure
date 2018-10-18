@@ -5,14 +5,14 @@ from reusables.string_manipulation import int_to_words
 
 command_list = {"help": True,
                 "look around": True,
-                "go southwest": True,
-                "go sw": True,
+                "go <southwest>": True,
+                "go <sw>": True,
                 "inventory": True,
                 "status": True,
-                "pick up something": False,
-                "eat something": False,
-                "visit a building": False,
-                "buy something": False}
+                "pick up <something>": False,
+                "eat <something>": False,
+                "visit <a building>": False,
+                "buy <something>": False}
 
 
 def commands_manager(words):
@@ -20,24 +20,24 @@ def commands_manager(words):
     words = words.lower().split(" ")
     if words[0] == "help":
         if the_map[p.location].items:
-            command_list["pick up something"] = True
+            command_list["pick up <something>"] = True
         else:
-            command_list["pick up something"] = False
+            command_list["pick up <something>"] = False
         for x in p.inventory:
             if x.type == "food":
-                command_list["eat something"] = True
+                command_list["eat <something>"] = True
                 break
         else:
-            command_list["eat something"] = False
+            command_list["eat <something>"] = False
 
         for command, status in command_list.items():
             if status:
                 print(command)
 
         if the_map[p.location].buildings:
-            command_list["visit a building"] = True
+            command_list["visit <a building>"] = True
         else:
-            command_list["visit a building"] = False
+            command_list["visit <a building>"] = False
 
     elif words[0] == "go":
         change_direction(" ".join(words[1:]))
@@ -48,7 +48,7 @@ def commands_manager(words):
     elif words[0] == "leave":
         leave_building()
 
-    elif " ".join(words) == "look around":
+    elif " ".join(words) == "look around" or "look" in words:
         look_around()
 
     elif " ".join(words) == "inventory":
@@ -132,6 +132,7 @@ def pick_up(words):
     if item_text is None:
         for i in the_map[p.location].items:
             add_item_to_inventory(i, i.quantity)
+        print(f"Added {comma_separated([x.name for x in the_map[p.location].items])} to your inventory.")
         the_map[p.location].items = []
 
     else:
@@ -152,6 +153,7 @@ def pick_up(words):
                 item.quantity -= quantity
                 if item.quantity == 0:
                     the_map[p.location].items.remove(item)
+                print(f"Added {item.name if quantity == 1 else item.plural} to your inventory.")
             elif item.quantity < quantity:
                 print("Can't pick up that many.")
 
@@ -247,24 +249,24 @@ def apply_for_job():
 
 def interact_with_building(words):
     for building in the_map[p.location].buildings:
-        if remove_little_words(building.name) in remove_little_words(words):
+        if remove_little_words(words) in remove_little_words(building.name):
             if building.type == 'building':
                 if odds(8) is True:
                     print(f"Too bad, {building.name} is closed right now. Try again later.")
                 else:
                     p.building_local = building
-                    command_list['visit a place'] = False
-                    command_list['leave the building'] = True
+                    command_list['visit <a building>'] = False
+                    command_list['leave'] = True
                     if p.building_local.wares:
-                        command_list['buy something'] = True
+                        command_list['buy <something>'] = True
                     print(f"You are now inside {building.name}.")
 
             else:
                 if odds(10) is False:
                     print("The occupants of this residence have kicked you out.")
                 else:
-                    command_list['visit a place'] = False
-                    command_list['leave the building'] = True
+                    command_list['visit <a building>'] = False
+                    command_list['leave'] = True
                     p.building_local = building
                     print("You are now inside a house")
             break
@@ -275,9 +277,9 @@ def interact_with_building(words):
 
 def leave_building():
     if p.building_local is not None:
-        command_list['visit a place'] = True
-        command_list['leave the building'] = False
-        command_list['buy something'] = False
+        command_list['visit <a building>'] = True
+        command_list['leave'] = False
+        command_list['buy <something>'] = False
         print(f"Leaving {p.building_local.name}")
         p.building_local = None
 
@@ -295,14 +297,21 @@ def buy(words):
 
     else:
         for ware in p.building_local.wares:
-            if item_text in ware.name or item_text == ware.plural:
+
+            if remove_little_words(item_text) in ware.name or remove_little_words(item_text) in ware.plural:
                 wares = [ware]
                 if quantity == "all":
                     quantity = ware.quantity
-                    print(f"For {ware.plural} x {ware.quantity}, that comes to ${ware.price*quantity}.")
-                elif quantity > ware.quantity:
+
+                if quantity > ware.quantity:
                     print(f"Sorry, we only have {ware.quantity} for sale.")
                     haggle_for = False
+                else:
+                    print(f"For {ware.plural} x {ware.quantity}, that comes to ${ware.price*quantity}.")
+                break
+        else:
+            print("I can't figure out what you want.")
+            haggle_for = False
 
     if haggle_for is True:
         price_offered = input("Make me an offer:")
