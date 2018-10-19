@@ -1,59 +1,55 @@
-"""
-This is Adventure. It is a text based adventure full of adventures.
-"""
 import random
 from app.common_functions import comma_separated, add_dicts_together
-from data.text import items, buildings
+from data.text import items, buildings, wild_mobs
 from reusables.string_manipulation import int_to_words
 
 
 class Item(object):
-    def __init__(self, name, quantity, plural, type=None, perishable=None,
+    def __init__(self, name, quantity, plural, category=None, perishable=None,
                  flammable=None, rarity=None, price=None):
         self.name = name
         self.quantity = quantity
         self.plural = plural
-        self.type = type or None
+        self.category = category or None
         self.perishable = perishable or None
         self.flammable = flammable or None
         self.rarity = rarity or None
         self.price = price or None
 
     def copy(self):
-        return Item(name=self.name, quantity=self.quantity, plural=self.plural, type=self.type,
+        return Item(name=self.name, quantity=self.quantity, plural=self.plural, category=self.category,
                     perishable=self.perishable, flammable=self.flammable, rarity=self.rarity)
 
 
 class Building(object):
-    def __init__(self, name, quantity, plural, type=None, rarity=None, wares=None, mobs=None, jobs=None):
+    def __init__(self, name, quantity, plural, category=None, rarity=None, wares=None, mobs=None, jobs=None):
         self.name = name
         self.quantity = quantity
         self.plural = plural
-        self.type = type or None
+        self.category = category or None
         self.rarity = rarity or None
         self.wares = drops(wares, Item) if wares else None
-        self.mobs = drops(mobs, Item) if mobs else None
+        self.mobs = drops(mobs, Mob) if mobs else None
         self.jobs = jobs
-
-    def interactions(self):
-        interactions = ["barter goods", "leave building", "apply for a job"]
-        if self.name in ("bar", "starbucks", "convenience store", "a car dealership", "a food mart"):
-            interactions.append("purchase items")
-
-        if self.name == "a car dealership":
-            interactions.append("haggle")
-
-        return interactions
 
 
 class Mob(object):
-    def __init__(self, name, location):
+    def __init__(self, name, plural, quantity, rarity):
         self.name = name
-        self.location = location
+        self.plural = plural
+        self.quantity = quantity
+        self.rarity = rarity
 
     skills = {}
     health = 100
     # TODO add conversation flows, job interviews, quests
+
+    # quests
+    # bring me 100 of super common object to learn patience
+    # bring me a super rare object to learn patience
+    # bring me 10 uncommon object to earn 20 dollars
+
+    # say hello to 50 mobs to learn communication
 
 
 class Player(object):
@@ -114,7 +110,7 @@ class MapSquare(object):
     def __init__(self, name=""):
         self.name = name
     square_type = ''
-    mobs = {}
+    mobs = []
     items = []
     buildings = []
 
@@ -128,6 +124,9 @@ class MapSquare(object):
 
     def generate_buildings(self):
         self.buildings = drops(add_dicts_together(buildings["master"], buildings[self.square_type]), Building)
+
+    def generate_mobs(self):
+        self.mobs = drops(add_dicts_together(wild_mobs["master"], wild_mobs[self.square_type]), Mob)
 
 
 def drops(dictionary, object_in_question):
@@ -157,5 +156,6 @@ def drops(dictionary, object_in_question):
 the_map = {(0, 0): MapSquare(name="spawn").new()}
 the_map[(0, 0)].generate_items()
 the_map[(0, 0)].generate_buildings()
+the_map[(0, 0)].generate_mobs()
 
 p = Player(name='', location=(0, 0))

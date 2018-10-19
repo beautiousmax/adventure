@@ -24,7 +24,7 @@ def commands_manager(words):
         else:
             command_list["pick up <something>"] = False
         for x in p.inventory:
-            if x.type == "food":
+            if x.category == "food":
                 command_list["eat <something>"] = True
                 break
         else:
@@ -98,6 +98,7 @@ def change_direction(direction):
     if p.location not in the_map.keys():
         the_map[p.location] = MapSquare().new()
         the_map[p.location].generate_buildings()
+        the_map[p.location].generate_mobs()
     print(f"You are now located on map coordinates {p.location}, which is {the_map[p.location].square_type}.")
     the_map[p.location].generate_items()
 
@@ -107,8 +108,11 @@ def look_around():
         if the_map[p.location].items:
             print(f"You can see {comma_separated(formatted_items(the_map[p.location].items))} near you.")
         if the_map[p.location].buildings:
-            print(f"The buildings here are {comma_separated(formatted_items(the_map[p.location].buildings))}")
-        if the_map[p.location].items == [] and the_map[p.location].buildings == []:
+            print(f"The buildings here are {comma_separated(formatted_items(the_map[p.location].buildings))}.")
+        if the_map[p.location].mobs:
+            print(f"There {'are' if len(the_map[p.location].mobs) > 1 else 'is'} "
+                  f"{comma_separated(formatted_items(the_map[p.location].mobs))} here.")
+        if the_map[p.location].items == [] and the_map[p.location].buildings == [] and the_map[p.location].mobs == []:
             print("Nothing seems to be nearby.")
     # TODO generate more items to look at / find after picking up stuff?
 
@@ -207,9 +211,9 @@ def eat_food(words):
             p.health += regenerate
             print(f"Regenerated {regenerate}% health by eating {item_eaten.name}.")
 
-    food = [x for x in p.inventory if x.type == "food"]
+    food = [x for x in p.inventory if x.category == "food"]
     if item_text and "perishable" in item_text:
-        food = [x for x in p.inventory if x.type == "food" and x.perishable]
+        food = [x for x in p.inventory if x.category == "food" and x.perishable]
 
     if item_text is None and quantity is "all":
         for i in food:
@@ -250,7 +254,7 @@ def apply_for_job():
 def interact_with_building(words):
     for building in the_map[p.location].buildings:
         if remove_little_words(words) in remove_little_words(building.name):
-            if building.type == 'building':
+            if building.category == 'building':
                 if odds(8) is True:
                     print(f"Too bad, {building.name} is closed right now. Try again later.")
                 else:
