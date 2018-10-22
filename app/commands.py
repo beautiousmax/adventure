@@ -69,6 +69,9 @@ def commands_manager(words):
     elif words[0] == "buy":
         buy(" ".join(words[1:]))
 
+    elif "say" in words or "talk" in words or "ask" in words:
+        talk(words)
+
     else:
         print("I don't know that command.")
 
@@ -96,10 +99,11 @@ def change_direction(direction):
 
     p.location = (x, y)
     if p.location not in the_map.keys():
-        the_map[p.location] = MapSquare().new()
+        the_map[p.location] = MapSquare()
         the_map[p.location].generate_buildings()
         the_map[p.location].generate_mobs()
     print(f"You are now located on map coordinates {p.location}, which is {the_map[p.location].square_type}.")
+    look_around()
     the_map[p.location].generate_items()
 
 
@@ -348,3 +352,47 @@ def haggle(items, quantity, price_offered):
                 p.money -= price_offered
         else:
             print("Sorry, I can't sell for that price.")
+
+
+def talk(words):
+    """
+    ask for a quest
+    ask the squirrel for a quest
+    say hi to the squirrel
+    talk to the squirrel
+    """
+    mobs = the_map[p.location].mobs
+
+    specific_mob = None
+    for w in words:
+        for m in mobs:
+            if w in remove_little_words(m.name) or w in m.plural:
+                specific_mob = m
+                break
+
+    if specific_mob is not None:
+        single_mob = remove_little_words(specific_mob.name)
+        non_responses = [f"The {single_mob} just looks at you.",
+                         f"The {single_mob} doesn't respond.",
+                         f"The {single_mob} might not speak english."]
+
+        no_quest_responses = [f"The {single_mob} shakes his head gravely.",
+                              # TODO add mob gender
+                              f"The {single_mob} says 'No quests today.'"]
+
+        yes_quest_responses = [f"The ground shakes as the {single_mob} roars 'YES, I HAVE A QUEST FOR YOU!'",
+                               f"The {single_mob} says 'Yup.'"]
+
+        if "quest" in words:
+            specific_mob.generate_quest()
+            if specific_mob.quest is None:
+                print(no_quest_responses[random.randint(0, len(no_quest_responses)-1)])
+
+            else:
+                print(yes_quest_responses[random.randint(0, len(yes_quest_responses)-1)])
+                print(specific_mob.quest[2])
+                if input("Do you accept the quest? yes/no:").lower() is "yes":
+                    p.job.append(('quest', specific_mob.quest, p.location))
+
+        else:
+            print(non_responses[random.randint(0, len(non_responses)-1)])

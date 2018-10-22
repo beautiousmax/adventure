@@ -1,5 +1,5 @@
 from app.main_classes import p
-from app.commands import commands_manager
+from app.commands import commands_manager, look_around
 
 
 p.name = input("Welcome to the world, adventurer! What name would you like to be "
@@ -11,16 +11,18 @@ print("Use commands to interact with your world. At any time, type 'help' "
       "to see all available commands.")
 print("Here is your current status: \n")
 p.status()
+print()
+look_around()
 while p.health > 0:
     commands_manager(input())
 
 
 # things I want to add
-# walk around (or swim in the ocean) to buildings in a single square, visit them
-    # travel - in a car, on foot, swim, boat
+# travel - in a car, on foot, swim, boat
 # interact with mobs in buildings, and "wild" mobs
+    # mobs have inventory
 # talk, or start fights
-# use weapons, vehicles
+# use weapons
 # you can lose health in fights
 # buy stuff, trade, go on quests, apply for jobs
 # player death
