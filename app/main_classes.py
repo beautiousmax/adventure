@@ -69,10 +69,10 @@ class Mob(object):
         say hello to 50 mobs to learn communication
         """
 
-        if random.randint(0, 100) % 3:
+        if random.randint(0, 100) % 3 == 0:
 
             quest_items = add_dicts_together(items["master"], items[the_map[p.location].square_type])
-            quest_item = quest_items.keys()[0]
+            quest_item = random.choice(list(quest_items.keys()))
 
             q = Item(quest_item, 0, **quest_items[quest_item])
             self.inventory.append(q)
@@ -83,8 +83,8 @@ class Mob(object):
                         'common': '50',
                         'super common': '100'}
 
-            return q, quantity[q.rarity], f"{p.name}, if you bring me {quantity[q.rarity]} {q.plural}, I will teach " \
-                                          f"you a valuable skill."
+            self.quest = q, quantity[q.rarity], f"{p.name}, if you bring me {quantity[q.rarity]} {q.plural}, " \
+                                                f"I will teach you a valuable skill."
         else:
             return None
 

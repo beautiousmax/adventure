@@ -103,8 +103,8 @@ def change_direction(direction):
         the_map[p.location].generate_buildings()
         the_map[p.location].generate_mobs()
     print(f"You are now located on map coordinates {p.location}, which is {the_map[p.location].square_type}.")
-    look_around()
     the_map[p.location].generate_items()
+    look_around()
 
 
 def look_around():
@@ -364,9 +364,9 @@ def talk(words):
     mobs = the_map[p.location].mobs
 
     specific_mob = None
-    for w in words:
+    for w in remove_little_words(words).split(' '):
         for m in mobs:
-            if w in remove_little_words(m.name) or w in m.plural:
+            if w in remove_little_words(m.name).split(' ') or w in m.plural:
                 specific_mob = m
                 break
 
