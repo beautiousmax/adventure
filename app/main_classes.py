@@ -32,6 +32,8 @@ class Building(object):
         self.mobs = drops(mobs, Mob) if mobs else None
         self.jobs = jobs
 
+    # TODO add job interviews
+
 
 class Mob(object):
     def __init__(self, name, plural, quantity, rarity):
@@ -40,16 +42,51 @@ class Mob(object):
         self.quantity = quantity
         self.rarity = rarity
 
-    skills = {}
+        self.skills = self.skills()
+        self.quest = None
+
+    inventory = []
     health = 100
-    # TODO add conversation flows, job interviews, quests
 
-    # quests
-    # bring me 100 of super common object to learn patience
-    # bring me a super rare object to learn patience
-    # bring me 10 uncommon object to earn 20 dollars
+    def skills(self):
+        """Pick the skills for a mob, these determine what a player can get from completing a quest"""
+        all_skills = ["strength", "patience", "cleanliness", "leadership", "communication", "self loathing",
+                      "science", "math", "engineering", "intelligence"]
 
-    # say hello to 50 mobs to learn communication
+        random.shuffle(all_skills)
+        return all_skills[0:2]
+
+    def generate_quest(self):
+        """
+        inventory based
+        bring me 100 of super common object to learn patience
+        bring me a super rare object to learn patience
+        bring me 10 uncommon object to earn 20 dollars
+
+        or
+
+        win a game of go fish with random mob type to learn intelligence
+        say hello to 50 mobs to learn communication
+        """
+
+        if random.randint(0, 100) % 3 == 0:
+
+            quest_items = add_dicts_together(items["master"], items[the_map[p.location].square_type])
+            quest_item = random.choice(list(quest_items.keys()))
+
+            q = Item(quest_item, 0, **quest_items[quest_item])
+            self.inventory.append(q)
+
+            quantity = {'super rare': '3',
+                        'rare': '10',
+                        'uncommon': '25',
+                        'common': '50',
+                        'super common': '100'}
+
+            self.quest = q, int(quantity[q.rarity]), f"{p.name}, if you bring me {quantity[q.rarity]} {q.plural}, " \
+                                                     f"I will teach you a valuable skill."
+        else:
+            return None
 
 
 class Player(object):
@@ -57,11 +94,12 @@ class Player(object):
         self.name = name
         self.location = location
         self.money = 0
+        self.quest = None
+        self.job = None
 
     building_local = None
     inventory = []
     skills = {}
-    job = {}
     health = 100
 
     def formatted_inventory(self):
@@ -102,22 +140,20 @@ class Player(object):
 
         if self.job:
             print(f"You have a job as a {self.job}.")
-        else:
+        if self.quest:
+            print(f"You have a quest.")
+        elif self.job is None and self.quest is None:
             print("You do not have a job, and you are not contributing to society.")
 
 
 class MapSquare(object):
     def __init__(self, name=""):
+        square_types = ["forest", "mountains", "desert", "city", "swamp", "ocean"]
+        self.square_type = square_types[random.randint(0, len(square_types) - 1)]
         self.name = name
-    square_type = ''
     mobs = []
     items = []
     buildings = []
-
-    def new(self):
-        square_types = ["forest", "mountains", "desert", "city", "swamp", "ocean"]
-        self.square_type = square_types[random.randint(0, len(square_types) - 1)]
-        return self
 
     def generate_items(self):
         self.items = drops(add_dicts_together(items["master"], items[self.square_type]), Item)
@@ -153,7 +189,7 @@ def drops(dictionary, object_in_question):
     return drops_i
 
 
-the_map = {(0, 0): MapSquare(name="spawn").new()}
+the_map = {(0, 0): MapSquare(name="spawn")}
 the_map[(0, 0)].generate_items()
 the_map[(0, 0)].generate_buildings()
 the_map[(0, 0)].generate_mobs()
