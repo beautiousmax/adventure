@@ -83,8 +83,8 @@ class Mob(object):
                         'common': '50',
                         'super common': '100'}
 
-            self.quest = q, quantity[q.rarity], f"{p.name}, if you bring me {quantity[q.rarity]} {q.plural}, " \
-                                                f"I will teach you a valuable skill."
+            self.quest = q, int(quantity[q.rarity]), f"{p.name}, if you bring me {quantity[q.rarity]} {q.plural}, " \
+                                                     f"I will teach you a valuable skill."
         else:
             return None
 
@@ -94,11 +94,12 @@ class Player(object):
         self.name = name
         self.location = location
         self.money = 0
+        self.quest = None
+        self.job = None
 
     building_local = None
     inventory = []
     skills = {}
-    job = []
     health = 100
 
     def formatted_inventory(self):
@@ -139,7 +140,9 @@ class Player(object):
 
         if self.job:
             print(f"You have a job as a {self.job}.")
-        else:
+        if self.quest:
+            print(f"You have a quest.")
+        elif self.job is None and self.quest is None:
             print("You do not have a job, and you are not contributing to society.")
 
 

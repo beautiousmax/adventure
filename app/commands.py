@@ -72,6 +72,9 @@ def commands_manager(words):
     elif "say" in words or "talk" in words or "ask" in words:
         talk(words)
 
+    elif "turn in" in " ".join(words) and "quest" in words:
+        turn_in_quest()
+
     else:
         print("I don't know that command.")
 
@@ -391,8 +394,34 @@ def talk(words):
             else:
                 print(yes_quest_responses[random.randint(0, len(yes_quest_responses)-1)])
                 print(specific_mob.quest[2])
-                if input("Do you accept the quest? yes/no:").lower() is "yes":
-                    p.job.append(('quest', specific_mob.quest, p.location))
+                if input("Do you accept the quest? yes/no:").lower() == "yes":
+                    p.quest = (specific_mob, p.location)
 
         else:
             print(non_responses[random.randint(0, len(non_responses)-1)])
+
+
+def turn_in_quest():
+    if p.quest is None:
+        print("You don't have a quest.")
+    else:
+        mob = remove_little_words(p.quest[0].name)
+        if p.quest[1] != p.location:
+            print(f"The {mob} who gave you your quest is not here. You need to go to {p.quest[1]}.")
+        else:
+            item = p.quest[0].quest[0]
+            quantity = p.quest[0].quest[1]
+            for i in p.inventory:
+                if i.name == item.name:
+                    if i.quantity >= quantity:
+                        print(f"You have enough {item.plural} the {mob} requested.")
+                        i.quantity -= quantity
+                        skill = p.quest[0].skills[random.randint(0, len(p.quest[0].skills)-1)]
+                        print(f"In exchange, the {mob} teaches you {skill}.")
+                        p.skills.append(skill)
+                    else:
+                        print(f"You don't have enough {item.plural}. The {mob} requested {quantity}, "
+                              f"and you have {i.quantity}.")
+                    break
+            else:
+                print(f"You don't have any {item.plural}. You need {quantity}.")
