@@ -183,6 +183,7 @@ def drops(dictionary, object_in_question):
     d = dictionary
 
     for k, v in d.items():
+        used_names = []
         quantity = 0
         countdown = random.randint(0, 10)
         while countdown > 0:
@@ -195,21 +196,40 @@ def drops(dictionary, object_in_question):
             elif object_in_question == Mob:
                 if quantity > 1:
                     for m in range(0, quantity):
-                        drops_i.append(Mob(name=f"{k} named {names[random.randint(0, len(names)-1)]}", **v))
+                        n = ''
+                        while n not in used_names:
+                            n = names[random.randint(0, len(names)-1)]
+                            if n not in used_names:
+                                used_names.append(n)
+                        drops_i.append(Mob(name=f"{k} named {n}", **v))
                 else:
                     drops_i.append(Mob(name=k, **v))
             elif object_in_question == Building:
                 if quantity > 1 and v['category'] != 'residence':
                     for m in range(0, quantity):
                         if odds(2):
-                            drops_i.append(Building(name=f"The {adjectives[random.randint(0, len(adjectives)-1)]} "
-                                                         f"{remove_little_words(k).capitalize()}", **v))
+                            n = ''
+                            while n not in used_names:
+                                n = adjectives[random.randint(0, len(adjectives) - 1)]
+                                if n not in used_names:
+                                    used_names.append(n)
+                            drops_i.append(Building(name=f"The {n} {remove_little_words(k).capitalize()}", **v))
                         else:
-                            drops_i.append(Building(name=f"{names[random.randint(0, len(names)-1)]}'s "
-                                                         f"{remove_little_words(k).capitalize()}", **v))
+                            n = ''
+                            while n not in used_names:
+                                n = names[random.randint(0, len(names) - 1)]
+                                if n not in used_names:
+                                    used_names.append(n)
+                            drops_i.append(Building(name=f"{n}'s {remove_little_words(k).capitalize()}", **v))
                 elif quantity > 1 and v['category'] == 'residence':
-                    drops_i.append(Building(name=f"{names[random.randint(0, len(names)-1)]}'s "
-                                                 f"{remove_little_words(k)}", **v))
+                    for m in range(0, quantity):
+                        n = ''
+                        while n not in used_names:
+                            n = names[random.randint(0, len(names) - 1)]
+                            if n not in used_names:
+                                used_names.append(n)
+
+                        drops_i.append(Building(name=f"{n}'s {remove_little_words(k)}", **v))
                 else:
                     drops_i.append(Building(name=k, **v))
 
