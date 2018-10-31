@@ -45,7 +45,7 @@ def commands_manager(words):
     elif words[0] == "visit":
         interact_with_building(" ".join(words[1:]))
 
-    elif words[0] == "leave":
+    elif words[0] == "leave" or words[0] == "exit":
         leave_building()
 
     elif " ".join(words) == "look around" or "look" in words:
@@ -115,8 +115,10 @@ def look_around():
         if the_map[p.location].items:
             print(f"You can see {comma_separated(formatted_items(the_map[p.location].items))} near you.")
         if the_map[p.location].buildings:
-            print(f"The building{'s'  if len(the_map[p.location].buildings) > 1 else ''} "
-                  f"here {are_is(the_map[p.location].buildings)}.")
+            q = len(the_map[p.location].buildings)
+            if q == 1:
+                q = the_map[p.location].buildings[0].quantity
+            print(f"The building{'s'  if q > 1 else ''} here {are_is(the_map[p.location].buildings)}.")
         if the_map[p.location].mobs:
             print(f"There {are_is(the_map[p.location].mobs)} here.")
         if the_map[p.location].items == [] and the_map[p.location].buildings == [] and the_map[p.location].mobs == []:
@@ -134,8 +136,8 @@ def look_around():
             print(f"This {p.building_local.name} has these items for sale: {comma_separated(wares)}")
 
         if p.building_local.mobs:
-            print(f"The people here {are_is(p.building_local.mobs)}")
-        if p.building_local.mobs == [] and p.building_local.wares == []:
+            print(f"There {are_is(p.building_local.mobs)} here.")
+        if p.building_local.mobs is None and (p.building_local.wares is None or p.building_local.wares == []):
             print("There isn't anything here.")
 
 
@@ -283,6 +285,7 @@ def interact_with_building(words):
                     command_list['leave'] = True
                     p.building_local = building
                     print("You are now inside a house")
+                    look_around()
             break
 
     else:
@@ -303,11 +306,11 @@ def buy(words):
     haggle_for = True
     quantity, item_text = parse_inventory_action(words)
 
-    if quantity == all and item_text is None:
+    if quantity == 'all' and item_text is None:
         wares = [x for x in p.building_local.wares]
         ware_list = [f"{ware.plural} x {ware.quantity}" for ware in p.building_local.wares]
         price_total = sum([ware.price*ware.quantity for ware in p.building_local.wares])
-        print(f"For {comma_separated(ware_list)}, that comes to {price_total}.")
+        print(f"For {comma_separated(ware_list)}, that comes to ${price_total}.")
 
     else:
         for ware in p.building_local.wares:
@@ -321,7 +324,7 @@ def buy(words):
                     print(f"Sorry, we only have {ware.quantity} for sale.")
                     haggle_for = False
                 else:
-                    print(f"For {ware.plural} x {ware.quantity}, that comes to ${ware.price*quantity}.")
+                    print(f"For {ware.plural} x {quantity}, that comes to ${ware.price*quantity}.")
                 break
         else:
             print("I can't figure out what you want.")
@@ -331,9 +334,11 @@ def buy(words):
         price_offered = input("Make me an offer:")
         try:
             price_offered = int(price_offered.strip(" "))
+            haggle(wares, quantity, price_offered)
         except ValueError:
             print("I was hoping for a number, sorry.")
-        haggle(wares, quantity, price_offered)
+        except TypeError:
+            print("I was hoping for a number, sorry.")
 
 
 def haggle(items, quantity, price_offered):
@@ -341,23 +346,34 @@ def haggle(items, quantity, price_offered):
         print("Sorry you don't have enough cash to make that offer. Try getting a job.")
         return
 
-    price = sum([item.price for item in items]) * quantity
-    if price >= price_offered and price_offered <= p.money:
-        for item in items:
-            item.quantity = quantity
-            p.inventory.append(item)
-            p.money -= price_offered
+    if quantity == 'all':
+        price = sum([item.price * item.quantity for item in items])
+    else:
+        price = sum([item.price for item in items]) * quantity
+
+    if price <= price_offered <= p.money:
+        buy_items(items, quantity, price_offered)
         print("Purchase complete")
 
-    elif price > price_offered:
+    elif price > price_offered > 0:
         if odds(price-price_offered) is True:
             print("Ok, sounds like a deal.")
-            for item in items:
-                item.quantity = quantity
-                p.inventory.append(item)
-                p.money -= price_offered
+            buy_items(items, quantity, price_offered)
         else:
             print("Sorry, I can't sell for that price.")
+    else:
+        print("Sorry, I can't sell for that price")
+
+
+def buy_items(items, quantity, cost):
+    for item in items:
+        q = item.quantity if quantity == 'all' else quantity
+        add_item_to_inventory(item, q)
+        if q == item.quantity:
+            p.building_local.wares.remove(item)
+        else:
+            item.quantity -= q
+    p.money -= cost
 
 
 def talk(words):

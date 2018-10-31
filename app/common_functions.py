@@ -1,10 +1,7 @@
 from data.text import *
-import colorama
 from termcolor import colored
 import re
 import random
-
-colorama.init()
 
 
 def formatted_items(item_list):

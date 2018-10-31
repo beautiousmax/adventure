@@ -1,7 +1,10 @@
 import random
+import colorama
 from app.common_functions import comma_separated, add_dicts_together
 from data.text import items, buildings, wild_mobs
 from reusables.string_manipulation import int_to_words
+
+colorama.init()
 
 
 class Item(object):
@@ -125,7 +128,7 @@ class Player(object):
         print(f"Currently, you have {self.health}% health. \nYou are located on map coordinates "
               f"{self.location}, which is {the_map[self.location].square_type}.")
         if p.building_local:
-            print(f"You are inside {p.building_local}.")
+            print(f"You are inside {p.building_local.name}.")
 
         if self.skills:
             for k, v in self.skills.items():
@@ -137,6 +140,7 @@ class Player(object):
             print("You don't have any skills.")
 
         print(f"You have {self.formatted_inventory()} in your inventory.")
+        print(f"You have ${self.money} in your wallet.")
 
         if self.job:
             print(f"You have a job as a {self.job}.")
