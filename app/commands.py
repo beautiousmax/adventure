@@ -443,8 +443,12 @@ def turn_in_quest():
                         print(f"You have enough {item.plural} the {mob} requested.")
                         i.quantity -= quantity
                         skill = p.quest[0].skills[random.randint(0, len(p.quest[0].skills)-1)]
-                        print(f"In exchange, the {mob} teaches you {skill}.")
-                        p.skills.append(skill)
+                        percentage = random.randint(0, 100)
+                        print(f"In exchange, the {mob} teaches you {skill}. You gain %{percentage} mastery.")
+                        try:
+                            p.skills[skill] += percentage
+                        except KeyError:
+                            p.skills[skill] = percentage
                     else:
                         print(f"You don't have enough {item.plural}. The {mob} requested {quantity}, "
                               f"and you have {i.quantity}.")

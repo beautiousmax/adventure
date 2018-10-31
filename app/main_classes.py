@@ -82,9 +82,9 @@ class Mob(object):
 
             quantity = {'super rare': '1',
                         'rare': '2',
-                        'uncommon': '5',
-                        'common': '10',
-                        'super common': '20'}
+                        'uncommon': '3',
+                        'common': '6',
+                        'super common': '15'}
             q = quantity[i.rarity]
 
             self.quest = i, int(q), f"{p.name}, if you bring " \
