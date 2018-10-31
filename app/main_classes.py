@@ -1,7 +1,7 @@
 import random
 import colorama
-from app.common_functions import comma_separated, add_dicts_together
-from data.text import items, buildings, wild_mobs
+from app.common_functions import comma_separated, add_dicts_together, remove_little_words, odds
+from data.text import items, buildings, wild_mobs, names, adjectives
 from reusables.string_manipulation import int_to_words
 
 colorama.init()
@@ -25,9 +25,9 @@ class Item(object):
 
 
 class Building(object):
-    def __init__(self, name, quantity, plural, category=None, rarity=None, wares=None, mobs=None, jobs=None):
+    def __init__(self, name, plural, category=None, rarity=None, wares=None, mobs=None, jobs=None):
         self.name = name
-        self.quantity = quantity
+        self.quantity = 1
         self.plural = plural
         self.category = category or None
         self.rarity = rarity or None
@@ -39,10 +39,10 @@ class Building(object):
 
 
 class Mob(object):
-    def __init__(self, name, plural, quantity, rarity):
+    def __init__(self, name, plural, rarity):
         self.name = name
         self.plural = plural
-        self.quantity = quantity
+        self.quantity = 1
         self.rarity = rarity
 
         self.skills = self.skills()
@@ -72,22 +72,24 @@ class Mob(object):
         say hello to 50 mobs to learn communication
         """
 
-        if random.randint(0, 100) % 3 == 0:
+        if odds(3):
 
             quest_items = add_dicts_together(items["master"], items[the_map[p.location].square_type])
             quest_item = random.choice(list(quest_items.keys()))
 
-            q = Item(quest_item, 0, **quest_items[quest_item])
-            self.inventory.append(q)
+            i = Item(quest_item, 0, **quest_items[quest_item])
+            self.inventory.append(i)
 
-            quantity = {'super rare': '3',
-                        'rare': '10',
-                        'uncommon': '25',
-                        'common': '50',
-                        'super common': '100'}
+            quantity = {'super rare': '1',
+                        'rare': '2',
+                        'uncommon': '5',
+                        'common': '10',
+                        'super common': '20'}
+            q = quantity[i.rarity]
 
-            self.quest = q, int(quantity[q.rarity]), f"{p.name}, if you bring me {quantity[q.rarity]} {q.plural}, " \
-                                                     f"I will teach you a valuable skill."
+            self.quest = i, int(q), f"{p.name}, if you bring " \
+                                    f"me {q} {i.plural if int(q) > 1 else remove_little_words(i.name)}, " \
+                                    f"I will teach you a valuable skill."
         else:
             return None
 
@@ -188,7 +190,28 @@ def drops(dictionary, object_in_question):
                 quantity += 1
             countdown -= 1
         if quantity:
-            drops_i.append(object_in_question(name=k, quantity=quantity, **v))
+            if object_in_question == Item:
+                drops_i.append(object_in_question(name=k, quantity=quantity, **v))
+            elif object_in_question == Mob:
+                if quantity > 1:
+                    for m in range(0, quantity):
+                        drops_i.append(Mob(name=f"{k} named {names[random.randint(0, len(names)-1)]}", **v))
+                else:
+                    drops_i.append(Mob(name=k, **v))
+            elif object_in_question == Building:
+                if quantity > 1 and v['category'] != 'residence':
+                    for m in range(0, quantity):
+                        if odds(2):
+                            drops_i.append(Building(name=f"The {adjectives[random.randint(0, len(adjectives)-1)]} "
+                                                         f"{remove_little_words(k).capitalize()}", **v))
+                        else:
+                            drops_i.append(Building(name=f"{names[random.randint(0, len(names)-1)]}'s "
+                                                         f"{remove_little_words(k).capitalize()}", **v))
+                elif quantity > 1 and v['category'] == 'residence':
+                    drops_i.append(Building(name=f"{names[random.randint(0, len(names)-1)]}'s "
+                                                 f"{remove_little_words(k)}", **v))
+                else:
+                    drops_i.append(Building(name=k, **v))
 
     return drops_i
 

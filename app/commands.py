@@ -72,7 +72,7 @@ def commands_manager(words):
     elif "say" in words or "talk" in words or "ask" in words:
         talk(words)
 
-    elif "turn in" in " ".join(words) and "quest" in words:
+    elif "turn in" in " ".join(words):
         turn_in_quest()
 
     else:
@@ -137,7 +137,7 @@ def look_around():
 
         if p.building_local.mobs:
             print(f"There {are_is(p.building_local.mobs)} here.")
-        if p.building_local.mobs is None and (p.building_local.wares is None or p.building_local.wares == []):
+        if (p.building_local.mobs is None or p.building_local.mobs == []) and (p.building_local.wares is None or p.building_local.wares == []):
             print("There isn't anything here.")
 
 
@@ -147,7 +147,8 @@ def pick_up(words):
     if item_text is None:
         for i in the_map[p.location].items:
             add_item_to_inventory(i, i.quantity)
-        print(f"Added {comma_separated([x.name for x in the_map[p.location].items])} to your inventory.")
+        print(f"Added {comma_separated([x.name if x.quantity == 1 else x.plural for x in the_map[p.location].items])} "
+              f"to your inventory.")
         the_map[p.location].items = []
 
     else:
@@ -262,31 +263,41 @@ def apply_for_job():
         print(f"Hello! We are looking to hire {p.building_local.jobs} currently.")
 
 
-def interact_with_building(words):
-    for building in the_map[p.location].buildings:
-        if remove_little_words(words) in remove_little_words(building.name):
-            if building.category == 'building':
-                if odds(8) is True:
-                    print(f"Too bad, {building.name} is closed right now. Try again later.")
-                else:
-                    p.building_local = building
-                    command_list['visit <a building>'] = False
-                    command_list['leave'] = True
-                    if p.building_local.wares:
-                        command_list['buy <something>'] = True
-                    print(f"You are now inside {building.name}.")
-                    look_around()
+def find_specific(words, list_of_objects):
+    specific = None
+    for word in remove_little_words(words).split(' '):
+        for o in list_of_objects:
+            for individual_word in remove_little_words(o.name).lower().split(' '):
+                if word.lower() in individual_word or word.lower() == individual_word:
+                    specific = o
+                    break
 
+    return specific
+
+
+def interact_with_building(words):
+    building = find_specific(words, the_map[p.location].buildings)
+    if building is not None:
+        if building.category == 'building':
+            if odds(8) is True:
+                print(f"Too bad, {building.name} is closed right now. Try again later.")
             else:
-                if odds(10) is False:
-                    print("The occupants of this residence have kicked you out.")
-                else:
-                    command_list['visit <a building>'] = False
-                    command_list['leave'] = True
-                    p.building_local = building
-                    print("You are now inside a house")
-                    look_around()
-            break
+                p.building_local = building
+                command_list['visit <a building>'] = False
+                command_list['leave'] = True
+                print(f"You are now inside {building.name}.")
+                look_around()
+                if p.building_local.wares:
+                    command_list['buy <something>'] = True
+        else:
+            if odds(10) is False:
+                print("The occupants of this residence have kicked you out.")
+            else:
+                command_list['visit <a building>'] = False
+                command_list['leave'] = True
+                p.building_local = building
+                print("You are now inside a house")
+                look_around()
 
     else:
         print("That's not a place you can visit.")
@@ -383,14 +394,10 @@ def talk(words):
     say hi to the squirrel
     talk to the squirrel
     """
-    mobs = the_map[p.location].mobs
 
-    specific_mob = None
-    for w in remove_little_words(words).split(' '):
-        for m in mobs:
-            if w in remove_little_words(m.name).split(' ') or w in m.plural:
-                specific_mob = m
-                break
+    mobs = the_map[p.location].mobs if p.building_local is None else p.building_local.mobs
+
+    specific_mob = find_specific(words, mobs)
 
     if specific_mob is not None:
         single_mob = remove_little_words(specific_mob.name)

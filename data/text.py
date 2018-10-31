@@ -144,15 +144,15 @@ buildings = {"master": {"a car dealership": {"rarity": "rare",
                                                        "skills learned": ["patience", "intelligence"]}
                                          }
                                 },
-                      "a starbucks": {"category": "building",
-                                      "rarity": "common",
-                                      "plural": "starbucks",
-                                      "wares": {"cup of coffee": {"price": 5, "category": "food",
-                                                                  "rarity": "super common",
-                                                                  "plural": "cups of coffee"},
-                                                "fat free muffin": {"price": 4, "category": "food",
+                      "a coffee shop": {"category": "building",
+                                        "rarity": "common",
+                                        "plural": "coffee shops",
+                                        "wares": {"cup of coffee": {"price": 5, "category": "food",
                                                                     "rarity": "super common",
-                                                                    "plural": "fat free muffins"}}},
+                                                                    "plural": "cups of coffee"},
+                                                  "fat free muffin": {"price": 4, "category": "food",
+                                                                      "rarity": "super common",
+                                                                      "plural": "fat free muffins"}}},
                       "a blacksmith": {"category": "building", "rarity": "uncommon",
                                        "plural": "blacksmiths"}
                       },
@@ -225,3 +225,11 @@ numbers = {0: "zero",
            70: "seventy",
            80: "eighty",
            90: "ninety"}
+
+
+names = ["Throckmorten", "Bob", "Sam", "Maveric", "Twigg", "David", "Adam", "Hamilton", "Monica", "Herbert", "Hoover",
+         "Magruder", "Woody", "Taylor", "Granbury", "Susan", "Pearl", "Nightingale", "Hobb", "Godwin", "James", "Kent",
+         "Steve", "Kirk", "O'Neill", "Carter", "Shepherd"]
+
+adjectives = ["Friendly Neighborhood", "Sad", "Black Cat", "Best", "Fuzzy", "Majestic", "Big Parrot", "Exotic",
+              "Average", "Ordinary", "Smelly", "World's Finest"]
