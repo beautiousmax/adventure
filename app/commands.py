@@ -1,12 +1,12 @@
 from app.main_classes import MapSquare, the_map, p
-from app.common_functions import formatted_items, comma_separated, parse_inventory_action, odds, remove_little_words
+from app.common_functions import formatted_items, comma_separated, parse_inventory_action, odds, remove_little_words, \
+    are_is
 import random
 from reusables.string_manipulation import int_to_words
 
 command_list = {"help": True,
                 "look around": True,
                 "go <southwest>": True,
-                "go <sw>": True,
                 "inventory": True,
                 "status": True,
                 "pick up <something>": False,
@@ -115,10 +115,10 @@ def look_around():
         if the_map[p.location].items:
             print(f"You can see {comma_separated(formatted_items(the_map[p.location].items))} near you.")
         if the_map[p.location].buildings:
-            print(f"The buildings here are {comma_separated(formatted_items(the_map[p.location].buildings))}.")
+            print(f"The building{'s'  if len(the_map[p.location].buildings) > 1 else ''} "
+                  f"here {are_is(the_map[p.location].buildings)}.")
         if the_map[p.location].mobs:
-            print(f"There {'are' if len(the_map[p.location].mobs) > 1 else 'is'} "
-                  f"{comma_separated(formatted_items(the_map[p.location].mobs))} here.")
+            print(f"There {are_is(the_map[p.location].mobs)} here.")
         if the_map[p.location].items == [] and the_map[p.location].buildings == [] and the_map[p.location].mobs == []:
             print("Nothing seems to be nearby.")
     # TODO generate more items to look at / find after picking up stuff?
@@ -134,7 +134,9 @@ def look_around():
             print(f"This {p.building_local.name} has these items for sale: {comma_separated(wares)}")
 
         if p.building_local.mobs:
-            print(f"The people here are {p.building_local.mobs}")
+            print(f"The people here {are_is(p.building_local.mobs)}")
+        if p.building_local.mobs == [] and p.building_local.wares == []:
+            print("There isn't anything here.")
 
 
 def pick_up(words):
@@ -271,6 +273,7 @@ def interact_with_building(words):
                     if p.building_local.wares:
                         command_list['buy <something>'] = True
                     print(f"You are now inside {building.name}.")
+                    look_around()
 
             else:
                 if odds(10) is False:
@@ -384,7 +387,7 @@ def talk(words):
                               f"The {single_mob} says 'No quests today.'"]
 
         yes_quest_responses = [f"The ground shakes as the {single_mob} roars 'YES, I HAVE A QUEST FOR YOU!'",
-                               f"The {single_mob} says 'Yup.'"]
+                               f"The {single_mob} says 'Yup, I've got a quest for you.'"]
 
         if "quest" in words:
             specific_mob.generate_quest()

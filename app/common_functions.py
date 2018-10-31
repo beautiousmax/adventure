@@ -1,15 +1,19 @@
 from data.text import *
+import colorama
+from termcolor import colored
 import re
 import random
+
+colorama.init()
 
 
 def formatted_items(item_list):
     formatted = []
     for item in item_list:
         if item.quantity > 1:
-            formatted.append(f"{numbers[item.quantity]} {item.plural}")
+            formatted.append(f"{numbers[item.quantity]} {colored(item.plural, 'yellow')}")
         else:
-            formatted.append(item.name)
+            formatted.append(colored(item.name, 'yellow'))
     return formatted
 
 
@@ -76,3 +80,10 @@ def remove_little_words(phrase):
 
 def odds(x):
     return True if random.randint(1, x) == 1 else False
+
+
+def are_is(noun_list):
+    quantity = len(noun_list)
+    if quantity == 1:
+        quantity = noun_list[0].quantity
+    return f"{'are' if quantity > 1 else 'is'} {comma_separated(formatted_items(noun_list))}"
