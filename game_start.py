@@ -35,3 +35,4 @@ while p.health > 0:
 # multiplayer
 # deal with multiple buildings, mobs of the same sort on a square at a time.. maybe unique names?
 # steal wares, have cops chase you - criminal record that prevents you from getting certain jobs
+# set stuff on fire

@@ -75,6 +75,9 @@ def commands_manager(words):
     elif "turn in" in " ".join(words):
         turn_in_quest()
 
+    elif words[0] in ("attack", "battle"):
+        battle(" ".join(words[1:]), aggressing=True)
+
     else:
         print("I don't know that command.")
 
@@ -275,6 +278,19 @@ def find_specific(words, list_of_objects):
     return specific
 
 
+def find_specifics(words, list_of_objects):
+    specifics = []
+    if words in ('all', 'everyone', 'everything') or words is None or words == '':
+        return list_of_objects
+    for word in remove_little_words(words).split(' '):
+        for o in list_of_objects:
+            for individual_word in remove_little_words(o.name).lower().split(' '):
+                if word.lower() in individual_word or word.lower() == individual_word:
+                    specifics.append(o)
+
+    return specifics
+
+
 def interact_with_building(words):
     building = find_specific(words, the_map[p.location].buildings)
     if building is not None:
@@ -403,14 +419,20 @@ def talk(words):
         single_mob = remove_little_words(specific_mob.name)
         non_responses = [f"The {single_mob} just looks at you.",
                          f"The {single_mob} doesn't respond.",
-                         f"The {single_mob} might not speak english."]
+                         f"The {single_mob} might not speak english.",
+                         f"The {single_mob} lets out a high pitched and unintelligible shriek.",
+                         f"The {single_mob} ignores you completely."]
 
         no_quest_responses = [f"The {single_mob} shakes his head gravely.",
                               # TODO add mob gender
-                              f"The {single_mob} says 'No quests today.'"]
+                              f"The {single_mob} says 'No quests today.'",
+                              f"The {single_mob} says 'I don't feel like it right now'.",
+                              f"The {single_mob} laughs maniacally. 'A quest? For you? Yeah right.'"]
 
         yes_quest_responses = [f"The ground shakes as the {single_mob} roars 'YES, I HAVE A QUEST FOR YOU!'",
-                               f"The {single_mob} says 'Yup, I've got a quest for you.'"]
+                               f"The {single_mob} says 'Yup, I've got a quest for you.'",
+                               f"The {single_mob} says 'Fiiiineeee, I'll give you a quest'.",
+                               f"The {single_mob} scratches his head thoughtfully."]
 
         if "quest" in words:
             specific_mob.generate_quest()
@@ -443,15 +465,69 @@ def turn_in_quest():
                         print(f"You have enough {item.plural} the {mob} requested.")
                         i.quantity -= quantity
                         skill = p.quest[0].skills[random.randint(0, len(p.quest[0].skills)-1)]
-                        percentage = random.randint(0, 100)
-                        print(f"In exchange, the {mob} teaches you {skill}. You gain %{percentage} mastery.")
+                        percentage = random.randint(1, 100)
+                        print(f"In exchange, the {mob} teaches you {skill}. You gain {percentage}% mastery.")
                         try:
                             p.skills[skill] += percentage
                         except KeyError:
                             p.skills[skill] = percentage
+                        p.quest = None
                     else:
                         print(f"You don't have enough {item.plural}. The {mob} requested {quantity}, "
                               f"and you have {i.quantity}.")
                     break
             else:
                 print(f"You don't have any {item.plural}. You need {quantity}.")
+
+
+def battle_manager(words, mobs):
+    """battle command manager"""
+    words = words.lower().split(" ")
+    weapon_usefulness = {0: (0, 10),
+                         1: (10, 20),
+                         2: (20, 30),
+                         3: (30, 60),
+                         4: (60, 70),
+                         5: (70, 80)}
+
+    if words[0] in ("leave", "exit"):
+        print("The battle is over.")
+        return False
+    elif "run away" in " ".join(words):
+        dirs = ["north", "south", "east", "west"]
+        random_dir = dirs[random.randint(0, len(dirs)-1)]
+        print(f"You run away in a cowardly panic.")
+        change_direction(random_dir)
+
+
+def battle(attacking_mobs, aggressing=False):
+
+    list_of_locals = p.building_local.mobs if p.building_local else the_map[p.location].mobs
+    attacking_mobs = find_specifics(attacking_mobs, list_of_locals)
+    if attacking_mobs == []:
+        print("Can't find anyone to pick a fight with.")
+    else:
+        print(f"{formatted_items([x.name for x in attacking_mobs])} are gearing up to fight.")
+    attacking = True
+    while attacking:
+        attacking = battle_manager(input(), attacking_mobs)
+        for mob in attacking_mobs:
+            if mob.health <= 0:
+                print(f"You killed {mob.name}.")
+                list_of_locals.remove(mob)
+            if mob.health <= 50 and aggressing is False:
+                attacking = False
+        attacking_mobs = [m for m in attacking_mobs if m.health > 0]
+        if p.health <= 0:
+            print("You died. The end.")
+            attacking = False
+
+    # mobs can gang up on you
+    # mobs need an inventory of items...
+    # every 5 or 6 seconds or so, mobs attack you in battle mode
+    # mob starts attacking on taking items sometimes
+    # based on the weapon you have equipped is your attack level
+    # without a weapon, you bite / hit / kick
+    # throwing weapons get rid of the item from your inventory
+    # killing mobs is sad
+    pass

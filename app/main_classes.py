@@ -9,7 +9,7 @@ colorama.init()
 
 class Item(object):
     def __init__(self, name, quantity, plural, category=None, perishable=None,
-                 flammable=None, rarity=None, price=None):
+                 flammable=None, rarity=None, price=None, weapon_rating=None):
         self.name = name
         self.quantity = quantity
         self.plural = plural
@@ -18,6 +18,7 @@ class Item(object):
         self.flammable = flammable or None
         self.rarity = rarity or None
         self.price = price or None
+        self.weapon_rating = weapon_rating or None
 
     def copy(self):
         return Item(name=self.name, quantity=self.quantity, plural=self.plural, category=self.category,
@@ -102,6 +103,7 @@ class Player(object):
         self.quest = None
         self.job = None
 
+    equipped_weapon = None
     building_local = None
     inventory = []
     skills = {}
