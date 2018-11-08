@@ -266,18 +266,6 @@ def apply_for_job():
         print(f"Hello! We are looking to hire {p.building_local.jobs} currently.")
 
 
-def find_specific(words, list_of_objects):
-    specific = None
-    for word in remove_little_words(words).split(' '):
-        for o in list_of_objects:
-            for individual_word in remove_little_words(o.name).lower().split(' '):
-                if word.lower() in individual_word or word.lower() == individual_word:
-                    specific = o
-                    break
-
-    return specific
-
-
 def find_specifics(words, list_of_objects):
     specifics = []
     if words in ('all', 'everyone', 'everything') or words is None or words == '':
@@ -289,12 +277,11 @@ def find_specifics(words, list_of_objects):
                         or word.lower() in o.plural:
                     specifics.append(o)
                     break
-
     return specifics
 
 
 def interact_with_building(words):
-    building = find_specific(words, the_map[p.location].buildings)
+    building = find_specifics(words, the_map[p.location].buildings)[0]
     if building is not None:
         if building.category == 'building':
             if odds(8) is True:

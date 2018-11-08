@@ -1,6 +1,7 @@
 import unittest
 from app.commands import *
 from app.main_classes import *
+from data.text import wild_mobs
 
 
 class AdventureTest(unittest.TestCase):
@@ -82,3 +83,28 @@ class AdventureTest(unittest.TestCase):
         eat_food("12 bagels")
 
         self.assertTrue(p.inventory[0].quantity == 10)
+
+
+class TestSpecifics(unittest.TestCase):
+    mobs = []
+    for k, v in wild_mobs["master"].items():
+        mobs.append(Mob(name=k, **v))
+
+    def test_find_specifics_singular(self):
+        squirrel = find_specifics('squirrel', self.mobs)
+        assert len(squirrel) == 1
+        assert squirrel[0].name == 'a squirrel'
+
+    def test_find_specifics_plural(self):
+        squirrel = find_specifics('squirrels', self.mobs)
+        assert len(squirrel) == 1
+        assert squirrel[0].name == 'a squirrel'
+
+    def test_find_specifics_partial(self):
+        squirrel = find_specifics('squir', self.mobs)
+        assert len(squirrel) == 1
+        assert squirrel[0].name == 'a squirrel'
+
+    def test_find_specifics_all(self):
+        all = find_specifics('all', self.mobs)
+        assert all == self.mobs
