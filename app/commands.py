@@ -76,6 +76,9 @@ def commands_manager(words):
     elif "turn in" in " ".join(words):
         turn_in_quest()
 
+    elif words[0] == "equip":
+        equip(" ".join(words[1:]))
+
     elif words[0] in ("attack", "fight", "battle"):
         battle(" ".join(words[1:]), aggressing=True)
 
@@ -500,6 +503,8 @@ def battle_manager(words, mobs, aggressing):
         print(f"You run away in a cowardly panic.")
         change_direction(random_dir)
         return False
+    elif words[0] == "equip":
+        equip(" ".join(words[1:]))
     else:
         print("I don't know what that command was.")
 
@@ -544,9 +549,20 @@ def battle(attacking_mobs, aggressing=False):
     # mobs can gang up on you
     # mobs attack first if aggro is false, else player attacks first
     # mob starts attacking on taking items sometimes
+    # player needs equip command
     # based on the weapon you have equipped is your attack level
     # without a weapon, you bite / hit / kick
     # throwing weapons get rid of the item from your inventory
     # killing mobs is sad
     # loot dead bodies?
     pass
+
+
+def equip(words):
+    w = find_specifics(words, p.inventory)
+    if w != []:
+        p.equipped_weapon = w[0]
+        p.inventory.remove(w[0])
+        print(f"Equipped {w[0].name if w[0].quantity == 1 else w[0].plural}")
+    else:
+        print(f"Can't find {words} in your inventory.")
