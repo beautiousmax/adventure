@@ -469,7 +469,7 @@ def turn_in_quest():
                 print(f"You don't have any {item.plural}. You need {quantity}.")
 
 
-def battle_manager(words, mobs):
+def battle_manager(words, mobs, aggressing):
     """battle command manager"""
     words = words.lower().split(" ")
     weapon_usefulness = {0: (0, 10),
@@ -486,7 +486,7 @@ def battle_manager(words, mobs):
     elif words[0] == "throw":
         # find damage of weapon, if low level it gains a bonus, if a high level weapon its less useful
         p.equipped_weapon = None
-    elif words[0] in ("leave", "exit"):
+    elif words[0] in ("leave", "exit") and aggressing is False:
         print("The battle is over.")
         return False
     elif "run away" in " ".join(words):
@@ -494,6 +494,7 @@ def battle_manager(words, mobs):
         random_dir = dirs[random.randint(0, len(dirs)-1)]
         print(f"You run away in a cowardly panic.")
         change_direction(random_dir)
+        return False
     else:
         print("I don't know what that command was.")
 
@@ -505,11 +506,11 @@ def battle(attacking_mobs, aggressing=False):
     if attacking_mobs == []:
         print("Can't find anyone to pick a fight with.")
     else:
-        m = capitalize_first(comma_separated(formatted_items(attacking_mobs)))
+        m = comma_separated(formatted_items(attacking_mobs))
         print(f"{m[0].upper()}{m[1:]} {'is' if len(attacking_mobs) == 1 else 'are'} gearing up to fight.")
     attacking = True
-    while attacking:
-        attacking = battle_manager(input(), attacking_mobs)
+    while attacking is True:
+        attacking = battle_manager(input(), attacking_mobs, aggressing)
         for mob in attacking_mobs:
             if mob.health <= 0:
                 print(f"You killed {mob.name}.")
