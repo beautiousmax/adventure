@@ -3,6 +3,7 @@ from app.common_functions import formatted_items, comma_separated, parse_invento
     are_is, capitalize_first
 import random
 from reusables.string_manipulation import int_to_words
+from data.text import names
 
 command_list = {"help": True,
                 "look around": True,
@@ -402,9 +403,12 @@ def talk(words):
 
     mobs = the_map[p.location].mobs if p.building_local is None else p.building_local.mobs
 
-    specific_mob = find_specific(words, mobs)
+    specific_mob = find_specifics(words, mobs)
 
-    if specific_mob is not None:
+    if specific_mob == []:
+        print("Don't know who to talk to.")
+    else:
+        specific_mob = specific_mob[0]
         single_mob = remove_little_words(specific_mob.name)
         non_responses = [f"The {single_mob} just looks at you.",
                          f"The {single_mob} doesn't respond.",
@@ -453,6 +457,7 @@ def turn_in_quest():
                     if i.quantity >= quantity:
                         print(f"You have enough {item.plural} the {mob} requested.")
                         i.quantity -= quantity
+                        # TODO add items to mob inventory
                         skill = p.quest[0].skills[random.randint(0, len(p.quest[0].skills)-1)]
                         percentage = random.randint(1, 100)
                         print(f"In exchange, the {mob} teaches you {skill}. You gain {percentage}% mastery.")
@@ -507,7 +512,21 @@ def battle(attacking_mobs, aggressing=False):
         print("Can't find anyone to pick a fight with.")
     else:
         m = comma_separated(formatted_items(attacking_mobs))
-        print(f"{m[0].upper()}{m[1:]} {'is' if len(attacking_mobs) == 1 else 'are'} gearing up to fight.")
+        print(f"Look out, {m[0].upper()}{m[1:]} {'is' if len(attacking_mobs) == 1 else 'are'} gearing up to fight!")
+        weapons = []
+        for n in attacking_mobs:
+            w = n.equipped_weapon
+            if n.equipped_weapon is not None:
+                # TODO I want this in its own function because I'll use it a lot probably
+                for name in names:
+                    if name in n.name:
+                        mob_id = name
+                        break
+                else:
+                    mob_id = f"the {remove_little_words(n.name)}"
+                weapons.append(f"{mob_id} is wielding {w.name if w.quantity == 1 else w.plural}")
+        # TODO this needs capitalized eventually
+        print(f"{comma_separated(weapons)}.")
     attacking = True
     while attacking is True:
         attacking = battle_manager(input(), attacking_mobs, aggressing)
@@ -523,9 +542,7 @@ def battle(attacking_mobs, aggressing=False):
             attacking = False
 
     # mobs can gang up on you
-    # mobs need an inventory of items...
-    # every 5 or 6 seconds or so, mobs attack you in battle mode
-    # have a while loop counting time passed and interrupt the player?
+    # mobs attack first if aggro is false, else player attacks first
     # mob starts attacking on taking items sometimes
     # based on the weapon you have equipped is your attack level
     # without a weapon, you bite / hit / kick
