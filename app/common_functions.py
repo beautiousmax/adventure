@@ -87,6 +87,5 @@ def are_is(noun_list):
 
 
 def capitalize_first(string):
-    if not string[0].isalpha() and string[0].isdigit():
+    if not string[0].isalpha() and not string[0].isdigit():
         return f"{string[0:3]}{string[4].upper()}{string[5:]}"
-
