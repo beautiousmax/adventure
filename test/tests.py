@@ -61,7 +61,7 @@ class AdventureTest(unittest.TestCase):
             self.assertTrue(p.inventory[0].quantity == quantity)
 
     def test_eat_a_bagel(self):
-        food = Item("a bagel", quantity=10, plural="bagels", type="food")
+        food = Item("a bagel", quantity=10, plural="bagels", category="food")
         p.inventory = [food]
         eat_food("a bagel")
 
@@ -69,7 +69,7 @@ class AdventureTest(unittest.TestCase):
         self.assertTrue(p.inventory[0].quantity == 9)
 
     def test_eating_error(self):
-        food = Item("a bagel", quantity=10, plural="bagels", type="food")
+        food = Item("a bagel", quantity=10, plural="bagels", category="food")
         p.inventory = [food]
         self.assertTrue(p.inventory == [food])
         eat_food("")
@@ -77,7 +77,7 @@ class AdventureTest(unittest.TestCase):
         self.assertTrue(p.inventory[0].quantity == 10)
 
     def test_eating_too_many(self):
-        food = Item("a bagel", quantity=10, plural="bagels", type="food")
+        food = Item("a bagel", quantity=10, plural="bagels", category="food")
         p.inventory = [food]
         self.assertTrue(p.inventory == [food])
         eat_food("12 bagels")

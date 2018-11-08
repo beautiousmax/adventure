@@ -1,6 +1,6 @@
 from app.main_classes import MapSquare, the_map, p
 from app.common_functions import formatted_items, comma_separated, parse_inventory_action, odds, remove_little_words, \
-    are_is, capitalize_first
+    are_is, capitalize_first, find_specifics
 import random
 from reusables.string_manipulation import int_to_words
 from data.text import names
@@ -270,20 +270,6 @@ def apply_for_job():
         print(f"Hello! We are looking to hire {p.building_local.jobs} currently.")
 
 
-def find_specifics(words, list_of_objects):
-    specifics = []
-    if words in ('all', 'everyone', 'everything') or words is None or words == '':
-        return list_of_objects
-    for word in remove_little_words(words).split(' '):
-        for o in list_of_objects:
-            for individual_word in remove_little_words(o.name).lower().split(' '):
-                if word.lower() in individual_word or word.lower() == individual_word or word.lower() == o.plural \
-                        or word.lower() in o.plural:
-                    specifics.append(o)
-                    break
-    return specifics
-
-
 def interact_with_building(words):
     building = find_specifics(words, the_map[p.location].buildings)[0]
     if building is not None:
@@ -477,9 +463,12 @@ def turn_in_quest():
                 print(f"You don't have any {item.plural}. You need {quantity}.")
 
 
-def battle_manager(words, mobs, aggressing):
-    """battle command manager"""
-    words = words.lower().split(" ")
+def attack(mob_a, mob_b):
+    """
+    mob a uses equipped weapon, finds damage based on weapon rating, subtracts it from p.health
+    (no weapon = punching, kicking, etc for '0' rating)
+    """
+
     weapon_usefulness = {0: (0, 10),
                          1: (10, 20),
                          2: (20, 30),
@@ -487,16 +476,35 @@ def battle_manager(words, mobs, aggressing):
                          4: (60, 70),
                          5: (70, 80)}
 
+    w = mob_a.equipped_weapon
+    try:
+        usefulness = weapon_usefulness[w.weapon_rating]
+        damage = random.randint(usefulness[0], usefulness[1])
+    except AttributeError:
+        damage = random.randint(weapon_usefulness[0][0], weapon_usefulness[0][1])
+
+    # TODO this needs capitalized too
+    print(f"{mob_a.name} inflicted {damage} damage to {mob_b.name}.")
+    mob_b.health -= damage
+
+
+def battle_manager(words, mobs, aggressing):
+    """battle command manager"""
+    words = words.lower().split(" ")
+
     if words[0] == "attack":
-        # find damage of weapon and apply it to specific mob
-        # cant attack multiple mobs at once
-        pass
+        for mob in mobs:
+            attack(p, mob)
+        return True
     elif words[0] == "throw":
         # find damage of weapon, if low level it gains a bonus, if a high level weapon its less useful
-        p.equipped_weapon = None
-    elif words[0] in ("leave", "exit") and aggressing is False:
-        print("The battle is over.")
-        return False
+        return True
+    elif words[0] in ("leave", "exit"):
+        if aggressing is False:
+            print("The battle is over.")
+            return False
+        else:
+            print("You can't leave the battle. You must fight!")
     elif "run away" in " ".join(words):
         dirs = ["north", "south", "east", "west"]
         random_dir = dirs[random.randint(0, len(dirs)-1)]
@@ -505,8 +513,11 @@ def battle_manager(words, mobs, aggressing):
         return False
     elif words[0] == "equip":
         equip(" ".join(words[1:]))
+        # TODO need a way to 'pause' battle to eat or equip
+        return True
     else:
         print("I don't know what that command was.")
+        return True
 
 
 def battle(attacking_mobs, aggressing=False):
@@ -534,6 +545,9 @@ def battle(attacking_mobs, aggressing=False):
         print(f"{comma_separated(weapons)}.")
     attacking = True
     while attacking is True:
+        if aggressing is False:
+            for m in attacking_mobs:
+                attack(m, p)
         attacking = battle_manager(input(), attacking_mobs, aggressing)
         for mob in attacking_mobs:
             if mob.health <= 0:
@@ -542,17 +556,17 @@ def battle(attacking_mobs, aggressing=False):
             if mob.health <= 50 and aggressing is False:
                 attacking = False
         attacking_mobs = [m for m in attacking_mobs if m.health > 0]
+        if aggressing is True:
+            for m in attacking_mobs:
+                attack(m, p)
         if p.health <= 0:
             print("You died. The end.")
             attacking = False
 
-    # mobs can gang up on you
-    # mobs attack first if aggro is false, else player attacks first
     # mob starts attacking on taking items sometimes
-    # player needs equip command
-    # based on the weapon you have equipped is your attack level
     # without a weapon, you bite / hit / kick
-    # throwing weapons get rid of the item from your inventory
+    # throwing weapons gets rid of one of that item from your equipped weapon stack
+    # throwing weapons only attacks one mob at a time
     # killing mobs is sad
     # loot dead bodies?
     pass

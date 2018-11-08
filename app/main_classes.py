@@ -238,6 +238,7 @@ class Mob(object):
 
         win a game of go fish with random mob type to learn intelligence
         say hello to 50 mobs to learn communication
+        murder a jellyfish to earn money
         """
 
         if odds(3):
