@@ -49,6 +49,7 @@ class Mob(object):
         self.skills = self.skills()
         self.quest = None
 
+    equipped_weapon = None
     inventory = []
     health = 100
 

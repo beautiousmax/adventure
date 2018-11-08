@@ -1,6 +1,6 @@
 from app.main_classes import MapSquare, the_map, p
 from app.common_functions import formatted_items, comma_separated, parse_inventory_action, odds, remove_little_words, \
-    are_is
+    are_is, capitalize_first
 import random
 from reusables.string_manipulation import int_to_words
 
@@ -75,7 +75,7 @@ def commands_manager(words):
     elif "turn in" in " ".join(words):
         turn_in_quest()
 
-    elif words[0] in ("attack", "battle"):
+    elif words[0] in ("attack", "fight", "battle"):
         battle(" ".join(words[1:]), aggressing=True)
 
     else:
@@ -285,8 +285,10 @@ def find_specifics(words, list_of_objects):
     for word in remove_little_words(words).split(' '):
         for o in list_of_objects:
             for individual_word in remove_little_words(o.name).lower().split(' '):
-                if word.lower() in individual_word or word.lower() == individual_word:
+                if word.lower() in individual_word or word.lower() == individual_word or word.lower() == o.plural \
+                        or word.lower() in o.plural:
                     specifics.append(o)
+                    break
 
     return specifics
 
@@ -490,7 +492,14 @@ def battle_manager(words, mobs):
                          4: (60, 70),
                          5: (70, 80)}
 
-    if words[0] in ("leave", "exit"):
+    if words[0] == "attack":
+        # find damage of weapon and apply it to specific mob
+        # cant attack multiple mobs at once
+        pass
+    elif words[0] == "throw":
+        # find damage of weapon, if low level it gains a bonus, if a high level weapon its less useful
+        p.equipped_weapon = None
+    elif words[0] in ("leave", "exit"):
         print("The battle is over.")
         return False
     elif "run away" in " ".join(words):
@@ -498,6 +507,8 @@ def battle_manager(words, mobs):
         random_dir = dirs[random.randint(0, len(dirs)-1)]
         print(f"You run away in a cowardly panic.")
         change_direction(random_dir)
+    else:
+        print("I don't know what that command was.")
 
 
 def battle(attacking_mobs, aggressing=False):
@@ -507,7 +518,8 @@ def battle(attacking_mobs, aggressing=False):
     if attacking_mobs == []:
         print("Can't find anyone to pick a fight with.")
     else:
-        print(f"{formatted_items([x.name for x in attacking_mobs])} are gearing up to fight.")
+        m = capitalize_first(comma_separated(formatted_items(attacking_mobs)))
+        print(f"{m[0].upper()}{m[1:]} {'is' if len(attacking_mobs) == 1 else 'are'} gearing up to fight.")
     attacking = True
     while attacking:
         attacking = battle_manager(input(), attacking_mobs)
@@ -525,9 +537,11 @@ def battle(attacking_mobs, aggressing=False):
     # mobs can gang up on you
     # mobs need an inventory of items...
     # every 5 or 6 seconds or so, mobs attack you in battle mode
+    # have a while loop counting time passed and interrupt the player?
     # mob starts attacking on taking items sometimes
     # based on the weapon you have equipped is your attack level
     # without a weapon, you bite / hit / kick
     # throwing weapons get rid of the item from your inventory
     # killing mobs is sad
+    # loot dead bodies?
     pass

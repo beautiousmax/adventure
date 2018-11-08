@@ -84,3 +84,9 @@ def are_is(noun_list):
     if quantity == 1:
         quantity = noun_list[0].quantity
     return f"{'are' if quantity > 1 else 'is'} {comma_separated(formatted_items(noun_list))}"
+
+
+def capitalize_first(string):
+    if not string[0].isalpha() and string[0].isdigit():
+        return f"{string[0:3]}{string[4].upper()}{string[5:]}"
+
