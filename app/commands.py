@@ -54,6 +54,7 @@ def commands_manager(words):
     elif " ".join(words) == "inventory":
         print(f"You have {p.formatted_inventory()} in your inventory.")
         if p.equipped_weapon is not None:
+            # TODO show weapon rating ?
             # TODO fix this for non plural
             print(f"You are wielding {int_to_words(p.equipped_weapon.quantity)} {p.equipped_weapon.plural}.")
 
@@ -61,6 +62,8 @@ def commands_manager(words):
         pick_up(" ".join(words[2:]))
 
     elif words[0] == "take":
+        # TODO can't take all on empty square
+
         pick_up(" ". join(words[1:]))
 
     elif " ".join(words) == "status":
@@ -86,6 +89,7 @@ def commands_manager(words):
 
     else:
         print("I don't know that command.")
+    # TODO exit
 
 
 def change_direction(direction):
@@ -97,6 +101,7 @@ def change_direction(direction):
     go n
     go sw
     """
+    # TODO add wait for travel time
     leave_building()
     x = p.location[0]
     y = p.location[1]
@@ -249,6 +254,8 @@ def eat_food(words):
         return
 
     def eat(item_eaten, q):
+        # TODO you have to eat one bagel at a time to regenerate health per bagel
+        # TODO eating magic pills reginerate full health
         if q > item_eaten.quantity:
             print("Cant eat that many")
             return
@@ -524,7 +531,7 @@ def attack(mob_a, mob_b):
 def battle_manager(words, mobs, aggressing):
     """battle command manager"""
     words = words.lower().split(" ")
-
+    # TODO need help
     if words[0] == "attack":
         for mob in mobs:
             attack(p, mob)
@@ -539,7 +546,8 @@ def battle_manager(words, mobs, aggressing):
         else:
             print("You can't leave the battle. You must fight!")
             return True
-    elif "run away" in " ".join(words):
+    elif words == "run" or "run away" in " ".join(words):
+        # TODO picking up stuff after running away breaks
         dirs = ["north", "south", "east", "west"]
         random_dir = dirs[random.randint(0, len(dirs)-1)]
         print(f"You run away in a cowardly panic.")
@@ -587,9 +595,11 @@ def battle(attacking_mobs, aggressing=False):
             attacking = battle_manager(input(), attacking_mobs, aggressing)
 
         mob_health = []
+        # TODO somehow able to attack dead mobs?
         for mob in attacking_mobs:
             mob_id = the_name(mob.name)
             if mob.health <= 0:
+                # TODO not add stuff if mob has empty inventory
                 print(f"You killed {mob_id}. You add {comma_separated(formatted_items(mob.inventory))} to your "
                       f"inventory.")
                 for i in mob.inventory:
@@ -599,19 +609,21 @@ def battle(attacking_mobs, aggressing=False):
                 mob_health.append(f"{mob_id} has {mob.health}")
             if mob.health <= 50 and aggressing is False:
                 attacking = False
+        # TODO if all mobs dead, break attack loop
         attacking_mobs = [m for m in attacking_mobs if m.health > 0]
+        if attacking_mobs == []:
+            attacking = False
         if aggressing is True and attacking is True:
             for m in attacking_mobs:
                 attack(m, p)
         if p.health <= 0:
             print("You died. The end.")
             attacking = False
-    # mob starts attacking on taking items sometimes
-    # without a weapon, you bite / hit / kick
-    # throwing weapons gets rid of one of that item from your equipped weapon stack
-    # throwing weapons only attacks one mob at a time
-    # killing mobs is sad
-    # loot dead bodies
+
+    # without a weapon, you bite / hit / kick?
+    # TODO throwing weapons gets rid of one of that item from your equipped weapon stack
+    # TODO throwing weapons only attacks one mob at a time
+
     pass
 
 

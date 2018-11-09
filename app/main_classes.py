@@ -19,6 +19,7 @@ def drops(dictionary, object_in_question):
     d = dictionary
 
     for k, v in d.items():
+        # TODO unique names doesn't work sometimes
         used_names = []
         quantity = 0
         countdown = random.randint(0, 10)
@@ -122,6 +123,7 @@ class Player(object):
             return "nothing"
 
     def status(self):
+        # TODO show equipped weapon here
         print(f"Currently, you have {self.health}% health. \nYou are located on map coordinates "
               f"{self.location}, which is {the_map[self.location].square_type}.")
         if p.building_local:
