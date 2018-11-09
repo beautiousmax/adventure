@@ -103,3 +103,11 @@ def find_specifics(words, list_of_objects):
                     specifics.append(o)
                     break
     return specifics
+
+
+def the_name(n):
+    for name in names:
+        if name in n:
+            return name
+    else:
+        return f"the {remove_little_words(n)}"

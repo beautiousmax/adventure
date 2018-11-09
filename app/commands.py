@@ -1,9 +1,8 @@
-from app.main_classes import MapSquare, the_map, p
+from app.main_classes import MapSquare, the_map, p, Mob
 from app.common_functions import formatted_items, comma_separated, parse_inventory_action, odds, remove_little_words, \
-    are_is, capitalize_first, find_specifics
+    are_is, capitalize_first, find_specifics, the_name
 import random
 from reusables.string_manipulation import int_to_words
-from data.text import names
 
 command_list = {"help": True,
                 "look around": True,
@@ -54,6 +53,9 @@ def commands_manager(words):
 
     elif " ".join(words) == "inventory":
         print(f"You have {p.formatted_inventory()} in your inventory.")
+        if p.equipped_weapon is not None:
+            # TODO fix this for non plural
+            print(f"You are wielding {int_to_words(p.equipped_weapon.quantity)} {p.equipped_weapon.plural}.")
 
     elif " ".join(words[0:2]) == "pick up":
         pick_up(" ".join(words[2:]))
@@ -148,14 +150,38 @@ def look_around():
             print("There isn't anything here.")
 
 
+def irritate_the_locals(i):
+    if i.rarity in ('rare', 'super rare') and odds(2) and the_map[p.location].mobs != []:
+        angry_mob = [x for x in the_map[p.location].mobs if odds(2)]
+        angry_mob = angry_mob if len(angry_mob) >= 1 else [the_map[p.location].mobs[0]]
+
+        return angry_mob
+    else:
+        return False
+
+
 def pick_up(words):
     quantity, item_text = parse_inventory_action(words)
-
+    # TODO pick up bagels and rocks
     if item_text is None:
+        items_added = []
         for i in the_map[p.location].items:
-            add_item_to_inventory(i, i.quantity)
-        print(f"Added {comma_separated([x.name if x.quantity == 1 else x.plural for x in the_map[p.location].items])} "
-              f"to your inventory.")
+            angry_mob = irritate_the_locals(i)
+            if angry_mob is False:
+                add_item_to_inventory(i, i.quantity)
+                items_added.append(i)
+            else:
+                if items_added:
+                    print(f"Added {comma_separated([x.name if x.quantity == 1 else x.plural for x in items_added])} "
+                          f"to your inventory.")
+                print(f"""Uh oh, {"the locals don't" if len(angry_mob) > 1 else "someone doesn't"} like you """
+                      f"""trying to take """
+                      f"""their {remove_little_words(i.name) if i.quantity == 1 else i.plural}!""")
+                battle(angry_mob)
+                break
+        else:
+            print(f"Added {comma_separated([x.name if x.quantity == 1 else x.plural for x in items_added])} "
+                  f"to your inventory.")
         the_map[p.location].items = []
 
     else:
@@ -172,17 +198,24 @@ def pick_up(words):
                 quantity = item.quantity
 
             if item.quantity >= quantity:
-                add_item_to_inventory(item, quantity)
-                item.quantity -= quantity
-                if item.quantity == 0:
-                    the_map[p.location].items.remove(item)
-                print(f"Added {item.name if quantity == 1 else item.plural} to your inventory.")
+                angry_mob = irritate_the_locals(item)
+                if angry_mob is False:
+                    add_item_to_inventory(item, quantity)
+                    item.quantity -= quantity
+                    if item.quantity == 0:
+                        the_map[p.location].items.remove(item)
+                    print(f"Added {item.name if quantity == 1 else item.plural} to your inventory.")
+                else:
+                    battle(angry_mob)
             elif item.quantity < quantity:
                 print("Can't pick up that many.")
 
 
 def add_item_to_inventory(item_to_add, quantity):
-    if item_to_add.name in [x.name for x in p.inventory]:
+    if p.equipped_weapon is not None and item_to_add.name == p.equipped_weapon.name:
+        p.equipped_weapon.quantity += quantity
+
+    elif item_to_add.name in [x.name for x in p.inventory]:
         for x in p.inventory:
             if item_to_add.name == x.name:
                 x.quantity += int(quantity)
@@ -228,7 +261,7 @@ def eat_food(words):
         if p.health < 100:
             regenerate = random.randint(0, 100-p.health)
             p.health += regenerate
-            print(f"Regenerated {regenerate}% health by eating {item_eaten.name}.")
+            print(f"Regenerated {regenerate} health by eating {item_eaten.name}.")
 
     food = [x for x in p.inventory if x.category == "food"]
     if item_text and "perishable" in item_text:
@@ -480,12 +513,12 @@ def attack(mob_a, mob_b):
     try:
         usefulness = weapon_usefulness[w.weapon_rating]
         damage = random.randint(usefulness[0], usefulness[1])
-    except AttributeError:
+    except (AttributeError, KeyError):
         damage = random.randint(weapon_usefulness[0][0], weapon_usefulness[0][1])
 
     # TODO this needs capitalized too
-    print(f"{mob_a.name} inflicted {damage} damage to {mob_b.name}.")
     mob_b.health -= damage
+    print(f"{mob_a.name} inflicted {damage} damage to {mob_b.name}. {mob_b.name} has {mob_b.health} health left.")
 
 
 def battle_manager(words, mobs, aggressing):
@@ -505,6 +538,7 @@ def battle_manager(words, mobs, aggressing):
             return False
         else:
             print("You can't leave the battle. You must fight!")
+            return True
     elif "run away" in " ".join(words):
         dirs = ["north", "south", "east", "west"]
         random_dir = dirs[random.randint(0, len(dirs)-1)]
@@ -515,15 +549,19 @@ def battle_manager(words, mobs, aggressing):
         equip(" ".join(words[1:]))
         # TODO need a way to 'pause' battle to eat or equip
         return True
-    else:
-        print("I don't know what that command was.")
+    elif words[0] == "eat":
+        eat_food(" ".join(words[1:]))
         return True
+    else:
+        print("You can't do that right now.")
+        battle_manager(input(), mobs, aggressing)
 
 
 def battle(attacking_mobs, aggressing=False):
-
+    # TODO all of this needs colors
     list_of_locals = p.building_local.mobs if p.building_local else the_map[p.location].mobs
-    attacking_mobs = find_specifics(attacking_mobs, list_of_locals)
+    if not isinstance(attacking_mobs[0], Mob):
+        attacking_mobs = find_specifics(attacking_mobs, list_of_locals)
     if attacking_mobs == []:
         print("Can't find anyone to pick a fight with.")
     else:
@@ -533,46 +571,55 @@ def battle(attacking_mobs, aggressing=False):
         for n in attacking_mobs:
             w = n.equipped_weapon
             if n.equipped_weapon is not None:
-                # TODO I want this in its own function because I'll use it a lot probably
-                for name in names:
-                    if name in n.name:
-                        mob_id = name
-                        break
-                else:
-                    mob_id = f"the {remove_little_words(n.name)}"
+                mob_id = the_name(n.name)
+
                 weapons.append(f"{mob_id} is wielding {w.name if w.quantity == 1 else w.plural}")
         # TODO this needs capitalized eventually
-        print(f"{comma_separated(weapons)}.")
+        if weapons:
+            print(f"{comma_separated(weapons)}.")
     attacking = True
     while attacking is True:
         if aggressing is False:
             for m in attacking_mobs:
                 attack(m, p)
-        attacking = battle_manager(input(), attacking_mobs, aggressing)
+
+        if p.health > 0:
+            attacking = battle_manager(input(), attacking_mobs, aggressing)
+
+        mob_health = []
         for mob in attacking_mobs:
+            mob_id = the_name(mob.name)
             if mob.health <= 0:
-                print(f"You killed {mob.name}.")
+                print(f"You killed {mob_id}. You add {comma_separated(formatted_items(mob.inventory))} to your "
+                      f"inventory.")
+                for i in mob.inventory:
+                    add_item_to_inventory(i, i.quantity)
                 list_of_locals.remove(mob)
+            else:
+                mob_health.append(f"{mob_id} has {mob.health}")
             if mob.health <= 50 and aggressing is False:
                 attacking = False
         attacking_mobs = [m for m in attacking_mobs if m.health > 0]
-        if aggressing is True:
+        if aggressing is True and attacking is True:
             for m in attacking_mobs:
                 attack(m, p)
         if p.health <= 0:
             print("You died. The end.")
             attacking = False
-
     # mob starts attacking on taking items sometimes
     # without a weapon, you bite / hit / kick
     # throwing weapons gets rid of one of that item from your equipped weapon stack
     # throwing weapons only attacks one mob at a time
     # killing mobs is sad
-    # loot dead bodies?
+    # loot dead bodies
     pass
 
 
 def equip(words):
+    if p.equipped_weapon is not None:
+        i = p.equipped_weapon
+        p.equipped_weapon = None
+        add_item_to_inventory(i, i.quantity)
     w = find_specifics(words, p.inventory)
     if w != []:
         p.equipped_weapon = w[0]

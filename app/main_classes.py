@@ -72,7 +72,6 @@ def drops(dictionary, object_in_question):
     return drops_i
 
 
-
 class MapSquare(object):
     def __init__(self, name=""):
         square_types = ["forest", "mountains", "desert", "city", "swamp", "ocean"]
@@ -95,7 +94,6 @@ class MapSquare(object):
 the_map = {(0, 0): MapSquare(name="spawn")}
 
 
-
 class Player(object):
     def __init__(self, name, location):
         self.name = name
@@ -114,13 +112,7 @@ class Player(object):
         formatted = []
         for item in self.inventory:
 
-            if item.name == "money":
-                if item.quantity == 0:
-                    formatted.append("no cash")
-                else:
-                    formatted.append(f"{int_to_words(self.money)} dollars")
-
-            elif item.quantity > 1:
+            if item.quantity > 1:
                 formatted.append(f"{int_to_words(item.quantity)} {item.plural}")
             else:
                 formatted.append(item.name)
@@ -154,6 +146,7 @@ class Player(object):
         elif self.job is None and self.quest is None:
             print("You do not have a job, and you are not contributing to society.")
 
+
 p = Player(name='', location=(0, 0))
 
 
@@ -172,7 +165,8 @@ class Item(object):
 
     def copy(self):
         return Item(name=self.name, quantity=self.quantity, plural=self.plural, category=self.category,
-                    perishable=self.perishable, flammable=self.flammable, rarity=self.rarity)
+                    perishable=self.perishable, flammable=self.flammable, rarity=self.rarity,
+                    weapon_rating=self.weapon_rating)
 
 
 class Building(object):

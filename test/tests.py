@@ -108,3 +108,13 @@ class TestSpecifics(unittest.TestCase):
     def test_find_specifics_all(self):
         all = find_specifics('all', self.mobs)
         assert all == self.mobs
+
+
+class TestEquip(unittest.TestCase):
+    def test_equip(self):
+        weapon = Item("weapon", quantity=10, plural="weapons", weapon_rating=5)
+        p.inventory = [weapon]
+        equip('weapon')
+        assert p.inventory == []
+        assert p.equipped_weapon == weapon
+        assert p.equipped_weapon.weapon_rating == 5
