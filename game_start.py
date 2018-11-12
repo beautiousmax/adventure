@@ -24,10 +24,6 @@ while p.health > 0:
 # travel - in a car, on foot, swim, boat
 # interact with mobs in buildings, interview for jobs
 # non-inventory based quests
-# talk, or start fights
-# use weapons
-# you can lose health in fights
-# player death
 # mini games to earn money
 # add time dimension - takes x seconds to travel, night / day
 # have the interview process include drug testing - screen for mushrooms, magic pills, etc

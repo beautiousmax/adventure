@@ -117,14 +117,14 @@ class Player(object):
                 formatted.append(f"{int_to_words(item.quantity)} {item.plural}")
             else:
                 formatted.append(item.name)
-        if formatted != []:
+        if formatted:
             return comma_separated(formatted)
         else:
             return "nothing"
 
     def status(self):
         # TODO show equipped weapon here
-        print(f"Currently, you have {self.health}% health. \nYou are located on map coordinates "
+        print(f"Currently, you have {self.health} health. \nYou are located on map coordinates "
               f"{self.location}, which is {the_map[self.location].square_type}.")
         if p.building_local:
             print(f"You are inside {p.building_local.name}.")
@@ -209,7 +209,7 @@ class Mob(object):
             except AttributeError:
                 pass
         nice_weapons.sort(key=lambda x: x.weapon_rating, reverse=True)
-        if nice_weapons != []:
+        if nice_weapons:
             self.inventory.remove(nice_weapons[0])
             return nice_weapons[0]
         else:

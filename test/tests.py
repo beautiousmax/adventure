@@ -60,11 +60,12 @@ class AdventureTest(unittest.TestCase):
             self.assertTrue(p.inventory[0].name == "a rock")
             self.assertTrue(p.inventory[0].quantity == quantity)
 
+
+class TestEat(unittest.TestCase):
     def test_eat_a_bagel(self):
         food = Item("a bagel", quantity=10, plural="bagels", category="food")
         p.inventory = [food]
         eat_food("a bagel")
-
         self.assertTrue(len(p.inventory) == 1)
         self.assertTrue(p.inventory[0].quantity == 9)
 
@@ -73,7 +74,6 @@ class AdventureTest(unittest.TestCase):
         p.inventory = [food]
         self.assertTrue(p.inventory == [food])
         eat_food("")
-
         self.assertTrue(p.inventory[0].quantity == 10)
 
     def test_eating_too_many(self):
@@ -81,8 +81,14 @@ class AdventureTest(unittest.TestCase):
         p.inventory = [food]
         self.assertTrue(p.inventory == [food])
         eat_food("12 bagels")
-
         self.assertTrue(p.inventory[0].quantity == 10)
+
+    def test_magic_pill(self):
+        p.health = 50
+        food = Item("a magic pill", quantity=1, plural="magic pills", category="food")
+        p.inventory = [food]
+        eat_food("a magic pill")
+        self.assertTrue(p.health == 100)
 
 
 class TestSpecifics(unittest.TestCase):

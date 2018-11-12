@@ -1,6 +1,8 @@
 from app.main_classes import MapSquare, the_map, p, Mob
 from app.common_functions import formatted_items, comma_separated, parse_inventory_action, odds, remove_little_words, \
     are_is, capitalize_first, find_specifics, the_name
+import time
+import sys
 import random
 from reusables.string_manipulation import int_to_words
 
@@ -62,8 +64,6 @@ def commands_manager(words):
         pick_up(" ".join(words[2:]))
 
     elif words[0] == "take":
-        # TODO can't take all on empty square
-
         pick_up(" ". join(words[1:]))
 
     elif " ".join(words) == "status":
@@ -101,7 +101,17 @@ def change_direction(direction):
     go n
     go sw
     """
-    # TODO add wait for travel time
+
+    sys.stdout.write("Traveling . . .")
+    sys.stdout.flush()
+    count = 5
+    while count > 0:
+        time.sleep(1)
+        sys.stdout.write(" .")
+        sys.stdout.flush()
+        count -= 1
+    print()
+
     leave_building()
     x = p.location[0]
     y = p.location[1]
@@ -151,7 +161,8 @@ def look_around():
 
         if p.building_local.mobs:
             print(f"There {are_is(p.building_local.mobs)} here.")
-        if (p.building_local.mobs is None or p.building_local.mobs == []) and (p.building_local.wares is None or p.building_local.wares == []):
+        if (p.building_local.mobs is None or p.building_local.mobs == []) and \
+                (p.building_local.wares is None or p.building_local.wares == []):
             print("There isn't anything here.")
 
 
@@ -159,61 +170,53 @@ def irritate_the_locals(i):
     if i.rarity in ('rare', 'super rare') and odds(2) and the_map[p.location].mobs != []:
         angry_mob = [x for x in the_map[p.location].mobs if odds(2)]
         angry_mob = angry_mob if len(angry_mob) >= 1 else [the_map[p.location].mobs[0]]
-
         return angry_mob
     else:
         return False
 
 
+def clean_up_map():
+    the_map[p.location].items = [i for i in the_map[p.location].items if i.quantity != 0]
+
+
 def pick_up(words):
+    if not the_map[p.location].items:
+        print("Nothing to pick up.")
+        return
+
     quantity, item_text = parse_inventory_action(words)
     # TODO pick up bagels and rocks
-    if item_text is None:
-        items_added = []
-        for i in the_map[p.location].items:
-            angry_mob = irritate_the_locals(i)
-            if angry_mob is False:
-                add_item_to_inventory(i, i.quantity)
-                items_added.append(i)
-            else:
-                if items_added:
-                    print(f"Added {comma_separated([x.name if x.quantity == 1 else x.plural for x in items_added])} "
-                          f"to your inventory.")
-                print(f"""Uh oh, {"the locals don't" if len(angry_mob) > 1 else "someone doesn't"} like you """
-                      f"""trying to take """
-                      f"""their {remove_little_words(i.name) if i.quantity == 1 else i.plural}!""")
-                battle(angry_mob)
-                break
-        else:
-            print(f"Added {comma_separated([x.name if x.quantity == 1 else x.plural for x in items_added])} "
-                  f"to your inventory.")
-        the_map[p.location].items = []
+    item_text = 'all' if item_text is None else item_text
 
-    else:
-        item = None
-        for i in the_map[p.location].items:
-            if item_text in i.name or item_text in i.plural:
-                item = i
-                break
-        else:
-            print(f"Couldn't pick up {item_text}")
+    specific_items = find_specifics(item_text, the_map[p.location].items)
+    if not specific_items:
+        print("Sorry, I can't find that.")
+        return
 
-        if item:
-            if quantity == "all":
-                quantity = item.quantity
-
-            if item.quantity >= quantity:
-                angry_mob = irritate_the_locals(item)
-                if angry_mob is False:
-                    add_item_to_inventory(item, quantity)
-                    item.quantity -= quantity
-                    if item.quantity == 0:
-                        the_map[p.location].items.remove(item)
-                    print(f"Added {item.name if quantity == 1 else item.plural} to your inventory.")
-                else:
-                    battle(angry_mob)
-            elif item.quantity < quantity:
+    items_added = []
+    for item in specific_items:
+        angry_mob = irritate_the_locals(item)
+        if angry_mob is False:
+            q = item.quantity if quantity == "all" else quantity
+            if q > item.quantity:
                 print("Can't pick up that many.")
+                break
+            add_item_to_inventory(item, q)
+            items_added.append((item, q))
+            item.quantity -= q
+        else:
+            clean_up_map()
+            print(f"Added {comma_separated([x[0].name if x[1] == 1 else x[0].plural for x in items_added])} "
+                  f"to your inventory.")
+            print(f"""Uh oh, {"the locals don't" if len(angry_mob) > 1 else "someone doesn't"} like you """
+                  f"""trying to take """
+                  f"""their {remove_little_words(item.name) if item.quantity == 1 else item.plural}!""")
+            battle(angry_mob)
+            break
+    else:
+        clean_up_map()
+        print(f"Added {comma_separated([x[0].name if x[1] == 1 else x[0].plural for x in items_added])} "
+              f"to your inventory.")
 
 
 def add_item_to_inventory(item_to_add, quantity):
@@ -254,8 +257,6 @@ def eat_food(words):
         return
 
     def eat(item_eaten, q):
-        # TODO you have to eat one bagel at a time to regenerate health per bagel
-        # TODO eating magic pills reginerate full health
         if q > item_eaten.quantity:
             print("Cant eat that many")
             return
@@ -265,10 +266,14 @@ def eat_food(words):
         if item_eaten.quantity == 0:
             p.inventory.remove(item_eaten)
 
-        if p.health < 100:
-            regenerate = random.randint(0, 100-p.health)
-            p.health += regenerate
-            print(f"Regenerated {regenerate} health by eating {item_eaten.name}.")
+        for x in range(0, q):
+            if p.health < 100:
+                if item_eaten.name == "a magic pill":
+                    regenerate = 100 - p.health
+                else:
+                    regenerate = random.randint(0, 100-p.health)
+                p.health += regenerate
+                print(f"Regenerated {regenerate} health by eating {item_eaten.name}.")
 
     food = [x for x in p.inventory if x.category == "food"]
     if item_text and "perishable" in item_text:
@@ -434,7 +439,7 @@ def talk(words):
 
     specific_mob = find_specifics(words, mobs)
 
-    if specific_mob == []:
+    if not specific_mob:
         print("Don't know who to talk to.")
     else:
         specific_mob = specific_mob[0]
@@ -555,7 +560,7 @@ def battle_manager(words, mobs, aggressing):
         return False
     elif words[0] == "equip":
         equip(" ".join(words[1:]))
-        # TODO need a way to 'pause' battle to eat or equip
+        # TODO need a way to 'pause' battle to eat or equip.. or not, hee hee
         return True
     elif words[0] == "eat":
         eat_food(" ".join(words[1:]))
@@ -633,7 +638,7 @@ def equip(words):
         p.equipped_weapon = None
         add_item_to_inventory(i, i.quantity)
     w = find_specifics(words, p.inventory)
-    if w != []:
+    if w:
         p.equipped_weapon = w[0]
         p.inventory.remove(w[0])
         print(f"Equipped {w[0].name if w[0].quantity == 1 else w[0].plural}")
