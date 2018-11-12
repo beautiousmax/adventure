@@ -210,8 +210,10 @@ def pick_up(words):
             item.quantity -= q
         else:
             clean_up_map()
-            print(f"Added {comma_separated([x[0].name if x[1] == 1 else x[0].plural for x in items_added])} "
-                  f"to your inventory.")
+            # TODO if you 'take sea shells' it prints added sea shell and sea shells to your inventory....
+            if items_added:
+                print(f"Added {comma_separated([x[0].name if x[1] == 1 else x[0].plural for x in items_added])} "
+                      f"to your inventory.")
             print(f"""Uh oh, {"the locals don't" if len(angry_mob) > 1 else "someone doesn't"} like you """
                   f"""trying to take """
                   f"""their {remove_little_words(item.name) if item.quantity == 1 else item.plural}!""")
@@ -219,8 +221,9 @@ def pick_up(words):
             break
     else:
         clean_up_map()
-        print(f"Added {comma_separated([x[0].name if x[1] == 1 else x[0].plural for x in items_added])} "
-              f"to your inventory.")
+        if items_added:
+            print(f"Added {comma_separated([x[0].name if x[1] == 1 else x[0].plural for x in items_added])} "
+                  f"to your inventory.")
 
 
 def add_item_to_inventory(item_to_add, quantity):
@@ -589,7 +592,6 @@ def battle_manager(words, mobs, aggressing):
             print("You can't leave the battle. You must fight!")
             return True
     elif words == "run" or "run away" in " ".join(words):
-        # TODO picking up stuff after running away breaks
         dirs = ["north", "south", "east", "west"]
         random_dir = dirs[random.randint(0, len(dirs)-1)]
         print(f"You run away in a cowardly panic.")
@@ -617,6 +619,7 @@ def battle(attacking_mobs, aggressing=False):
         attacking_mobs = find_specifics(attacking_mobs, list_of_locals)
     if not attacking_mobs:
         print("Can't find anyone to pick a fight with.")
+        return
     else:
         m = comma_separated(formatted_items(attacking_mobs))
         print(f"Look out, {m[0].upper()}{m[1:]} {'is' if len(attacking_mobs) == 1 else 'are'} gearing up to fight!")
@@ -640,13 +643,12 @@ def battle(attacking_mobs, aggressing=False):
             attacking = battle_manager(input(), attacking_mobs, aggressing)
 
         mob_health = []
-        # TODO somehow able to attack dead mobs?
         for mob in attacking_mobs:
             mob_id = the_name(mob.name)
             if mob.health <= 0:
-                # TODO not add stuff if mob has empty inventory
-                print(f"You killed {mob_id}. You add {comma_separated(formatted_items(mob.inventory))} to your "
-                      f"inventory.")
+                s = f" You add {comma_separated(formatted_items(mob.inventory))} to your " \
+                    f"inventory." if mob.inventory else ''
+                print(f"You killed {mob_id}.{s}")
                 for i in mob.inventory:
                     add_item_to_inventory(i, i.quantity)
                 list_of_locals.remove(mob)
@@ -656,9 +658,9 @@ def battle(attacking_mobs, aggressing=False):
                 print(f"{mob_id} decided the fight's not worth it and has bowed out.")
                 # TODO do you get the inventory items you were fighting over??
                 attacking = False
-        # TODO if all mobs dead, break attack loop
         attacking_mobs = [m for m in attacking_mobs if m.health > 0]
         if not attacking_mobs:
+            print("Everyone attacking you is now dead. Carry on.")
             attacking = False
         if aggressing is True and attacking is True:
             for m in attacking_mobs:
@@ -666,10 +668,6 @@ def battle(attacking_mobs, aggressing=False):
         if p.health <= 0:
             print("You died. The end.")
             attacking = False
-
-    # without a weapon, you bite / hit / kick?
-    # TODO throwing weapons gets rid of one of that item from your equipped weapon stack
-    # TODO throwing weapons only attacks one mob at a time
 
 
 def equip(words):
