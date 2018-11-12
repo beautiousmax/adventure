@@ -98,8 +98,8 @@ def find_specifics(words, list_of_objects):
     for word in remove_little_words(words).split(' '):
         for o in list_of_objects:
             for individual_word in remove_little_words(o.name).lower().split(' '):
-                if word.lower() in individual_word or word.lower() == individual_word or word.lower() == o.plural \
-                        or word.lower() in o.plural:
+                if word.lower() in individual_word.lower() or word.lower() == individual_word.lower() or \
+                        word.lower() == o.plural.lower() or word.lower() in o.plural:
                     specifics.append(o)
                     break
     return specifics

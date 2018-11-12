@@ -47,7 +47,7 @@ def commands_manager(words):
     elif words[0] == "visit":
         interact_with_building(" ".join(words[1:]))
 
-    elif words[0] == "leave" or words[0] == "exit":
+    elif words[0] == "leave" or words[0] == "exit" and p.building_local:
         leave_building()
 
     elif " ".join(words) == "look around" or "look" in words:
@@ -87,9 +87,13 @@ def commands_manager(words):
     elif words[0] in ("attack", "fight", "battle"):
         battle(" ".join(words[1:]), aggressing=True)
 
+    elif words[0] == "exit" and p.building_local is None:
+        p.health = 0
+        print("Goodbye!")
+        # TODO save game before exiting?
+
     else:
         print("I don't know that command.")
-    # TODO exit
 
 
 def change_direction(direction):
@@ -185,7 +189,6 @@ def pick_up(words):
         return
 
     quantity, item_text = parse_inventory_action(words)
-    # TODO pick up bagels and rocks
     item_text = 'all' if item_text is None else item_text
 
     specific_items = find_specifics(item_text, the_map[p.location].items)
@@ -197,7 +200,7 @@ def pick_up(words):
     for item in specific_items:
         angry_mob = irritate_the_locals(item)
         if angry_mob is False:
-            q = item.quantity if quantity == "all" else quantity
+            q = item.quantity if quantity == "all" or quantity is None else quantity
             if q > item.quantity:
                 print("Can't pick up that many.")
                 break
@@ -310,6 +313,7 @@ def eat_food(words):
 
 
 def apply_for_job():
+    # TODO need to be able to apply for a job
     if p.building_local.jobs():
 
         print(f"Hello! We are looking to hire {p.building_local.jobs} currently.")
@@ -573,9 +577,12 @@ def battle_manager(words, mobs, aggressing):
 def battle(attacking_mobs, aggressing=False):
     # TODO all of this needs colors
     list_of_locals = p.building_local.mobs if p.building_local else the_map[p.location].mobs
-    if not isinstance(attacking_mobs[0], Mob):
+    if not attacking_mobs:
+        print("Who are you attacking?")
+        return
+    elif not isinstance(attacking_mobs[0], Mob):
         attacking_mobs = find_specifics(attacking_mobs, list_of_locals)
-    if attacking_mobs == []:
+    if not attacking_mobs:
         print("Can't find anyone to pick a fight with.")
     else:
         m = comma_separated(formatted_items(attacking_mobs))
@@ -613,10 +620,12 @@ def battle(attacking_mobs, aggressing=False):
             else:
                 mob_health.append(f"{mob_id} has {mob.health}")
             if mob.health <= 50 and aggressing is False:
+                print(f"{mob_id} decided the fight's not worth it and has bowed out.")
+                # TODO do you get the inventory items you were fighting over??
                 attacking = False
         # TODO if all mobs dead, break attack loop
         attacking_mobs = [m for m in attacking_mobs if m.health > 0]
-        if attacking_mobs == []:
+        if not attacking_mobs:
             attacking = False
         if aggressing is True and attacking is True:
             for m in attacking_mobs:
@@ -628,8 +637,6 @@ def battle(attacking_mobs, aggressing=False):
     # without a weapon, you bite / hit / kick?
     # TODO throwing weapons gets rid of one of that item from your equipped weapon stack
     # TODO throwing weapons only attacks one mob at a time
-
-    pass
 
 
 def equip(words):
