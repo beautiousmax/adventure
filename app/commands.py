@@ -111,6 +111,8 @@ def change_direction(direction):
     go sw
     """
 
+    # TODO if you have a car or something this goes faster
+    # TODO travel to distant squares
     sys.stdout.write("Traveling . . .")
     sys.stdout.flush()
     count = 5
@@ -140,6 +142,7 @@ def change_direction(direction):
         the_map[p.location].generate_mobs()
     print(f"You are now located on map coordinates {p.location}, which is {the_map[p.location].square_type}.")
     the_map[p.location].generate_items()
+    # TODO add limits for items generated
     look_around()
 
 
@@ -337,14 +340,21 @@ def go_to_work():
             print()
             print(f"You earned ${p.job.salary}.")
             p.money += p.job.salary
+            for skill in p.job.skills_learned:
+                percentage = random.randint(0, 20)
+                try:
+                    p.skills[skill] += percentage
+                except KeyError:
+                    p.skills[skill] = percentage
+
+            mastery = [f"{s} - {m}" for s, m in p.skills.items()]
+            if mastery and p.job.skills_learned:
+                print(f"You gained some skill mastery at work: {comma_separated(mastery)}")
 
         else:
             print(f"Your job is not here. You need to go here: {p.job.location}")
     else:
         print("Sorry, you don't have a job. Try applying for one.")
-
-    # add some skills learned to skill set
-    pass
 
 
 def find_specific_job(words, location):
@@ -355,7 +365,6 @@ def find_specific_job(words, location):
 
 
 def apply_for_job(words):
-    # TODO need to be able to apply for a job
     if not words:
         if len(p.building_local.jobs) == 1:
             job = p.building_local.jobs[0]
@@ -365,6 +374,10 @@ def apply_for_job(words):
     else:
         job = find_specific_job(words, p.building_local)
     if job:
+        if job.inventory_needed and job.inventory_needed not in p.inventory:
+            print(f"You need {job.inventory_needed} for this job.")
+            return
+
         match_score = 100
 
         for skill in job.skills_needed:
@@ -572,6 +585,8 @@ def turn_in_quest():
                             p.skills[skill] = percentage
                         p.quest = None
                     else:
+                        # TODO you have to un-equip the thing to turn in if you are wielding it
+                        # TODO turning in the same quest twice doesn't seem to work if you have the item
                         print(f"You don't have enough {item.plural}. The {mob} requested {quantity}, "
                               f"and you have {i.quantity}.")
                     break
@@ -717,7 +732,7 @@ def battle(attacking_mobs, aggressing=False):
                 list_of_locals.remove(mob)
             else:
                 mob_health.append(f"{mob_id} has {mob.health}")
-            if mob.health <= 50 and aggressing is False:
+            if 0 < mob.health <= 50 and aggressing is False:
                 print(f"{mob_id} decided the fight's not worth it and has bowed out.")
                 # TODO do you get the inventory items you were fighting over??
                 attacking = False
