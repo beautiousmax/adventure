@@ -61,6 +61,7 @@ def commands_manager(words):
             print(f"You are wielding {int_to_words(p.equipped_weapon.quantity)} {p.equipped_weapon.plural}.")
 
     elif " ".join(words[0:2]) == "pick up":
+        # TODO add inventory limit
         pick_up(" ".join(words[2:]))
 
     elif words[0] == "take":
@@ -268,7 +269,7 @@ def eat_food(words):
 
         if item_eaten.quantity == 0:
             p.inventory.remove(item_eaten)
-
+        # TODO chance to loose health eating mysterious berries?
         for x in range(0, q):
             if p.health < 100:
                 if item_eaten.name == "a magic pill":
@@ -517,7 +518,6 @@ def attack(mob_a, mob_b):
     mob a uses equipped weapon, finds damage based on weapon rating, subtracts it from p.health
     (no weapon = punching, kicking, etc for '0' rating)
     """
-
     weapon_usefulness = {0: (0, 10),
                          1: (10, 20),
                          2: (20, 30),
@@ -537,6 +537,33 @@ def attack(mob_a, mob_b):
     print(f"{mob_a.name} inflicted {damage} damage to {mob_b.name}. {mob_b.name} has {mob_b.health} health left.")
 
 
+def throw(mob_a, mob_b):
+    """
+    While you can toss higher level weapons, it doesn't do as much damage as weilding them would
+    """
+    # TODO only throw equipped weapons??
+    weapon_usefulness = {0: (0, 20),
+                         1: (10, 30),
+                         2: (20, 40),
+                         3: (10, 25),
+                         4: (5, 15),
+                         5: (0, 10)}
+    w = mob_a.equipped_weapon
+    try:
+        usefulness = weapon_usefulness[w.weapon_rating]
+        damage = random.randint(usefulness[0], usefulness[1])
+    except (AttributeError, KeyError):
+        damage = random.randint(weapon_usefulness[0][0], weapon_usefulness[0][1])
+
+    # TODO this needs capitalized too
+    mob_b.health -= damage
+    w.quantity -= 1
+    print(f"{mob_a.name} inflicted {damage} damage to {mob_b.name}. {mob_b.name} has {mob_b.health} health left.")
+    if w.quantity == 0:
+        print(f"You are out of {w.plural}.")
+        mob_a.equipped_weapon = None
+
+
 def battle_manager(words, mobs, aggressing):
     """battle command manager"""
     words = words.lower().split(" ")
@@ -546,7 +573,13 @@ def battle_manager(words, mobs, aggressing):
             attack(p, mob)
         return True
     elif words[0] == "throw":
-        # find damage of weapon, if low level it gains a bonus, if a high level weapon its less useful
+        if len(mobs) == 0:
+            mob = mobs[0]
+        else:
+            mob = find_specifics(remove_little_words(' '.join(words)), mobs)
+            if not mob:
+                mob = mob[0] if mob else mobs[0]
+        throw(p, mob)
         return True
     elif words[0] in ("leave", "exit"):
         if aggressing is False:
