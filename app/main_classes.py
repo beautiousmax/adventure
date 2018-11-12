@@ -180,9 +180,24 @@ class Building(object):
         self.rarity = rarity or None
         self.wares = drops(wares, Item) if wares else None
         self.mobs = drops(mobs, Mob) if mobs else None
-        self.jobs = jobs
+        self.jobs = self.drop_job(jobs) if jobs else None
 
-    # TODO add job interviews
+    def drop_job(self, jobs):
+        drops_i = []
+        for k, v in jobs.items():
+            if odds(2):
+                drops_i.append(Job(name=k, **v))
+        return drops_i
+
+
+class Job(object):
+    def __init__(self, name, skills_needed=None, salary=0, skills_learned=None, inventory_needed=None):
+        self.name = name
+        self.location = p.location
+        self.skills_needed = skills_needed or None
+        self.salary = salary or 0
+        self.skills_learned = skills_learned or None
+        self.inventory_needed = inventory_needed or None
 
 
 class Mob(object):

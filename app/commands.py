@@ -21,6 +21,7 @@ def commands_manager(words):
     """ Command handler. """
     words = words.lower().split(" ")
     if words[0] == "help":
+        # TODO help is its own function
         if the_map[p.location].items:
             command_list["pick up <something>"] = True
         else:
@@ -41,7 +42,7 @@ def commands_manager(words):
         else:
             command_list["visit <a building>"] = False
 
-    elif words[0] == "go":
+    elif words[0] == "go" and ' '.join(words) != "go to work":
         change_direction(" ".join(words[1:]))
 
     elif words[0] == "visit":
@@ -92,7 +93,10 @@ def commands_manager(words):
         p.health = 0
         print("Goodbye!")
         # TODO save game before exiting?
-
+    elif words[0] == "apply" and p.building_local is not None:
+        apply_for_job(' '.join(words[1:]))
+    elif words[0] == "work" or ' '.join(words) == "go to work":
+        go_to_work()
     else:
         print("I don't know that command.")
 
@@ -166,6 +170,9 @@ def look_around():
 
         if p.building_local.mobs:
             print(f"There {are_is(p.building_local.mobs)} here.")
+        if p.building_local.jobs:
+            print(f"You can apply for the following open positions here: "
+                  f"{comma_separated([x.name for x in p.building_local.jobs])}")
         if (p.building_local.mobs is None or p.building_local.mobs == []) and \
                 (p.building_local.wares is None or p.building_local.wares == []):
             print("There isn't anything here.")
@@ -316,11 +323,67 @@ def eat_food(words):
             print(f"Couldn't eat {item_text}")
 
 
-def apply_for_job():
-    # TODO need to be able to apply for a job
-    if p.building_local.jobs():
+def go_to_work():
+    if p.job:
+        if p.job.location == p.location:
+            sys.stdout.write("Working . . .")
+            sys.stdout.flush()
+            count = 8
+            while count > 0:
+                time.sleep(1.5)
+                sys.stdout.write(" .")
+                sys.stdout.flush()
+                count -= 1
+            print()
+            print(f"You earned ${p.job.salary}.")
+            p.money += p.job.salary
 
-        print(f"Hello! We are looking to hire {p.building_local.jobs} currently.")
+        else:
+            print(f"Your job is not here. You need to go here: {p.job.location}")
+    else:
+        print("Sorry, you don't have a job. Try applying for one.")
+
+    # add some skills learned to skill set
+    pass
+
+
+def find_specific_job(words, location):
+    for j in location.jobs:
+        for word in remove_little_words(words):
+            if word in j.name or word == j.name:
+                return j
+
+
+def apply_for_job(words):
+    # TODO need to be able to apply for a job
+    if not words:
+        if len(p.building_local.jobs) == 1:
+            job = p.building_local.jobs[0]
+        else:
+            print("What job are you applying for?")
+            return
+    else:
+        job = find_specific_job(words, p.building_local)
+    if job:
+        match_score = 100
+
+        for skill in job.skills_needed:
+            if skill in p.skills.keys():
+                if p.skills[skill] > 90:
+                    print(f"Wow, it says here you are really good at {skill}.")
+                match_score -= p.skills[skill] / len(job.skills_needed)
+
+        match_score = 1 if match_score <= 0 else match_score
+
+        if odds(match_score):
+            print(f"Congratulations {p.name}, you got the job!")
+            p.job = job
+
+        else:
+            bad_news = [f"I'm sorry, we're looking for candidates with more "
+                        f"{comma_separated(job.skills_needed)} right now.",
+                        "We'll let you know."]
+            print(bad_news[random.randint(0, len(bad_news)-1)])
 
 
 def interact_with_building(words):
@@ -679,6 +742,7 @@ def equip(words):
     if w:
         p.equipped_weapon = w[0]
         p.inventory.remove(w[0])
+        # TODO standardize singular / plural nonsense
         print(f"Equipped {w[0].name if w[0].quantity == 1 else w[0].plural}")
     else:
         print(f"Can't find {words} in your inventory.")
