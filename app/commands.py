@@ -672,6 +672,7 @@ def battle_manager(words, mobs, aggressing):
     words = words.lower().split(" ")
     if words[0] == "help":
         battle_help(aggressing)
+        battle_manager(input(), mobs, aggressing)
     elif words[0] == "attack":
         for mob in mobs:
             attack(p, mob)
@@ -700,15 +701,16 @@ def battle_manager(words, mobs, aggressing):
         return False
     elif words[0] == "equip":
         equip(" ".join(words[1:]))
-        # TODO need a way to 'pause' battle to eat or equip.. or not, hee hee
         return True
     elif words[0] == "eat":
         eat_food(" ".join(words[1:]))
         return True
     elif words[0] == "inventory":
         inventory()
+        battle_manager(input(), mobs, aggressing)
     elif words[0] == "status":
         p.status()
+        battle_manager(input(), mobs, aggressing)
     else:
         print("You can't do that right now.")
         battle_manager(input(), mobs, aggressing)
@@ -761,7 +763,6 @@ def battle(attacking_mobs, aggressing=False):
                 mob_health.append(f"{mob_id} has {mob.health}")
             if 0 < mob.health <= 50 and aggressing is False:
                 print(f"{mob_id} decided the fight's not worth it and has bowed out.")
-                # TODO mobs shouldn't start fights if their health is low
                 # TODO do you get the inventory items you were fighting over??
                 attacking = False
         attacking_mobs = [m for m in attacking_mobs if m.health > 0]
