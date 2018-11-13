@@ -233,7 +233,7 @@ class Mob(object):
     def skills(self):
         """Pick the skills for a mob, these determine what a player can get from completing a quest"""
         all_skills = ["strength", "patience", "cleanliness", "leadership", "communication", "self loathing",
-                      "science", "math", "engineering", "intelligence"]
+                      "science", "math", "engineering", "intelligence", "driving"]
 
         random.shuffle(all_skills)
         return all_skills[0:2]

@@ -22,7 +22,6 @@ while p.health > 0:
 # inventory limits
 # word wrap?
 # travel - in a car, on foot, swim, boat
-# interact with mobs in buildings, interview for jobs
 # non-inventory based quests
 # mini games to earn money
 # add time dimension - takes x seconds to travel, night / day

@@ -6,41 +6,44 @@ import sys
 import random
 from reusables.string_manipulation import int_to_words
 
-command_list = {"help": True,
-                "look around": True,
-                "go <southwest>": True,
-                "inventory": True,
-                "status": True,
-                "pick up <something>": False,
-                "eat <something>": False,
-                "visit <a building>": False,
-                "buy <something>": False}
+
+def help_me():
+    command_list = {"look around": True,
+                    "go <southwest>": True,
+                    "inventory": True,
+                    "status": True,
+                    "pick up <something>": True if the_map[p.location].items and p.building_local is False else False,
+                    "eat <something>": True if [x for x in p.inventory if x.category == "food"] else False,
+                    "visit <a building>": True if the_map[p.location].buildings else False,
+                    "leave <the building>": True if p.building_local else False,
+                    "buy <something>": True if p.building_local and p.building_local.wares else False,
+                    "apply <for a job>": True if p.building_local and p.building_local.jobs else False,
+                    "battle <a mob>": True if the_map[p.location].mobs or p.building_local.mobs else False,
+                    "equip <something>": True if p.inventory else False,
+                    "ask <a mob> for a quest": True if the_map[p.location].mobs or p.building_local.mobs else False,
+                    "say hi to <a mob>": True if the_map[p.location].mobs or p.building_local.mobs else False,
+                    "turn in quest": True if p.quest else False,
+                    "go to work": True if p.job else False,
+                    "exit": True}
+
+    for command, status in command_list.items():
+        if status:
+            print(command)
+
+
+def inventory():
+    print(f"You have {p.formatted_inventory()} in your inventory.")
+    if p.equipped_weapon is not None:
+        # TODO show weapon rating ?
+        # TODO fix this for non plural
+        print(f"You are wielding {int_to_words(p.equipped_weapon.quantity)} {p.equipped_weapon.plural}.")
 
 
 def commands_manager(words):
     """ Command handler. """
     words = words.lower().split(" ")
     if words[0] == "help":
-        # TODO help is its own function
-        if the_map[p.location].items:
-            command_list["pick up <something>"] = True
-        else:
-            command_list["pick up <something>"] = False
-        for x in p.inventory:
-            if x.category == "food":
-                command_list["eat <something>"] = True
-                break
-        else:
-            command_list["eat <something>"] = False
-
-        for command, status in command_list.items():
-            if status:
-                print(command)
-
-        if the_map[p.location].buildings:
-            command_list["visit <a building>"] = True
-        else:
-            command_list["visit <a building>"] = False
+        help_me()
 
     elif words[0] == "go" and ' '.join(words) != "go to work":
         change_direction(" ".join(words[1:]))
@@ -55,11 +58,7 @@ def commands_manager(words):
         look_around()
 
     elif " ".join(words) == "inventory":
-        print(f"You have {p.formatted_inventory()} in your inventory.")
-        if p.equipped_weapon is not None:
-            # TODO show weapon rating ?
-            # TODO fix this for non plural
-            print(f"You are wielding {int_to_words(p.equipped_weapon.quantity)} {p.equipped_weapon.plural}.")
+        inventory()
 
     elif " ".join(words[0:2]) == "pick up":
         # TODO add inventory limit
@@ -270,7 +269,7 @@ def eat_food(words):
     eat some food
     eat the perishable food
     """
-
+    # TODO add drinking for coffee and whiskey shots
     quantity, item_text = parse_inventory_action(words)
 
     if quantity is None and item_text is None:
@@ -415,18 +414,13 @@ def interact_with_building(words):
                 print(f"Too bad, {building.name} is closed right now. Try again later.")
             else:
                 p.building_local = building
-                command_list['visit <a building>'] = False
-                command_list['leave'] = True
                 print(f"You are now inside {building.name}.")
                 look_around()
-                if p.building_local.wares:
-                    command_list['buy <something>'] = True
+
         else:
             if odds(10) is False:
                 print("The occupants of this residence have kicked you out.")
             else:
-                command_list['visit <a building>'] = False
-                command_list['leave'] = True
                 p.building_local = building
                 print("You are now inside a house")
                 look_around()
@@ -437,9 +431,6 @@ def interact_with_building(words):
 
 def leave_building():
     if p.building_local is not None:
-        command_list['visit <a building>'] = True
-        command_list['leave'] = False
-        command_list['buy <something>'] = False
         print(f"Leaving {p.building_local.name}")
         p.building_local = None
 
@@ -654,12 +645,27 @@ def throw(mob_a, mob_b):
         mob_a.equipped_weapon = None
 
 
+def battle_help(agro):
+    command_list = {"attack": True,
+                    "throw": True if p.equipped_weapon else False,
+                    "eat <something>": True if [x for x in p.inventory if x.category == "food"] else False,
+                    "run away": True,
+                    "leave": True if agro is False else False,
+                    "inventory": True,
+                    "equip": True if p.inventory else False,
+                    "status": True
+    }
+    for command, status in command_list.items():
+        if status:
+            print(command)
+
+
 def battle_manager(words, mobs, aggressing):
     """battle command manager"""
     words = words.lower().split(" ")
-    # TODO need help
-    # TODO need inventory
-    if words[0] == "attack":
+    if words[0] == "help":
+        battle_help(aggressing)
+    elif words[0] == "attack":
         for mob in mobs:
             attack(p, mob)
         return True
@@ -692,6 +698,10 @@ def battle_manager(words, mobs, aggressing):
     elif words[0] == "eat":
         eat_food(" ".join(words[1:]))
         return True
+    elif words[0] == "inventory":
+        inventory()
+    elif words[0] == "status":
+        p.status()
     else:
         print("You can't do that right now.")
         battle_manager(input(), mobs, aggressing)

@@ -93,6 +93,8 @@ def capitalize_first(string):
 
 def find_specifics(words, list_of_objects):
     specifics = []
+    if list_of_objects is None:
+        return specifics
     if words in ('all', 'everyone', 'everything') or words is None or words == '':
         return list_of_objects
     for word in remove_little_words(words).split(' '):
