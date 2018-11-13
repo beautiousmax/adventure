@@ -80,7 +80,7 @@ def commands_manager(words):
     elif "say" in words or "talk" in words or "ask" in words:
         talk(words)
 
-    elif "turn in" in " ".join(words):
+    elif "turn in" in " ".join(words) or " ".join(words) == "complete quest":
         turn_in_quest()
 
     elif words[0] == "equip":
@@ -97,6 +97,8 @@ def commands_manager(words):
         apply_for_job(' '.join(words[1:]))
     elif words[0] == "work" or ' '.join(words) == "go to work":
         go_to_work()
+    elif words[0] == "ls":
+        print("What, you think this is Linux?")
     else:
         print("I don't know that command.")
 
@@ -113,6 +115,7 @@ def change_direction(direction):
 
     # TODO if you have a car or something this goes faster
     # TODO travel to distant squares
+    # TODO shouldn't be able to go nowhere
     sys.stdout.write("Traveling . . .")
     sys.stdout.flush()
     count = 5
@@ -283,6 +286,8 @@ def eat_food(words):
         if item_eaten.quantity == 0:
             p.inventory.remove(item_eaten)
         # TODO chance to loose health eating mysterious berries?
+        # TODO stop eatting when health is 100
+        # TODO eat bagel ate all bagels not singular bagel
         for x in range(0, q):
             if p.health < 100:
                 if item_eaten.name == "a magic pill":
@@ -400,7 +405,9 @@ def apply_for_job(words):
 
 
 def interact_with_building(words):
-    building = find_specifics(words, the_map[p.location].buildings)[0]
+    # TODO visiting a misspelled building breaks stuff
+    building = find_specifics(words, the_map[p.location].buildings)
+    building = building[0] if building else None
     if building is not None:
         if building.category == 'building':
             if odds(8) is True:
@@ -623,6 +630,7 @@ def throw(mob_a, mob_b):
     While you can toss higher level weapons, it doesn't do as much damage as weilding them would
     """
     # TODO only throw equipped weapons??
+    # TODO add thrown item to map square items
     weapon_usefulness = {0: (0, 20),
                          1: (10, 30),
                          2: (20, 40),
@@ -734,6 +742,7 @@ def battle(attacking_mobs, aggressing=False):
                 mob_health.append(f"{mob_id} has {mob.health}")
             if 0 < mob.health <= 50 and aggressing is False:
                 print(f"{mob_id} decided the fight's not worth it and has bowed out.")
+                # TODO mobs shouldn't start fights if their health is low
                 # TODO do you get the inventory items you were fighting over??
                 attacking = False
         attacking_mobs = [m for m in attacking_mobs if m.health > 0]

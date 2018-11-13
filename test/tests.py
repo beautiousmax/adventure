@@ -115,6 +115,15 @@ class TestSpecifics(unittest.TestCase):
         all = find_specifics('all', self.mobs)
         assert all == self.mobs
 
+    def test_misspelled_specifics(self):
+        m = find_specifics('abcdefg', self.mobs)
+        assert not m
+
+    def test_capitalization_specific(self):
+        squirrel = find_specifics('SQUIRREL', self.mobs)
+        assert len(squirrel) == 1
+        assert squirrel[0].name == 'a squirrel'
+
 
 class TestEquip(unittest.TestCase):
     def test_equip(self):
