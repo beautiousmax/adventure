@@ -46,7 +46,12 @@ def commands_manager(words):
         help_me()
 
     elif words[0] == "go" and ' '.join(words) != "go to work":
-        change_direction(" ".join(words[1:]))
+        if words[1:] and ' '.join(words[1:]).strip() in ["n", "ne", "nw", "s", "se", "sw", "e", "w" "north",
+                                                         "northeast", "northwest", "south", "southeast", "southwest",
+                                                         "east", "west", "up", "down", "left", "right"]:
+            change_direction(" ".join(words[1:]).strip())
+        else:
+            print("Looks like you're headed nowhere fast!")
 
     elif words[0] == "visit":
         interact_with_building(" ".join(words[1:]))
@@ -93,8 +98,10 @@ def commands_manager(words):
         print("Goodbye!")
         # TODO save game before exiting?
     elif words[0] == "apply" and p.building_local is not None:
+        # TODO can't apply for job you already have
         apply_for_job(' '.join(words[1:]))
     elif words[0] == "work" or ' '.join(words) == "go to work":
+        # TODO shouldn't be able to work back to back
         go_to_work()
     elif words[0] == "ls":
         print("What, you think this is Linux?")
@@ -112,15 +119,13 @@ def change_direction(direction):
     go sw
     """
 
-    # TODO if you have a car or something this goes faster
     # TODO travel to distant squares
-    # TODO shouldn't be able to go nowhere
-    # TODO strip spaces off
     sys.stdout.write("Traveling . . .")
     sys.stdout.flush()
     count = 5
+    travel_time = 1 if not [x for x in p.inventory if x.category == 'vehicle'] else .2
     while count > 0:
-        time.sleep(1)
+        time.sleep(travel_time)
         sys.stdout.write(" .")
         sys.stdout.flush()
         count -= 1
@@ -129,13 +134,13 @@ def change_direction(direction):
     leave_building()
     x = p.location[0]
     y = p.location[1]
-    if direction.lower() in ("n", "ne", "nw", "north", "northeast", "northwest"):
+    if direction.lower() in ("n", "ne", "nw", "north", "northeast", "northwest", "up"):
         y += 1
-    if direction.lower() in ("e", "ne", "se", "east", "northeast", "southeast"):
+    if direction.lower() in ("e", "ne", "se", "east", "northeast", "southeast", "right"):
         x += 1
-    if direction.lower() in ("s", "se", "sw", "south", "southeast", "southwest"):
+    if direction.lower() in ("s", "se", "sw", "south", "southeast", "southwest", "down"):
         y -= 1
-    if direction.lower() in ("w", "nw", "sw", "west", "northwest", "southwest"):
+    if direction.lower() in ("w", "nw", "sw", "west", "northwest", "southwest", "left"):
         x -= 1
 
     p.location = (x, y)
@@ -397,6 +402,7 @@ def apply_for_job(words):
         if odds(match_score):
             print(f"Congratulations {p.name}, you got the job!")
             p.job = job
+            # TODO clean-up job so it doesn't show on job listing?
 
         else:
             bad_news = [f"I'm sorry, we're looking for candidates with more "
@@ -500,6 +506,7 @@ def haggle(items, quantity, price_offered):
 
 
 def buy_items(items, quantity, cost):
+    # TODO restock bought items
     for item in items:
         q = item.quantity if quantity == 'all' else quantity
         add_item_to_inventory(item, q)
