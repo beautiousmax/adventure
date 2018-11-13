@@ -38,7 +38,7 @@ def commands_manager(words):
         help_me()
 
     elif words[0] == "go" and ' '.join(words) != "go to work":
-        if words[1:] and ' '.join(words[1:]).strip() in ["n", "ne", "nw", "s", "se", "sw", "e", "w" "north",
+        if words[1:] and ' '.join(words[1:]).strip() in ["n", "ne", "nw", "s", "se", "sw", "e", "w", "north",
                                                          "northeast", "northwest", "south", "southeast", "southwest",
                                                          "east", "west", "up", "down", "left", "right"]:
             change_direction(" ".join(words[1:]).strip())
@@ -236,18 +236,18 @@ def pick_up(words):
                   f"to your inventory.")
 
 
-def add_item_to_inventory(item_to_add, quantity):
-    if p.equipped_weapon is not None and item_to_add.name == p.equipped_weapon.name:
-        p.equipped_weapon.quantity += quantity
+def add_item_to_inventory(item_to_add, quantity, mob=p):
+    if mob.equipped_weapon is not None and item_to_add.name == mob.equipped_weapon.name:
+        mob.equipped_weapon.quantity += quantity
 
-    elif item_to_add.name in [x.name for x in p.inventory]:
-        for x in p.inventory:
+    elif item_to_add.name in [x.name for x in mob.inventory]:
+        for x in mob.inventory:
             if item_to_add.name == x.name:
                 x.quantity += int(quantity)
     else:
         new_item = item_to_add.copy()
         new_item.quantity = quantity
-        p.inventory.append(new_item)
+        mob.inventory.append(new_item)
 
 
 def eat_food(words):
@@ -562,21 +562,24 @@ def turn_in_quest():
     if p.quest is None:
         print("You don't have a quest.")
     else:
-        mob = remove_little_words(p.quest[0].name)
+        mob_name = remove_little_words(p.quest[0].name)
+        mob = p.quest[0]
         if p.quest[1] != p.location:
-            print(f"The {mob} who gave you your quest is not here. You need to go to {p.quest[1]}.")
+            print(f"The {mob_name} who gave you your quest is not here. You need to go to {p.quest[1]}.")
         else:
-            item = p.quest[0].quest[0]
-            quantity = p.quest[0].quest[1]
+            item = mob.quest[0]
+            quantity = mob.quest[1]
             for i in p.inventory:
                 if i.name == item.name:
                     if i.quantity >= quantity:
-                        print(f"You have enough {item.plural} the {mob} requested.")
+                        print(f"You have enough {item.plural} the {mob_name} requested.")
                         i.quantity -= quantity
-                        # TODO add items to mob inventory
-                        skill = p.quest[0].skills[random.randint(0, len(p.quest[0].skills)-1)]
+
+                        add_item_to_inventory(i, quantity, mob)
+
+                        skill = mob.skills[random.randint(0, len(mob.skills)-1)]
                         percentage = random.randint(1, 100)
-                        print(f"In exchange, the {mob} teaches you {skill}. You gain {percentage}% mastery.")
+                        print(f"In exchange, the {mob_name} teaches you {skill}. You gain {percentage}% mastery.")
                         try:
                             p.skills[skill] += percentage
                         except KeyError:
@@ -585,7 +588,7 @@ def turn_in_quest():
                     else:
                         # TODO you have to un-equip the thing to turn in if you are wielding it
                         # TODO turning in the same quest twice doesn't seem to work if you have the item
-                        print(f"You don't have enough {item.plural}. The {mob} requested {quantity}, "
+                        print(f"You don't have enough {item.plural}. The {mob_name} requested {quantity}, "
                               f"and you have {i.quantity}.")
                     break
             else:
