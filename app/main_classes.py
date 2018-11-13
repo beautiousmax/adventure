@@ -142,7 +142,7 @@ class Player(object):
         print(f"You have ${self.money} in your wallet.")
 
         if self.job:
-            print(f"You have a job as a {self.job}.")
+            print(f"You have a job as a {self.job.name}.")
         if self.quest:
             print(f"You have a quest.")
         elif self.job is None and self.quest is None:

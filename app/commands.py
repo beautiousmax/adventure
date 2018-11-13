@@ -116,6 +116,7 @@ def change_direction(direction):
     # TODO if you have a car or something this goes faster
     # TODO travel to distant squares
     # TODO shouldn't be able to go nowhere
+    # TODO strip spaces off
     sys.stdout.write("Traveling . . .")
     sys.stdout.flush()
     count = 5
@@ -345,16 +346,17 @@ def go_to_work():
             print()
             print(f"You earned ${p.job.salary}.")
             p.money += p.job.salary
-            for skill in p.job.skills_learned:
-                percentage = random.randint(0, 20)
-                try:
-                    p.skills[skill] += percentage
-                except KeyError:
-                    p.skills[skill] = percentage
+            if p.job.skills_learned:
+                for skill in p.job.skills_learned:
+                    percentage = random.randint(0, 20)
+                    try:
+                        p.skills[skill] += percentage
+                    except KeyError:
+                        p.skills[skill] = percentage
 
-            mastery = [f"{s} - {m}" for s, m in p.skills.items()]
-            if mastery and p.job.skills_learned:
-                print(f"You gained some skill mastery at work: {comma_separated(mastery)}")
+                mastery = [f"{s} - {m}" for s, m in p.skills.items()]
+                if mastery:
+                    print(f"You gained some skill mastery at work: {comma_separated(mastery)}%")
 
         else:
             print(f"Your job is not here. You need to go here: {p.job.location}")
@@ -405,7 +407,6 @@ def apply_for_job(words):
 
 
 def interact_with_building(words):
-    # TODO visiting a misspelled building breaks stuff
     building = find_specifics(words, the_map[p.location].buildings)
     building = building[0] if building else None
     if building is not None:
@@ -657,6 +658,7 @@ def battle_manager(words, mobs, aggressing):
     """battle command manager"""
     words = words.lower().split(" ")
     # TODO need help
+    # TODO need inventory
     if words[0] == "attack":
         for mob in mobs:
             attack(p, mob)

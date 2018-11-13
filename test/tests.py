@@ -133,3 +133,24 @@ class TestEquip(unittest.TestCase):
         assert p.inventory == []
         assert p.equipped_weapon == weapon
         assert p.equipped_weapon.weapon_rating == 5
+
+
+class TestJob(unittest.TestCase):
+
+    def test_job(self):
+        p.money = 0
+        p.skills = {}
+        job = Job(name="a job", skills_learned=['communication'], salary=45)
+        p.job = job
+        go_to_work()
+        assert p.money == 45
+        assert p.skills['communication'] >= 0
+
+    def test_job_no_skills(self):
+        p.money = 0
+        p.skills = {}
+        job = Job(name="a job", skills_learned=None, salary=45)
+        p.job = job
+        go_to_work()
+        assert p.money == 45
+        assert p.skills == {}
