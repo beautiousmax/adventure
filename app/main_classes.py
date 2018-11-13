@@ -7,6 +7,19 @@ from reusables.string_manipulation import int_to_words
 colorama.init()
 
 
+def find_a_name(name_list):
+    n = name_list[random.randint(0, len(name_list)-1)]
+    if len(the_map[p.location].unique_names) <= len(names) + len(adjectives):
+        if n not in the_map[p.location].unique_names:
+            the_map[p.location].unique_names.append(n)
+            return n
+        else:
+            return find_a_name(name_list)
+    else:
+        the_map[p.location].unique_names = []
+        return find_a_name(name_list)
+
+
 def drops(dictionary, object_in_question):
     drops_i = []
 
@@ -19,8 +32,6 @@ def drops(dictionary, object_in_question):
     d = dictionary
 
     for k, v in d.items():
-        # TODO unique names doesn't work sometimes
-        used_names = []
         quantity = 0
         countdown = random.randint(0, 10)
         while countdown > 0:
@@ -33,11 +44,7 @@ def drops(dictionary, object_in_question):
             elif object_in_question == Mob:
                 if quantity > 1:
                     for m in range(0, quantity):
-                        n = ''
-                        while n not in used_names:
-                            n = names[random.randint(0, len(names)-1)]
-                            if n not in used_names:
-                                used_names.append(n)
+                        n = find_a_name(names)
                         drops_i.append(Mob(name=f"{k} named {n}", **v))
                 else:
                     drops_i.append(Mob(name=k, **v))
@@ -45,27 +52,14 @@ def drops(dictionary, object_in_question):
                 if quantity > 1 and v['category'] != 'residence':
                     for m in range(0, quantity):
                         if odds(2):
-                            n = ''
-                            while n not in used_names:
-                                n = adjectives[random.randint(0, len(adjectives) - 1)]
-                                if n not in used_names:
-                                    used_names.append(n)
+                            n = find_a_name(adjectives)
                             drops_i.append(Building(name=f"The {n} {remove_little_words(k).capitalize()}", **v))
                         else:
-                            n = ''
-                            while n not in used_names:
-                                n = names[random.randint(0, len(names) - 1)]
-                                if n not in used_names:
-                                    used_names.append(n)
+                            n = find_a_name(names)
                             drops_i.append(Building(name=f"{n}'s {remove_little_words(k).capitalize()}", **v))
                 elif quantity > 1 and v['category'] == 'residence':
                     for m in range(0, quantity):
-                        n = ''
-                        while n not in used_names:
-                            n = names[random.randint(0, len(names) - 1)]
-                            if n not in used_names:
-                                used_names.append(n)
-
+                        n = find_a_name(names)
                         drops_i.append(Building(name=f"{n}'s {remove_little_words(k)}", **v))
                 else:
                     drops_i.append(Building(name=k, **v))
@@ -78,6 +72,8 @@ class MapSquare(object):
         square_types = ["forest", "mountains", "desert", "city", "swamp", "ocean"]
         self.square_type = square_types[random.randint(0, len(square_types) - 1)]
         self.name = name
+        self.unique_names = []
+
     mobs = []
     items = []
     buildings = []
