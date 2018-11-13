@@ -31,14 +31,6 @@ def help_me():
             print(command)
 
 
-def inventory():
-    print(f"You have {p.formatted_inventory()} in your inventory.")
-    if p.equipped_weapon is not None:
-        # TODO show weapon rating ?
-        # TODO fix this for non plural
-        print(f"You are wielding {int_to_words(p.equipped_weapon.quantity)} {p.equipped_weapon.plural}.")
-
-
 def commands_manager(words):
     """ Command handler. """
     words = words.lower().split(" ")
@@ -63,7 +55,7 @@ def commands_manager(words):
         look_around()
 
     elif " ".join(words) == "inventory":
-        inventory()
+        p.pretty_inventory()
 
     elif " ".join(words[0:2]) == "pick up":
         # TODO add inventory limit
@@ -706,7 +698,7 @@ def battle_manager(words, mobs, aggressing):
         eat_food(" ".join(words[1:]))
         return True
     elif words[0] == "inventory":
-        inventory()
+        p.pretty_inventory()
         battle_manager(input(), mobs, aggressing)
     elif words[0] == "status":
         p.status()

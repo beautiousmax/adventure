@@ -118,8 +118,15 @@ class Player(object):
         else:
             return "nothing"
 
+    def pretty_inventory(self):
+        print(f"You have {self.formatted_inventory()} in your inventory.")
+        if self.equipped_weapon is not None:
+            # TODO show weapon rating ?
+            w = self.equipped_weapon
+            print(f"You are wielding {int_to_words(w.quantity)} "
+                  f"{remove_little_words(w.name) if w.quantity == 1 else w.plural}.")
+
     def status(self):
-        # TODO show equipped weapon here
         print(f"Currently, you have {self.health} health. \nYou are located on map coordinates "
               f"{self.location}, which is {the_map[self.location].square_type}.")
         if p.building_local:
@@ -134,7 +141,7 @@ class Player(object):
         else:
             print("You don't have any skills.")
 
-        print(f"You have {self.formatted_inventory()} in your inventory.")
+        self.pretty_inventory()
         print(f"You have ${self.money} in your wallet.")
 
         if self.job:
