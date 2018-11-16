@@ -1,60 +1,64 @@
-from app.main_classes import MapSquare, the_map, p
+from app.main_classes import MapSquare, the_map, p, Mob
 from app.common_functions import formatted_items, comma_separated, parse_inventory_action, odds, remove_little_words, \
-    are_is
+    are_is, capitalize_first, find_specifics, the_name
+import time
+import sys
 import random
 from reusables.string_manipulation import int_to_words
 
-command_list = {"help": True,
-                "look around": True,
-                "go <southwest>": True,
-                "inventory": True,
-                "status": True,
-                "pick up <something>": False,
-                "eat <something>": False,
-                "visit <a building>": False,
-                "buy <something>": False}
+
+def help_me():
+    command_list = {"look around": True,
+                    "go <southwest>": True,
+                    "inventory": True,
+                    "status": True,
+                    "pick up <something>": True if the_map[p.location].items and p.building_local is False else False,
+                    "eat <something>": True if [x for x in p.inventory if x.category == "food"] else False,
+                    "visit <a building>": True if the_map[p.location].buildings else False,
+                    "leave <the building>": True if p.building_local else False,
+                    "buy <something>": True if p.building_local and p.building_local.wares else False,
+                    "apply <for a job>": True if p.building_local and p.building_local.jobs else False,
+                    "battle <a mob>": True if the_map[p.location].mobs or p.building_local.mobs else False,
+                    "equip <something>": True if p.inventory else False,
+                    "ask <a mob> for a quest": True if the_map[p.location].mobs or p.building_local.mobs else False,
+                    "say hi to <a mob>": True if the_map[p.location].mobs or p.building_local.mobs else False,
+                    "turn in quest": True if p.quest else False,
+                    "go to work": True if p.job else False,
+                    "exit": True}
+
+    for command, status in command_list.items():
+        if status:
+            print(command)
 
 
 def commands_manager(words):
     """ Command handler. """
     words = words.lower().split(" ")
     if words[0] == "help":
-        if the_map[p.location].items:
-            command_list["pick up <something>"] = True
-        else:
-            command_list["pick up <something>"] = False
-        for x in p.inventory:
-            if x.category == "food":
-                command_list["eat <something>"] = True
-                break
-        else:
-            command_list["eat <something>"] = False
+        help_me()
 
-        for command, status in command_list.items():
-            if status:
-                print(command)
-
-        if the_map[p.location].buildings:
-            command_list["visit <a building>"] = True
+    elif words[0] == "go" and ' '.join(words) != "go to work":
+        if words[1:] and ' '.join(words[1:]).strip() in ["n", "ne", "nw", "s", "se", "sw", "e", "w", "north",
+                                                         "northeast", "northwest", "south", "southeast", "southwest",
+                                                         "east", "west", "up", "down", "left", "right"]:
+            change_direction(" ".join(words[1:]).strip())
         else:
-            command_list["visit <a building>"] = False
-
-    elif words[0] == "go":
-        change_direction(" ".join(words[1:]))
+            print("Looks like you're headed nowhere fast!")
 
     elif words[0] == "visit":
         interact_with_building(" ".join(words[1:]))
 
-    elif words[0] == "leave" or words[0] == "exit":
+    elif words[0] == "leave" or words[0] == "exit" and p.building_local:
         leave_building()
 
     elif " ".join(words) == "look around" or "look" in words:
         look_around()
 
     elif " ".join(words) == "inventory":
-        print(f"You have {p.formatted_inventory()} in your inventory.")
+        p.pretty_inventory()
 
     elif " ".join(words[0:2]) == "pick up":
+        # TODO add inventory limit
         pick_up(" ".join(words[2:]))
 
     elif words[0] == "take":
@@ -72,9 +76,27 @@ def commands_manager(words):
     elif "say" in words or "talk" in words or "ask" in words:
         talk(words)
 
-    elif "turn in" in " ".join(words):
+    elif "turn in" in " ".join(words) or " ".join(words) == "complete quest":
         turn_in_quest()
 
+    elif words[0] == "equip":
+        equip(" ".join(words[1:]))
+
+    elif words[0] in ("attack", "fight", "battle"):
+        battle(" ".join(words[1:]), aggressing=True)
+
+    elif words[0] == "exit" and p.building_local is None:
+        p.health = 0
+        print("Goodbye!")
+        # TODO save game before exiting?
+    elif words[0] == "apply" and p.building_local is not None:
+        # TODO can't apply for job you already have
+        apply_for_job(' '.join(words[1:]))
+    elif words[0] == "work" or ' '.join(words) == "go to work":
+        # TODO shouldn't be able to work back to back
+        go_to_work()
+    elif words[0] == "ls":
+        print("What, you think this is Linux?")
     else:
         print("I don't know that command.")
 
@@ -88,16 +110,29 @@ def change_direction(direction):
     go n
     go sw
     """
+
+    # TODO travel to distant squares
+    sys.stdout.write("Traveling . . .")
+    sys.stdout.flush()
+    count = 5
+    travel_time = 1 if not [x for x in p.inventory if x.category == 'vehicle'] else .2
+    while count > 0:
+        time.sleep(travel_time)
+        sys.stdout.write(" .")
+        sys.stdout.flush()
+        count -= 1
+    print()
+
     leave_building()
     x = p.location[0]
     y = p.location[1]
-    if direction.lower() in ("n", "ne", "nw", "north", "northeast", "northwest"):
+    if direction.lower() in ("n", "ne", "nw", "north", "northeast", "northwest", "up"):
         y += 1
-    if direction.lower() in ("e", "ne", "se", "east", "northeast", "southeast"):
+    if direction.lower() in ("e", "ne", "se", "east", "northeast", "southeast", "right"):
         x += 1
-    if direction.lower() in ("s", "se", "sw", "south", "southeast", "southwest"):
+    if direction.lower() in ("s", "se", "sw", "south", "southeast", "southwest", "down"):
         y -= 1
-    if direction.lower() in ("w", "nw", "sw", "west", "northwest", "southwest"):
+    if direction.lower() in ("w", "nw", "sw", "west", "northwest", "southwest", "left"):
         x -= 1
 
     p.location = (x, y)
@@ -107,6 +142,7 @@ def change_direction(direction):
         the_map[p.location].generate_mobs()
     print(f"You are now located on map coordinates {p.location}, which is {the_map[p.location].square_type}.")
     the_map[p.location].generate_items()
+    # TODO add limits for items generated
     look_around()
 
 
@@ -137,52 +173,81 @@ def look_around():
 
         if p.building_local.mobs:
             print(f"There {are_is(p.building_local.mobs)} here.")
-        if (p.building_local.mobs is None or p.building_local.mobs == []) and (p.building_local.wares is None or p.building_local.wares == []):
+        if p.building_local.jobs:
+            print(f"You can apply for the following open positions here: "
+                  f"{comma_separated([x.name for x in p.building_local.jobs])}")
+        if (p.building_local.mobs is None or p.building_local.mobs == []) and \
+                (p.building_local.wares is None or p.building_local.wares == []):
             print("There isn't anything here.")
 
 
-def pick_up(words):
-    quantity, item_text = parse_inventory_action(words)
-
-    if item_text is None:
-        for i in the_map[p.location].items:
-            add_item_to_inventory(i, i.quantity)
-        print(f"Added {comma_separated([x.name if x.quantity == 1 else x.plural for x in the_map[p.location].items])} "
-              f"to your inventory.")
-        the_map[p.location].items = []
-
+def irritate_the_locals(i):
+    if i.rarity in ('rare', 'super rare') and odds(2) and the_map[p.location].mobs != []:
+        angry_mob = [x for x in the_map[p.location].mobs if odds(2)]
+        angry_mob = angry_mob if len(angry_mob) >= 1 else [the_map[p.location].mobs[0]]
+        return angry_mob
     else:
-        item = None
-        for i in the_map[p.location].items:
-            if item_text in i.name or item_text in i.plural:
-                item = i
-                break
-        else:
-            print(f"Couldn't pick up {item_text}")
+        return False
 
-        if item:
-            if quantity == "all":
-                quantity = item.quantity
 
-            if item.quantity >= quantity:
-                add_item_to_inventory(item, quantity)
-                item.quantity -= quantity
-                if item.quantity == 0:
-                    the_map[p.location].items.remove(item)
-                print(f"Added {item.name if quantity == 1 else item.plural} to your inventory.")
-            elif item.quantity < quantity:
+def clean_up_map():
+    the_map[p.location].items = [i for i in the_map[p.location].items if i.quantity != 0]
+
+
+def pick_up(words):
+    if not the_map[p.location].items:
+        print("Nothing to pick up.")
+        return
+
+    quantity, item_text = parse_inventory_action(words)
+    item_text = 'all' if item_text is None else item_text
+
+    specific_items = find_specifics(item_text, the_map[p.location].items)
+    if not specific_items:
+        print("Sorry, I can't find that.")
+        return
+
+    items_added = []
+    for item in specific_items:
+        angry_mob = irritate_the_locals(item)
+        if angry_mob is False:
+            q = item.quantity if quantity == "all" or quantity is None else quantity
+            if q > item.quantity:
                 print("Can't pick up that many.")
+                break
+            add_item_to_inventory(item, q)
+            items_added.append((item, q))
+            item.quantity -= q
+        else:
+            clean_up_map()
+            # TODO if you 'take sea shells' it prints added sea shell and sea shells to your inventory....
+            if items_added:
+                print(f"Added {comma_separated([x[0].name if x[1] == 1 else x[0].plural for x in items_added])} "
+                      f"to your inventory.")
+            print(f"""Uh oh, {"the locals don't" if len(angry_mob) > 1 else "someone doesn't"} like you """
+                  f"""trying to take """
+                  f"""their {remove_little_words(item.name) if item.quantity == 1 else item.plural}!""")
+            battle(angry_mob)
+            break
+    else:
+        clean_up_map()
+        if items_added:
+            print(f"Added {comma_separated([x[0].name if x[1] == 1 else x[0].plural for x in items_added])} "
+                  f"to your inventory.")
 
 
-def add_item_to_inventory(item_to_add, quantity):
-    if item_to_add.name in [x.name for x in p.inventory]:
-        for x in p.inventory:
+def add_item_to_inventory(item_to_add, quantity, mob=p):
+    if mob.equipped_weapon is not None and item_to_add.name == mob.equipped_weapon.name:
+        mob.equipped_weapon.quantity += quantity
+
+    elif item_to_add.name in [x.name for x in mob.inventory]:
+        for x in mob.inventory:
             if item_to_add.name == x.name:
                 x.quantity += int(quantity)
     else:
         new_item = item_to_add.copy()
         new_item.quantity = quantity
-        p.inventory.append(new_item)
+        mob.inventory.append(new_item)
 
 
 def eat_food(words):
@@ -201,7 +266,7 @@ def eat_food(words):
     eat some food
     eat the perishable food
     """
-
+    # TODO add drinking for coffee and whiskey shots
     quantity, item_text = parse_inventory_action(words)
 
     if quantity is None and item_text is None:
@@ -217,11 +282,17 @@ def eat_food(words):
 
         if item_eaten.quantity == 0:
             p.inventory.remove(item_eaten)
-
-        if p.health < 100:
-            regenerate = random.randint(0, 100-p.health)
-            p.health += regenerate
-            print(f"Regenerated {regenerate}% health by eating {item_eaten.name}.")
+        # TODO chance to loose health eating mysterious berries?
+        # TODO stop eatting when health is 100
+        # TODO eat bagel ate all bagels not singular bagel
+        for x in range(0, q):
+            if p.health < 100:
+                if item_eaten.name == "a magic pill":
+                    regenerate = 100 - p.health
+                else:
+                    regenerate = random.randint(0, 100-p.health)
+                p.health += regenerate
+                print(f"Regenerated {regenerate} health by eating {item_eaten.name}.")
 
     food = [x for x in p.inventory if x.category == "food"]
     if item_text and "perishable" in item_text:
@@ -257,44 +328,97 @@ def eat_food(words):
             print(f"Couldn't eat {item_text}")
 
 
-def apply_for_job():
-    if p.building_local.jobs():
+def go_to_work():
+    if p.job:
+        if p.job.location == p.location:
+            sys.stdout.write("Working . . .")
+            sys.stdout.flush()
+            count = 8
+            while count > 0:
+                time.sleep(1.5)
+                sys.stdout.write(" .")
+                sys.stdout.flush()
+                count -= 1
+            print()
+            print(f"You earned ${p.job.salary}.")
+            p.money += p.job.salary
+            if p.job.skills_learned:
+                for skill in p.job.skills_learned:
+                    percentage = random.randint(0, 20)
+                    try:
+                        p.skills[skill] += percentage
+                    except KeyError:
+                        p.skills[skill] = percentage
 
-        print(f"Hello! We are looking to hire {p.building_local.jobs} currently.")
+                mastery = [f"{s} - {m}" for s, m in p.skills.items()]
+                if mastery:
+                    print(f"You gained some skill mastery at work: {comma_separated(mastery)}%")
+
+        else:
+            print(f"Your job is not here. You need to go here: {p.job.location}")
+    else:
+        print("Sorry, you don't have a job. Try applying for one.")
 
 
-def find_specific(words, list_of_objects):
-    specific = None
-    for word in remove_little_words(words).split(' '):
-        for o in list_of_objects:
-            for individual_word in remove_little_words(o.name).lower().split(' '):
-                if word.lower() in individual_word or word.lower() == individual_word:
-                    specific = o
-                    break
+def find_specific_job(words, location):
+    for j in location.jobs:
+        for word in remove_little_words(words):
+            if word in j.name or word == j.name:
+                return j
 
-    return specific
+
+def apply_for_job(words):
+    if not words:
+        if len(p.building_local.jobs) == 1:
+            job = p.building_local.jobs[0]
+        else:
+            print("What job are you applying for?")
+            return
+    else:
+        job = find_specific_job(words, p.building_local)
+    if job:
+        if job.inventory_needed and job.inventory_needed not in p.inventory:
+            print(f"You need {job.inventory_needed} for this job.")
+            return
+
+        match_score = 100
+
+        for skill in job.skills_needed:
+            if skill in p.skills.keys():
+                if p.skills[skill] > 90:
+                    print(f"Wow, it says here you are really good at {skill}.")
+                match_score -= p.skills[skill] / len(job.skills_needed)
+
+        match_score = 1 if match_score <= 0 else match_score
+
+        if odds(match_score):
+            print(f"Congratulations {p.name}, you got the job!")
+            p.job = job
+            # TODO clean-up job so it doesn't show on job listing?
+
+        else:
+            bad_news = [f"I'm sorry, we're looking for candidates with more "
+                        f"{comma_separated(job.skills_needed)} right now.",
+                        "We'll let you know."]
+            print(bad_news[random.randint(0, len(bad_news)-1)])
 
 
 def interact_with_building(words):
-    building = find_specific(words, the_map[p.location].buildings)
+    building = find_specifics(words, the_map[p.location].buildings)
+    building = building[0] if building else None
     if building is not None:
         if building.category == 'building':
             if odds(8) is True:
                 print(f"Too bad, {building.name} is closed right now. Try again later.")
             else:
                 p.building_local = building
-                command_list['visit <a building>'] = False
-                command_list['leave'] = True
                 print(f"You are now inside {building.name}.")
                 look_around()
-                if p.building_local.wares:
-                    command_list['buy <something>'] = True
+
         else:
             if odds(10) is False:
                 print("The occupants of this residence have kicked you out.")
             else:
-                command_list['visit <a building>'] = False
-                command_list['leave'] = True
                 p.building_local = building
                 print("You are now inside a house")
                 look_around()
@@ -305,9 +429,6 @@ def interact_with_building(words):
 
 def leave_building():
     if p.building_local is not None:
-        command_list['visit <a building>'] = True
-        command_list['leave'] = False
-        command_list['buy <something>'] = False
         print(f"Leaving {p.building_local.name}")
         p.building_local = None
 
@@ -377,6 +498,7 @@ def haggle(items, quantity, price_offered):
 
 
 def buy_items(items, quantity, cost):
+    # TODO restock bought items
     for item in items:
         q = item.quantity if quantity == 'all' else quantity
         add_item_to_inventory(item, q)
@@ -397,20 +519,29 @@ def talk(words):
 
     mobs = the_map[p.location].mobs if p.building_local is None else p.building_local.mobs
 
-    specific_mob = find_specific(words, mobs)
+    specific_mob = find_specifics(words, mobs)
 
-    if specific_mob is not None:
+    if not specific_mob:
+        print("Don't know who to talk to.")
+    else:
+        specific_mob = specific_mob[0]
         single_mob = remove_little_words(specific_mob.name)
         non_responses = [f"The {single_mob} just looks at you.",
                          f"The {single_mob} doesn't respond.",
-                         f"The {single_mob} might not speak english."]
+                         f"The {single_mob} might not speak english.",
+                         f"The {single_mob} lets out a high pitched and unintelligible shriek.",
+                         f"The {single_mob} ignores you completely."]
 
         no_quest_responses = [f"The {single_mob} shakes his head gravely.",
                               # TODO add mob gender
-                              f"The {single_mob} says 'No quests today.'"]
+                              f"The {single_mob} says 'No quests today.'",
+                              f"The {single_mob} says 'I don't feel like it right now'.",
+                              f"The {single_mob} laughs maniacally. 'A quest? For you? Yeah right.'"]
 
         yes_quest_responses = [f"The ground shakes as the {single_mob} roars 'YES, I HAVE A QUEST FOR YOU!'",
-                               f"The {single_mob} says 'Yup, I've got a quest for you.'"]
+                               f"The {single_mob} says 'Yup, I've got a quest for you.'",
+                               f"The {single_mob} says 'Fiiiineeee, I'll give you a quest'.",
+                               f"The {single_mob} scratches his head thoughtfully."]
 
         if "quest" in words:
             specific_mob.generate_quest()
@@ -431,27 +562,226 @@ def turn_in_quest():
     if p.quest is None:
         print("You don't have a quest.")
     else:
-        mob = remove_little_words(p.quest[0].name)
+        mob_name = remove_little_words(p.quest[0].name)
+        mob = p.quest[0]
         if p.quest[1] != p.location:
-            print(f"The {mob} who gave you your quest is not here. You need to go to {p.quest[1]}.")
+            print(f"The {mob_name} who gave you your quest is not here. You need to go to {p.quest[1]}.")
         else:
-            item = p.quest[0].quest[0]
-            quantity = p.quest[0].quest[1]
+            item = mob.quest[0]
+            quantity = mob.quest[1]
             for i in p.inventory:
                 if i.name == item.name:
                     if i.quantity >= quantity:
-                        print(f"You have enough {item.plural} the {mob} requested.")
+                        print(f"You have enough {item.plural} the {mob_name} requested.")
                         i.quantity -= quantity
-                        skill = p.quest[0].skills[random.randint(0, len(p.quest[0].skills)-1)]
-                        percentage = random.randint(0, 100)
-                        print(f"In exchange, the {mob} teaches you {skill}. You gain %{percentage} mastery.")
+
+                        add_item_to_inventory(i, quantity, mob)
+
+                        skill = mob.skills[random.randint(0, len(mob.skills)-1)]
+                        percentage = random.randint(1, 100)
+                        print(f"In exchange, the {mob_name} teaches you {skill}. You gain {percentage}% mastery.")
                         try:
                             p.skills[skill] += percentage
                         except KeyError:
                             p.skills[skill] = percentage
+                        p.quest = None
                     else:
-                        print(f"You don't have enough {item.plural}. The {mob} requested {quantity}, "
+                        # TODO you have to un-equip the thing to turn in if you are wielding it
+                        # TODO turning in the same quest twice doesn't seem to work if you have the item
+                        print(f"You don't have enough {item.plural}. The {mob_name} requested {quantity}, "
                               f"and you have {i.quantity}.")
                     break
             else:
                 print(f"You don't have any {item.plural}. You need {quantity}.")
+
+
+def attack(mob_a, mob_b):
+    """
+    mob a uses equipped weapon, finds damage based on weapon rating, subtracts it from p.health
+    (no weapon = punching, kicking, etc for '0' rating)
+    """
+    weapon_usefulness = {0: (0, 10),
+                         1: (10, 15),
+                         2: (15, 25),
+                         3: (25, 32),
+                         4: (32, 50),
+                         5: (50, 60)}
+
+    w = mob_a.equipped_weapon
+    try:
+        usefulness = weapon_usefulness[w.weapon_rating]
+        damage = random.randint(usefulness[0], usefulness[1])
+    except (AttributeError, KeyError):
+        damage = random.randint(weapon_usefulness[0][0], weapon_usefulness[0][1])
+
+    # TODO this needs capitalized too
+    mob_b.health -= damage
+    print(f"{mob_a.name} inflicted {damage} damage to {mob_b.name}. {mob_b.name} has {mob_b.health} health left.")
+
+
+def throw(mob_a, mob_b):
+    """
+    While you can toss higher level weapons, it doesn't do as much damage as weilding them would
+    """
+    # TODO only throw equipped weapons??
+    # TODO add thrown item to map square items
+    weapon_usefulness = {0: (0, 20),
+                         1: (10, 30),
+                         2: (20, 40),
+                         3: (10, 25),
+                         4: (5, 15),
+                         5: (0, 10)}
+    w = mob_a.equipped_weapon
+    try:
+        usefulness = weapon_usefulness[w.weapon_rating]
+        damage = random.randint(usefulness[0], usefulness[1])
+    except (AttributeError, KeyError):
+        damage = random.randint(weapon_usefulness[0][0], weapon_usefulness[0][1])
+
+    # TODO this needs capitalized too
+    mob_b.health -= damage
+    w.quantity -= 1
+    print(f"{mob_a.name} inflicted {damage} damage to {mob_b.name}. {mob_b.name} has {mob_b.health} health left.")
+    if w.quantity == 0:
+        print(f"You are out of {w.plural}.")
+        mob_a.equipped_weapon = None
+
+
+def battle_help(agro):
+    command_list = {"attack": True,
+                    "throw": True if p.equipped_weapon else False,
+                    "eat <something>": True if [x for x in p.inventory if x.category == "food"] else False,
+                    "run away": True,
+                    "leave": True if agro is False else False,
+                    "inventory": True,
+                    "equip": True if p.inventory else False,
+                    "status": True
+    }
+    for command, status in command_list.items():
+        if status:
+            print(command)
+
+
+def battle_manager(words, mobs, aggressing):
+    """battle command manager"""
+    words = words.lower().split(" ")
+    if words[0] == "help":
+        battle_help(aggressing)
+        battle_manager(input(), mobs, aggressing)
+    elif words[0] == "attack":
+        for mob in mobs:
+            attack(p, mob)
+        return True
+    elif words[0] == "throw":
+        if len(mobs) == 0:
+            mob = mobs[0]
+        else:
+            mob = find_specifics(remove_little_words(' '.join(words)), mobs)
+            if not mob:
+                mob = mob[0] if mob else mobs[0]
+        throw(p, mob)
+        return True
+    elif words[0] in ("leave", "exit"):
+        if aggressing is False:
+            print("The battle is over.")
+            return False
+        else:
+            print("You can't leave the battle. You must fight!")
+            return True
+    elif words == "run" or "run away" in " ".join(words):
+        dirs = ["north", "south", "east", "west"]
+        random_dir = dirs[random.randint(0, len(dirs)-1)]
+        print(f"You run away in a cowardly panic.")
+        change_direction(random_dir)
+        return False
+    elif words[0] == "equip":
+        equip(" ".join(words[1:]))
+        return True
+    elif words[0] == "eat":
+        eat_food(" ".join(words[1:]))
+        return True
+    elif words[0] == "inventory":
+        p.pretty_inventory()
+        battle_manager(input(), mobs, aggressing)
+    elif words[0] == "status":
+        p.status()
+        battle_manager(input(), mobs, aggressing)
+    else:
+        print("You can't do that right now.")
+        battle_manager(input(), mobs, aggressing)
+
+
+def battle(attacking_mobs, aggressing=False):
+    # TODO all of this needs colors
+    list_of_locals = p.building_local.mobs if p.building_local else the_map[p.location].mobs
+    if not attacking_mobs:
+        print("Who are you attacking?")
+        return
+    elif not isinstance(attacking_mobs[0], Mob):
+        attacking_mobs = find_specifics(attacking_mobs, list_of_locals)
+    if not attacking_mobs:
+        print("Can't find anyone to pick a fight with.")
+        return
+    else:
+        m = comma_separated(formatted_items(attacking_mobs))
+        print(f"Look out, {m[0].upper()}{m[1:]} {'is' if len(attacking_mobs) == 1 else 'are'} gearing up to fight!")
+        weapons = []
+        for n in attacking_mobs:
+            w = n.equipped_weapon
+            if n.equipped_weapon is not None:
+                mob_id = the_name(n.name)
+
+                weapons.append(f"{mob_id} is wielding {w.name if w.quantity == 1 else w.plural}")
+        # TODO this needs capitalized eventually
+        if weapons:
+            print(f"{comma_separated(weapons)}.")
+    attacking = True
+    while attacking is True:
+        if aggressing is False:
+            for m in attacking_mobs:
+                attack(m, p)
+
+        if p.health > 0:
+            attacking = battle_manager(input(), attacking_mobs, aggressing)
+
+        mob_health = []
+        for mob in attacking_mobs:
+            mob_id = the_name(mob.name)
+            if mob.health <= 0:
+                s = f" You add {comma_separated(formatted_items(mob.inventory))} to your " \
+                    f"inventory." if mob.inventory else ''
+                print(f"You killed {mob_id}.{s}")
+                for i in mob.inventory:
+                    add_item_to_inventory(i, i.quantity)
+                list_of_locals.remove(mob)
+            else:
+                mob_health.append(f"{mob_id} has {mob.health}")
+            if 0 < mob.health <= 50 and aggressing is False:
+                print(f"{mob_id} decided the fight's not worth it and has bowed out.")
+                # TODO do you get the inventory items you were fighting over??
+                attacking = False
+        attacking_mobs = [m for m in attacking_mobs if m.health > 0]
+        if not attacking_mobs:
+            print("Everyone attacking you is now dead. Carry on.")
+            attacking = False
+        if aggressing is True and attacking is True:
+            for m in attacking_mobs:
+                attack(m, p)
+        if p.health <= 0:
+            print("You died. The end.")
+            attacking = False
+
+
+def equip(words):
+    if p.equipped_weapon is not None:
+        i = p.equipped_weapon
+        p.equipped_weapon = None
+        add_item_to_inventory(i, i.quantity)
+    w = find_specifics(words, p.inventory)
+    if w:
+        p.equipped_weapon = w[0]
+        p.inventory.remove(w[0])
+        # TODO standardize singular / plural nonsense
+        print(f"Equipped {w[0].name if w[0].quantity == 1 else w[0].plural}")
+    else:
+        print(f"Can't find {words} in your inventory.")

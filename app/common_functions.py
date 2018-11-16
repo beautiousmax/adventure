@@ -84,3 +84,32 @@ def are_is(noun_list):
     if quantity == 1:
         quantity = noun_list[0].quantity
     return f"{'are' if quantity > 1 else 'is'} {comma_separated(formatted_items(noun_list))}"
+
+
+def capitalize_first(string):
+    if not string[0].isalpha() and not string[0].isdigit():
+        return f"{string[0:3]}{string[4].upper()}{string[5:]}"
+
+
+def find_specifics(words, list_of_objects):
+    specifics = []
+    if list_of_objects is None:
+        return specifics
+    if words in ('all', 'everyone', 'everything') or words is None or words == '':
+        return list_of_objects
+    for word in remove_little_words(words).split(' '):
+        for o in list_of_objects:
+            for individual_word in remove_little_words(o.name).lower().split(' '):
+                if word.lower() in individual_word.lower() or word.lower() == individual_word.lower() or \
+                        word.lower() == o.plural.lower() or word.lower() in o.plural:
+                    specifics.append(o)
+                    break
+    return specifics
+
+
+def the_name(n):
+    for name in names:
+        if name in n:
+            return name
+    else:
+        return f"the {remove_little_words(n)}"
