@@ -601,11 +601,11 @@ def attack(mob_a, mob_b):
     (no weapon = punching, kicking, etc for '0' rating)
     """
     weapon_usefulness = {0: (0, 10),
-                         1: (10, 20),
-                         2: (20, 30),
-                         3: (30, 60),
-                         4: (60, 70),
-                         5: (70, 80)}
+                         1: (10, 15),
+                         2: (15, 25),
+                         3: (25, 32),
+                         4: (32, 50),
+                         5: (50, 60)}
 
     w = mob_a.equipped_weapon
     try:
