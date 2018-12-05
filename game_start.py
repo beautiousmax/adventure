@@ -30,15 +30,23 @@ look_around()
 game_loop()
 
 
-# things I want to add
+# next version ideas
 
-# inventory limits
-# word wrap?
-# travel - in a car, on foot, swim, boat
+# night and day
+# you can only work in the day time
+# inventory limits, square items and wares update at sunup and sundown
+# loose a bit of health if you don't sleep at night
+# possibility of highway robbery when travelling
+# sell inventory items for money
 # non-inventory based quests
 # mini games to earn money
-# add time dimension - takes x seconds to travel, night / day
 # have the interview process include drug testing - screen for mushrooms, magic pills, etc
+# jobs provide health insurance, at death - it will cost x dollars to revive you
 # multiplayer
-# steal wares, have cops chase you - criminal record that prevents you from getting certain jobs
-# set stuff on fire
+# hospital doctors can heal you (but you need health insurance probably)
+# adopt animals
+# have multiple choice conversations with mobs, trade items, etc
+# map items evolve over time as player levels up
+# home base on spawn to store stuff
+# armor to not die as fast
+# magic spells

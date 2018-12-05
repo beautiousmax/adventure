@@ -15,18 +15,18 @@ def help_me():
                     "go <southwest>": True,
                     "inventory": True,
                     "status": True,
-                    "pick up <something>": True if the_map[p.location].items and p.building_local is False else False,
-                    "eat <something>": True if [x for x in p.inventory if x.category == "food"] else False,
-                    "visit <a building>": True if the_map[p.location].buildings else False,
-                    "leave <the building>": True if p.building_local else False,
-                    "buy <something>": True if p.building_local and p.building_local.wares else False,
-                    "apply <for a job>": True if p.building_local and p.building_local.jobs else False,
-                    "battle <a mob>": True if the_map[p.location].mobs or p.building_local.mobs else False,
-                    "equip <something>": True if p.inventory else False,
-                    "ask <a mob> for a quest": True if the_map[p.location].mobs or p.building_local.mobs else False,
-                    "say hi to <a mob>": True if the_map[p.location].mobs or p.building_local.mobs else False,
-                    "turn in quest": True if p.quest else False,
-                    "go to work": True if p.job else False,
+                    "pick up <something>": bool(the_map[p.location].items and p.building_local is None),
+                    "eat <something>": bool([x for x in p.inventory if x.category == "food"]),
+                    "visit <a building>": bool(the_map[p.location].buildings),
+                    "leave <the building>": bool(p.building_local),
+                    "buy <something>": bool(p.building_local and p.building_local.wares),
+                    "apply <for a job>": bool(p.building_local and p.building_local.jobs),
+                    "battle <a mob>": bool(the_map[p.location].mobs or p.building_local.mobs),
+                    "equip <something>": bool(p.inventory),
+                    "ask <a mob> for a quest": bool(the_map[p.location].mobs or p.building_local.mobs),
+                    "say hi to <a mob>": bool(the_map[p.location].mobs or p.building_local.mobs),
+                    "turn in quest": bool(p.quest),
+                    "go to work": bool(p.job),
                     "exit": True}
 
     for command, status in command_list.items():
@@ -120,8 +120,7 @@ def change_direction(direction):
     print()
 
     leave_building()
-    x = p.location[0]
-    y = p.location[1]
+    x, y = p.location
     if direction.lower() in ("n", "ne", "nw", "north", "northeast", "northwest", "up"):
         y += 1
     if direction.lower() in ("e", "ne", "se", "east", "northeast", "southeast", "right"):
@@ -159,13 +158,8 @@ def look_around():
             print("Nothing seems to be nearby.")
 
     else:
-        if p.building_local.wares:
-            wares = []
-            for x in p.building_local.wares:
-                if x.quantity > 1:
-                    wares.append(f"{int_to_words(x.quantity)} {x.plural}")
-                else:
-                    wares.append(x.name)
+        wares = [f"{int_to_words(x.quantity)} {x.plural}" if x.quantity > 1 else x.name for x in p.building_local.wares]
+        if wares:
             print(f"This {p.building_local.name} has these items for sale: {comma_separated(wares)}")
 
         if p.building_local.mobs:
@@ -179,18 +173,14 @@ def look_around():
 
 
 def irritate_the_locals(i):
-    """ Decide whether or not to agro mobs if the player tries to pick up a rare item """
-    if i.rarity in ('rare', 'super rare') and odds(2) and the_map[p.location].mobs != []:
+    """ Decide whether or not to agro mobs if the player tries to pick up a rare item.
+    Returns list of mobs or False
+    """
+    if i.rarity in ('rare', 'super rare') and odds(2) and the_map[p.location].mobs:
         angry_mob = [x for x in the_map[p.location].mobs if odds(2)]
         angry_mob = angry_mob if len(angry_mob) >= 1 else [the_map[p.location].mobs[0]]
         return angry_mob
-    else:
-        return False
-
-
-def clean_up_map():
-    """ Remove items with quantity of zero from the map inventory"""
-    the_map[p.location].items = [i for i in the_map[p.location].items if i.quantity != 0]
+    return False
 
 
 def pick_up(words):
@@ -219,7 +209,7 @@ def pick_up(words):
             items_added.append((item, q))
             item.quantity -= q
         else:
-            clean_up_map()
+            the_map[p.location].clean_up_map()
             # TODO if you 'take sea shells' it prints added sea shell and sea shells to your inventory....
             if items_added:
                 print(f"Added {comma_separated([x[0].name if x[1] == 1 else x[0].plural for x in items_added])} "
@@ -230,7 +220,7 @@ def pick_up(words):
             battle(angry_mob)
             break
     else:
-        clean_up_map()
+        the_map[p.location].clean_up_map()
         if items_added:
             print(f"Added {comma_separated([x[0].name if x[1] == 1 else x[0].plural for x in items_added])} "
                   f"to your inventory.")
@@ -243,9 +233,9 @@ def add_item_to_inventory(item_to_add, quantity, mob=p):
         mob.equipped_weapon.quantity += quantity
 
     elif item_to_add.name in [x.name for x in mob_inventory]:
-        for x in mob_inventory:
-            if item_to_add.name == x.name:
-                x.quantity += int(quantity)
+        for item in mob_inventory:
+            if item_to_add.name == item.name:
+                item.quantity += int(quantity)
     else:
         new_item = item_to_add.copy()
         new_item.quantity = quantity
@@ -271,7 +261,7 @@ def eat_food(words):
         if item_eaten.quantity == 0:
             p.inventory.remove(item_eaten)
         # TODO chance to loose health eating mysterious berries?
-        # TODO stop eatting when health is 100
+        # TODO stop eating when health is 100
         # TODO eat bagel ate all bagels not singular bagel
         for x in range(0, q):
             if p.health < 100:
@@ -318,50 +308,54 @@ def eat_food(words):
 
 def go_to_work():
     """ Spend time at work to earn money and experience """
-    if p.job:
-        if p.phase == "day":
-            if p.job.location == p.location:
-                sys.stdout.write("Working . . .")
-                sys.stdout.flush()
-                count = 8
-                while count > 0:
-                    time.sleep(1.5)
-                    sys.stdout.write(" .")
-                    sys.stdout.flush()
-                    count -= 1
-                print()
-                print(f"You earned ${p.job.salary}.")
-                p.money += p.job.salary
-                if p.job.skills_learned:
-                    for skill in p.job.skills_learned:
-                        percentage = random.randint(0, 20)
-                        try:
-                            p.skills[skill] += percentage
-                        except KeyError:
-                            p.skills[skill] = percentage
-
-                    mastery = [f"{s} - {m}" for s, m in p.skills.items()]
-                    if mastery:
-                        print(f"You gained some skill mastery at work: {comma_separated(mastery)}%")
-
-            else:
-                print(f"Your job is not here. You need to go here: {p.job.location}")
-        else:
-            print("You can only work in the daytime.")
-            # TODO night stockers work at night.. add phase to job description
-    else:
+    if not p.job:
         print("Sorry, you don't have a job. Try applying for one.")
+        return
+
+    if p.phase != "day" and "night" not in p.job.name:
+        print("You can only work in the daytime.")
+        return
+    elif p.phase != "night" and "night" in p.job.name:
+        print("You can only work in the nighttime.")
+        return
+
+    if p.job.location != p.location:
+        print(f"Your job is not here. You need to go here: {p.job.location}")
+        return
+
+    sys.stdout.write("Working . . .")
+    sys.stdout.flush()
+    count = 8
+    while count > 0:
+        time.sleep(1.5)
+        sys.stdout.write(" .")
+        sys.stdout.flush()
+        count -= 1
+    print()
+    print(f"You earned ${p.job.salary}.")
+    p.money += p.job.salary
+    if p.job.skills_learned:
+        for skill in p.job.skills_learned:
+            percentage = random.randint(0, 20)
+            try:
+                p.skills[skill] += percentage
+            except KeyError:
+                p.skills[skill] = percentage
+
+        mastery = [f"{s} - {m}" for s, m in p.skills.items()]
+        if mastery:
+            print(f"You gained some skill mastery at work: {comma_separated(mastery)}%")
 
 
 def find_specific_job(words, location):
-    for j in location.jobs:
+    for job in location.jobs:
         for word in remove_little_words(words):
-            if word in j.name or word == j.name:
-                return j
+            if word in job.name or word == job.name:
+                return job
 
 
 def apply_for_job(words):
-    """ Attempt to get a job"""
+    """ Player skills determine chances of getting a job """
     if not words:
         if len(p.building_local.jobs) == 1:
             job = p.building_local.jobs[0]
@@ -392,7 +386,7 @@ def apply_for_job(words):
 
         else:
             bad_news = [f"I'm sorry, we're looking for candidates with more "
-                        f"{comma_separated(job.skills_needed)} right now.",
+                        f"{comma_separated(job.skills_needed)} skills right now.",
                         "We'll let you know."]
             print(bad_news[random.randint(0, len(bad_news)-1)])
 
@@ -423,7 +417,7 @@ def interact_with_building(words):
 
 
 def leave_building():
-    """ Exit the building the player is in """
+    """ Exit the building the player is inside """
     if p.building_local is not None:
         print(f"Leaving {p.building_local.name}")
         p.building_local = None
@@ -552,61 +546,58 @@ def talk(words):
 
 
 def turn_in_quest():
-    """ Complete the quest """
+    """ Complete the quest if criteria is met, otherwise help player remember quest details """
     if p.quest is None:
         print("You don't have a quest.")
-    else:
-        mob_name = remove_little_words(p.quest[0].name)
-        mob = p.quest[0]
-        if p.quest[1] != p.location:
-            print(f"The {mob_name} who gave you your quest is not here. You need to go to {p.quest[1]}.")
-        else:
-            item = mob.quest[0]
-            quantity = mob.quest[1]
-            for i in p.inventory:
-                if i.name == item.name:
-                    if i.quantity >= quantity:
-                        print(f"You have enough {item.plural} the {mob_name} requested.")
-                        i.quantity -= quantity
+        return
 
-                        add_item_to_inventory(i, quantity, mob)
+    mob_name = remove_little_words(p.quest[0].name)
+    mob = p.quest[0]
 
-                        skill = mob.skills[random.randint(0, len(mob.skills)-1)]
-                        percentage = random.randint(1, 100)
-                        print(f"In exchange, the {mob_name} teaches you {skill}. You gain {percentage}% mastery.")
-                        try:
-                            p.skills[skill] += percentage
-                        except KeyError:
-                            p.skills[skill] = percentage
-                        p.quest = None
-                    else:
-                        # TODO you have to un-equip the thing to turn in if you are wielding it
-                        # TODO turning in the same quest twice doesn't seem to work if you have the item
-                        print(f"You don't have enough {item.plural}. The {mob_name} requested {quantity}, "
-                              f"and you have {i.quantity}.")
-                    break
+    if p.quest[1] != p.location:
+        print(f"The {mob_name} who gave you your quest is not here. You need to go to {p.quest[1]}.")
+        return
+
+    quest_item = mob.quest[0]
+    quantity = mob.quest[1]
+    for item in p.inventory:
+        if item.name == quest_item.name:
+            if item.quantity >= quantity:
+                print(f"You have enough {quest_item.plural} the {mob_name} requested.")
+                item.quantity -= quantity
+
+                add_item_to_inventory(item, quantity, mob)
+
+                skill = mob.skills[random.randint(0, len(mob.skills)-1)]
+                percentage = random.randint(1, 100)
+                print(f"In exchange, the {mob_name} teaches you {skill}. You gain {percentage}% mastery.")
+                try:
+                    p.skills[skill] += percentage
+                except KeyError:
+                    p.skills[skill] = percentage
+                p.quest = None
             else:
-                print(f"You don't have any {item.plural}. You need {quantity}.")
+                # TODO you have to un-equip the thing to turn in if you are wielding it
+                # TODO turning in the same quest twice doesn't seem to work if you have the item
+                print(f"You don't have enough {quest_item.plural}. The {mob_name} requested {quantity}, "
+                      f"and you have {item.quantity}.")
+            break
+    else:
+        print(f"You don't have any {quest_item.plural}. You need {quantity}.")
 
 
 def attack(mob_a, mob_b):
     """
     mob a uses equipped weapon, finds damage based on weapon rating, subtracts it from p.health
-    (no weapon = punching, kicking, etc for '0' rating)
+    (no weapon or item with weapon rating is a '0' rating)
     """
-    weapon_usefulness = {0: (0, 10),
-                         1: (10, 15),
-                         2: (15, 25),
-                         3: (25, 32),
-                         4: (32, 50),
-                         5: (50, 60)}
+    usefulness = [(0, 10), (10, 15), (15, 25), (25, 32), (32, 50), (50, 60)]
 
     w = mob_a.equipped_weapon
     try:
-        usefulness = weapon_usefulness[w.weapon_rating]
-        damage = random.randint(usefulness[0], usefulness[1])
-    except (AttributeError, KeyError):
-        damage = random.randint(weapon_usefulness[0][0], weapon_usefulness[0][1])
+        damage = random.randint(usefulness[w.weapon_rating][0], usefulness[w.weapon_rating][1])
+    except AttributeError:
+        damage = random.randint(usefulness[0][0], usefulness[0][1])
 
     # TODO this needs capitalized too
     mob_b.health -= damage
@@ -615,21 +606,16 @@ def attack(mob_a, mob_b):
 
 def throw(mob_a, mob_b):
     """
-    While you can toss higher level weapons, it doesn't do as much damage as weilding them would
+    While you can toss higher level weapons, it doesn't do as much damage as wielding them would
     """
     # TODO only throw equipped weapons??
-    weapon_usefulness = {0: (0, 20),
-                         1: (10, 30),
-                         2: (20, 40),
-                         3: (10, 25),
-                         4: (5, 15),
-                         5: (0, 10)}
+    usefulness = [(0, 20), (10, 30), (20, 40), (10, 25), (5, 15), (0, 10)]
+
     w = mob_a.equipped_weapon
     try:
-        usefulness = weapon_usefulness[w.weapon_rating]
-        damage = random.randint(usefulness[0], usefulness[1])
-    except (AttributeError, KeyError):
-        damage = random.randint(weapon_usefulness[0][0], weapon_usefulness[0][1])
+        damage = random.randint(usefulness[w.weapon_rating][0], usefulness[w.weapon_rating][1])
+    except AttributeError:
+        damage = random.randint(usefulness[0][0], usefulness[0][1])
 
     # TODO this needs capitalized too
     mob_b.health -= damage
@@ -644,12 +630,12 @@ def throw(mob_a, mob_b):
 def battle_help(aggressing):
     """ List of commands available during battle """
     command_list = {"attack": True,
-                    "throw": True if p.equipped_weapon else False,
-                    "eat <something>": True if [x for x in p.inventory if x.category == "food"] else False,
+                    "throw": bool(p.equipped_weapon),
+                    "eat <something>": bool([x for x in p.inventory if x.category == "food"]),
                     "run away": True,
-                    "leave": True if aggressing is False else False,
+                    "leave": bool(aggressing is False),
                     "inventory": True,
-                    "equip": True if p.inventory else False,
+                    "equip": bool(p.inventory),
                     "status": True}
     for command, status in command_list.items():
         if status:

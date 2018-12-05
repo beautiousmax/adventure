@@ -24,6 +24,7 @@ def find_a_name(name_list):
 
 
 def drops(dictionary, object_in_question):
+    """ Randomly generates objects based on rarity """
     drops_i = []
 
     results = {'super rare': 100,
@@ -32,9 +33,7 @@ def drops(dictionary, object_in_question):
                'common': 5,
                'super common': 2}
 
-    d = dictionary
-
-    for k, v in d.items():
+    for k, v in dictionary.items():
         quantity = 0
         countdown = random.randint(0, 10)
         while countdown > 0:
@@ -47,23 +46,21 @@ def drops(dictionary, object_in_question):
             elif object_in_question == Mob:
                 if quantity > 1:
                     for m in range(0, quantity):
-                        n = find_a_name(names)
-                        drops_i.append(Mob(name=f"{k} named {n}", **v))
+                        drops_i.append(Mob(name=f"{k} named {find_a_name(names)}", **v))
                 else:
                     drops_i.append(Mob(name=k, **v))
             elif object_in_question == Building:
                 if quantity > 1 and v['category'] != 'residence':
                     for m in range(0, quantity):
                         if odds(2):
-                            n = find_a_name(adjectives)
-                            drops_i.append(Building(name=f"The {n} {remove_little_words(k).capitalize()}", **v))
+                            drops_i.append(Building(name=f"The {find_a_name(adjectives)} "
+                                                         f"{remove_little_words(k).capitalize()}", **v))
                         else:
-                            n = find_a_name(names)
-                            drops_i.append(Building(name=f"{n}'s {remove_little_words(k).capitalize()}", **v))
+                            drops_i.append(Building(name=f"{find_a_name(names)}'s "
+                                                         f"{remove_little_words(k).capitalize()}", **v))
                 elif quantity > 1 and v['category'] == 'residence':
                     for m in range(0, quantity):
-                        n = find_a_name(names)
-                        drops_i.append(Building(name=f"{n}'s {remove_little_words(k)}", **v))
+                        drops_i.append(Building(name=f"{find_a_name(names)}'s {remove_little_words(k)}", **v))
                 else:
                     drops_i.append(Building(name=k, **v))
 
@@ -90,6 +87,10 @@ class MapSquare(object):
     def generate_mobs(self):
         self.mobs = drops(add_dicts_together(wild_mobs["master"], wild_mobs[self.square_type]), Mob)
 
+    def clean_up_map(self):
+        """ Remove items with quantity of zero from the map inventory"""
+        self.items = [i for i in self.items if i.quantity != 0]
+
 
 the_map = {(0, 0): MapSquare(name="spawn")}
 
@@ -101,7 +102,7 @@ class Player(object):
         self.money = 0
         self.quest = None
         self.job = None
-        self.phase = 'day'
+        self.phase = "day"
 
     equipped_weapon = None
     building_local = None
@@ -198,7 +199,8 @@ class Building(object):
         self.mobs = drops(mobs, Mob) if mobs else None
         self.jobs = self.drop_job(jobs) if jobs else None
 
-    def drop_job(self, jobs):
+    @staticmethod
+    def drop_job(jobs):
         drops_i = []
         for k, v in jobs.items():
             if odds(2):
@@ -246,8 +248,9 @@ class Mob(object):
         else:
             return None
 
-    def skills(self):
-        """Pick the skills for a mob, these determine what a player can get from completing a quest"""
+    @staticmethod
+    def skills():
+        """ Pick the skills for a mob, these determine what a player can get from completing a quest """
         all_skills = ["strength", "patience", "cleanliness", "leadership", "communication", "self loathing",
                       "science", "math", "engineering", "intelligence", "driving"]
 
