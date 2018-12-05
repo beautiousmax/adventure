@@ -1,13 +1,16 @@
-from app.main_classes import MapSquare, the_map, p, Mob
-from app.common_functions import formatted_items, comma_separated, parse_inventory_action, odds, remove_little_words, \
-    are_is, capitalize_first, find_specifics, the_name
-import time
-import sys
 import random
+import sys
+import time
+
 from reusables.string_manipulation import int_to_words
+
+from app.common_functions import formatted_items, comma_separated, parse_inventory_action, odds, remove_little_words, \
+    are_is, find_specifics, the_name
+from app.main_classes import MapSquare, the_map, p, Mob
 
 
 def help_me():
+    """ List of commands based on situation """
     command_list = {"look around": True,
                     "go <southwest>": True,
                     "inventory": True,
@@ -54,7 +57,7 @@ def commands_manager(words):
     elif " ".join(words) == "look around" or "look" in words:
         look_around()
 
-    elif " ".join(words) == "inventory":
+    elif words[0] == "inventory":
         p.pretty_inventory()
 
     elif " ".join(words[0:2]) == "pick up":
@@ -64,7 +67,7 @@ def commands_manager(words):
     elif words[0] == "take":
         pick_up(" ". join(words[1:]))
 
-    elif " ".join(words) == "status":
+    elif words[0] == "status":
         p.status()
 
     elif words[0] == "eat":
@@ -102,14 +105,7 @@ def commands_manager(words):
 
 
 def change_direction(direction):
-    """
-    Change direction:
-
-    go north
-    go southwest
-    go n
-    go sw
-    """
+    """ Change direction """
 
     # TODO travel to distant squares
     sys.stdout.write("Traveling . . .")
@@ -148,6 +144,7 @@ def change_direction(direction):
 
 
 def look_around():
+    """ Describe the player's surroundings """
     if p.building_local is None:
         if the_map[p.location].items:
             print(f"You can see {comma_separated(formatted_items(the_map[p.location].items))} near you.")
@@ -182,6 +179,7 @@ def look_around():
 
 
 def irritate_the_locals(i):
+    """ Decide whether or not to agro mobs if the player tries to pick up a rare item """
     if i.rarity in ('rare', 'super rare') and odds(2) and the_map[p.location].mobs != []:
         angry_mob = [x for x in the_map[p.location].mobs if odds(2)]
         angry_mob = angry_mob if len(angry_mob) >= 1 else [the_map[p.location].mobs[0]]
@@ -191,10 +189,12 @@ def irritate_the_locals(i):
 
 
 def clean_up_map():
+    """ Remove items with quantity of zero from the map inventory"""
     the_map[p.location].items = [i for i in the_map[p.location].items if i.quantity != 0]
 
 
 def pick_up(words):
+    """ Add items from surroundings to player inventory """
     if not the_map[p.location].items:
         print("Nothing to pick up.")
         return
@@ -237,47 +237,23 @@ def pick_up(words):
 
 
 def add_item_to_inventory(item_to_add, quantity, mob=p):
-    if mob.equipped_weapon is not None and item_to_add.name == mob.equipped_weapon.name:
+    mob_inventory = mob.inventory if mob is not the_map else the_map[p.location].items
+
+    if mob != the_map and mob.equipped_weapon is not None and item_to_add.name == mob.equipped_weapon.name:
         mob.equipped_weapon.quantity += quantity
 
-    elif item_to_add.name in [x.name for x in mob.inventory]:
-        for x in mob.inventory:
+    elif item_to_add.name in [x.name for x in mob_inventory]:
+        for x in mob_inventory:
             if item_to_add.name == x.name:
                 x.quantity += int(quantity)
     else:
         new_item = item_to_add.copy()
         new_item.quantity = quantity
-        mob.inventory.append(new_item)
-
-
-def add_dropped_item_to_map(item_to_add, quantity):
-    if item_to_add.name in [x.name for x in the_map[p.location].items]:
-        for x in the_map[p.location].items:
-            if item_to_add.name == x.name:
-                x.quantity += int(quantity)
-
-    else:
-        new_item = item_to_add.copy()
-        new_item.quantity = quantity
-        the_map[p.location].items.append(new_item)
+        mob_inventory.append(new_item)
 
 
 def eat_food(words):
-    """
-    Eat food in your inventory:
-
-    eat a mars bar
-    eat 1 mars bar
-    eat three mars bars
-    eat 3 mars bars
-    eat all mars bars
-    eat the mars bars
-    eat all food
-    eat everything
-    eat the food
-    eat some food
-    eat the perishable food
-    """
+    """ Eat food in your inventory to gain health """
     # TODO add drinking for coffee and whiskey shots
     quantity, item_text = parse_inventory_action(words)
 
@@ -341,6 +317,7 @@ def eat_food(words):
 
 
 def go_to_work():
+    """ Spend time at work to earn money and experience """
     if p.job:
         if p.phase == "day":
             if p.job.location == p.location:
@@ -384,6 +361,7 @@ def find_specific_job(words, location):
 
 
 def apply_for_job(words):
+    """ Attempt to get a job"""
     if not words:
         if len(p.building_local.jobs) == 1:
             job = p.building_local.jobs[0]
@@ -420,6 +398,7 @@ def apply_for_job(words):
 
 
 def interact_with_building(words):
+    """ Try entering a building """
     building = find_specifics(words, the_map[p.location].buildings)
     building = building[0] if building else None
     if building is not None:
@@ -444,12 +423,14 @@ def interact_with_building(words):
 
 
 def leave_building():
+    """ Exit the building the player is in """
     if p.building_local is not None:
         print(f"Leaving {p.building_local.name}")
         p.building_local = None
 
 
 def buy(words):
+    """ Establish a transaction to purchase wares """
     wares = []
     haggle_for = True
     quantity, item_text = parse_inventory_action(words)
@@ -490,6 +471,7 @@ def buy(words):
 
 
 def haggle(items, quantity, price_offered):
+    """ Negotiate the price on items for sale """
     if price_offered > p.money:
         print("Sorry you don't have enough cash to make that offer. Try getting a job.")
         return
@@ -514,6 +496,7 @@ def haggle(items, quantity, price_offered):
 
 
 def buy_items(items, quantity, cost):
+    """ Add bought items to player inventory and subtract cost from player's cash """
     for item in items:
         q = item.quantity if quantity == 'all' else quantity
         add_item_to_inventory(item, q)
@@ -525,12 +508,7 @@ def buy_items(items, quantity, cost):
 
 
 def talk(words):
-    """
-    ask for a quest
-    ask the squirrel for a quest
-    say hi to the squirrel
-    talk to the squirrel
-    """
+    """ Say hello to mobs and ask for quests """
 
     mobs = the_map[p.location].mobs if p.building_local is None else p.building_local.mobs
 
@@ -574,6 +552,7 @@ def talk(words):
 
 
 def turn_in_quest():
+    """ Complete the quest """
     if p.quest is None:
         print("You don't have a quest.")
     else:
@@ -655,23 +634,23 @@ def throw(mob_a, mob_b):
     # TODO this needs capitalized too
     mob_b.health -= damage
     w.quantity -= 1
-    add_dropped_item_to_map(w, 1)
+    add_item_to_inventory(w, 1, the_map)
     print(f"{mob_a.name} inflicted {damage} damage to {mob_b.name}. {mob_b.name} has {mob_b.health} health left.")
     if w.quantity == 0:
         print(f"You are out of {w.plural}.")
         mob_a.equipped_weapon = None
 
 
-def battle_help(agro):
+def battle_help(aggressing):
+    """ List of commands available during battle """
     command_list = {"attack": True,
                     "throw": True if p.equipped_weapon else False,
                     "eat <something>": True if [x for x in p.inventory if x.category == "food"] else False,
                     "run away": True,
-                    "leave": True if agro is False else False,
+                    "leave": True if aggressing is False else False,
                     "inventory": True,
                     "equip": True if p.inventory else False,
-                    "status": True
-    }
+                    "status": True}
     for command, status in command_list.items():
         if status:
             print(command)
@@ -787,6 +766,7 @@ def battle(attacking_mobs, aggressing=False):
 
 
 def equip(words):
+    """ Select item from player inventory to use as battle weapon """
     if p.equipped_weapon is not None:
         i = p.equipped_weapon
         p.equipped_weapon = None

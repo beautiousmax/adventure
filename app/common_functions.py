@@ -1,7 +1,9 @@
-from data.text import *
-from termcolor import colored
-import re
 import random
+import re
+
+from termcolor import colored
+
+from data.text import numbers, names
 
 
 def formatted_items(item_list):

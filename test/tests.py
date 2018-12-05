@@ -1,4 +1,5 @@
 import unittest
+
 from app.commands import *
 from app.main_classes import *
 from data.text import wild_mobs
