@@ -98,12 +98,21 @@ class Player(object):
         self.money = 0
         self.quest = None
         self.job = None
+        self.phase = 'day'
 
     equipped_weapon = None
     building_local = None
     inventory = []
     skills = {}
     health = 100
+
+    def phase_change(self):
+        self.phase = 'day' if self.phase == 'night' else 'night'
+        for k, square in the_map.items():
+            square.generate_items()
+            for b in square.buildings:
+                if b.ware_list:
+                    b.wares = drops(b.ware_list, Item)
 
     def formatted_inventory(self):
         formatted = []
@@ -175,13 +184,14 @@ class Item(object):
 
 
 class Building(object):
-    def __init__(self, name, plural, category=None, rarity=None, wares=None, mobs=None, jobs=None):
+    def __init__(self, name, plural, category=None, rarity=None, ware_list=None, mobs=None, jobs=None):
         self.name = name
         self.quantity = 1
         self.plural = plural
         self.category = category or None
         self.rarity = rarity or None
-        self.wares = drops(wares, Item) if wares else None
+        self.ware_list = ware_list
+        self.wares = drops(ware_list, Item) if self.ware_list else None
         self.mobs = drops(mobs, Mob) if mobs else None
         self.jobs = self.drop_job(jobs) if jobs else None
 

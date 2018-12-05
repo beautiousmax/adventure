@@ -1,6 +1,7 @@
 from app.main_classes import p
 from app.commands import commands_manager, look_around
-
+import time
+from termcolor import colored
 
 p.name = input("Welcome to the world, adventurer! What name would you like to be "
                "known as in this land? \n")
@@ -13,9 +14,20 @@ print("Here is your current status: \n")
 p.status()
 print()
 look_around()
-while p.health > 0:
-    commands_manager(input())
 
+
+def game_loop():
+    cycle_start = time.time()
+    while p.health > 0 and time.time() - cycle_start < 80:
+        commands_manager(input())
+    else:
+        if p.health > 0:
+            p.phase_change()
+            print(colored(f"It is now {p.phase}time.", "blue"))
+            game_loop()
+
+
+game_loop()
 
 # things I want to add
 

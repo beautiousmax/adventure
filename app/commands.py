@@ -140,8 +140,9 @@ def change_direction(direction):
         the_map[p.location] = MapSquare()
         the_map[p.location].generate_buildings()
         the_map[p.location].generate_mobs()
+        the_map[p.location].generate_items()
     print(f"You are now located on map coordinates {p.location}, which is {the_map[p.location].square_type}.")
-    the_map[p.location].generate_items()
+
     # TODO add limits for items generated
     look_around()
 
@@ -159,7 +160,6 @@ def look_around():
             print(f"There {are_is(the_map[p.location].mobs)} here.")
         if the_map[p.location].items == [] and the_map[p.location].buildings == [] and the_map[p.location].mobs == []:
             print("Nothing seems to be nearby.")
-    # TODO generate more items to look at / find after picking up stuff?
 
     else:
         if p.building_local.wares:
@@ -250,6 +250,18 @@ def add_item_to_inventory(item_to_add, quantity, mob=p):
         mob.inventory.append(new_item)
 
 
+def add_dropped_item_to_map(item_to_add, quantity):
+    if item_to_add.name in [x.name for x in the_map[p.location].items]:
+        for x in the_map[p.location].items:
+            if item_to_add.name == x.name:
+                x.quantity += int(quantity)
+
+    else:
+        new_item = item_to_add.copy()
+        new_item.quantity = quantity
+        the_map[p.location].items.append(new_item)
+
+
 def eat_food(words):
     """
     Eat food in your inventory:
@@ -330,32 +342,36 @@ def eat_food(words):
 
 def go_to_work():
     if p.job:
-        if p.job.location == p.location:
-            sys.stdout.write("Working . . .")
-            sys.stdout.flush()
-            count = 8
-            while count > 0:
-                time.sleep(1.5)
-                sys.stdout.write(" .")
+        if p.phase == "day":
+            if p.job.location == p.location:
+                sys.stdout.write("Working . . .")
                 sys.stdout.flush()
-                count -= 1
-            print()
-            print(f"You earned ${p.job.salary}.")
-            p.money += p.job.salary
-            if p.job.skills_learned:
-                for skill in p.job.skills_learned:
-                    percentage = random.randint(0, 20)
-                    try:
-                        p.skills[skill] += percentage
-                    except KeyError:
-                        p.skills[skill] = percentage
+                count = 8
+                while count > 0:
+                    time.sleep(1.5)
+                    sys.stdout.write(" .")
+                    sys.stdout.flush()
+                    count -= 1
+                print()
+                print(f"You earned ${p.job.salary}.")
+                p.money += p.job.salary
+                if p.job.skills_learned:
+                    for skill in p.job.skills_learned:
+                        percentage = random.randint(0, 20)
+                        try:
+                            p.skills[skill] += percentage
+                        except KeyError:
+                            p.skills[skill] = percentage
 
-                mastery = [f"{s} - {m}" for s, m in p.skills.items()]
-                if mastery:
-                    print(f"You gained some skill mastery at work: {comma_separated(mastery)}%")
+                    mastery = [f"{s} - {m}" for s, m in p.skills.items()]
+                    if mastery:
+                        print(f"You gained some skill mastery at work: {comma_separated(mastery)}%")
 
+            else:
+                print(f"Your job is not here. You need to go here: {p.job.location}")
         else:
-            print(f"Your job is not here. You need to go here: {p.job.location}")
+            print("You can only work in the daytime.")
+            # TODO night stockers work at night.. add phase to job description
     else:
         print("Sorry, you don't have a job. Try applying for one.")
 
@@ -416,11 +432,11 @@ def interact_with_building(words):
                 look_around()
 
         else:
-            if odds(10) is False:
+            if odds(10) is False or p.phase == 'night':
                 print("The occupants of this residence have kicked you out.")
             else:
                 p.building_local = building
-                print("You are now inside a house")
+                print("You are now inside a house.")
                 look_around()
 
     else:
@@ -498,7 +514,6 @@ def haggle(items, quantity, price_offered):
 
 
 def buy_items(items, quantity, cost):
-    # TODO restock bought items
     for item in items:
         q = item.quantity if quantity == 'all' else quantity
         add_item_to_inventory(item, q)
@@ -624,7 +639,6 @@ def throw(mob_a, mob_b):
     While you can toss higher level weapons, it doesn't do as much damage as weilding them would
     """
     # TODO only throw equipped weapons??
-    # TODO add thrown item to map square items
     weapon_usefulness = {0: (0, 20),
                          1: (10, 30),
                          2: (20, 40),
@@ -641,6 +655,7 @@ def throw(mob_a, mob_b):
     # TODO this needs capitalized too
     mob_b.health -= damage
     w.quantity -= 1
+    add_dropped_item_to_map(w, 1)
     print(f"{mob_a.name} inflicted {damage} damage to {mob_b.name}. {mob_b.name} has {mob_b.health} health left.")
     if w.quantity == 0:
         print(f"You are out of {w.plural}.")
@@ -758,7 +773,6 @@ def battle(attacking_mobs, aggressing=False):
                 mob_health.append(f"{mob_id} has {mob.health}")
             if 0 < mob.health <= 50 and aggressing is False:
                 print(f"{mob_id} decided the fight's not worth it and has bowed out.")
-                # TODO do you get the inventory items you were fighting over??
                 attacking = False
         attacking_mobs = [m for m in attacking_mobs if m.health > 0]
         if not attacking_mobs:

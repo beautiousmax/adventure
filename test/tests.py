@@ -154,3 +154,17 @@ class TestJob(unittest.TestCase):
         go_to_work()
         assert p.money == 45
         assert p.skills == {}
+
+
+class TestThrow(unittest.TestCase):
+    def test_throw(self):
+        the_map[p.location].items = []
+        weapon = Item("weapon", quantity=10, plural="weapons", weapon_rating=2)
+        p.equipped_weapon = weapon
+        mob_b = Mob("bob", plural="bobs", rarity="common")
+        throw(p, mob_b)
+        assert mob_b.health != 100
+        assert the_map[p.location].items != []
+        assert the_map[p.location].items[0].name == "weapon"
+        assert the_map[p.location].items[0].quantity == 1
+        assert p.equipped_weapon.quantity == 9
