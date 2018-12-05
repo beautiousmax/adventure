@@ -52,12 +52,11 @@ class TestParseInventoryAction(unittest.TestCase):
 
     def test_add_existing_item_to_inventory(self):
         mob = Mob(name="Bob", plural="Bobs", rarity="common")
-        mob.inventory = []
-        mob.inventory = [Item("a stick", quantity=1, plural="sticks")]
-        test_item = Item("a stick", quantity=5, plural="sticks")
+        mob.inventory = [Item("a hat", quantity=1, plural="hats")]
+        test_item = Item("a hat", quantity=5, plural="hats")
         add_item_to_inventory(test_item, 1, mob)
         assert len(mob.inventory) == 1
-        assert mob.inventory[0].name == "a stick"
+        assert mob.inventory[0].name == "a hat"
         assert mob.inventory[0].quantity == 2
 
     def test_add_item_to_equipped_weapon_stack(self):
