@@ -132,6 +132,12 @@ class TestSpecifics(unittest.TestCase):
         assert len(squirrel) == 1
         assert squirrel[0].name == 'a squirrel'
 
+    def test_find_specific_job(self):
+        cashier = Job('cashier', salary=10)
+        driver = Job('truck driver', salary=20)
+        jobs = [cashier, driver]
+        assert find_specific_job('driver', jobs) == driver
+
 
 class TestEquip(unittest.TestCase):
     def test_equip(self):
@@ -142,12 +148,34 @@ class TestEquip(unittest.TestCase):
         assert p.equipped_weapon == weapon
         assert p.equipped_weapon.weapon_rating == 5
 
+    def test_equip_with_already_equipped_weapon(self):
+        weapon_a = Item("weapon a", quantity=10, plural="weapons")
+        p.inventory = [weapon_a]
+        weapon_b = Item("weapon b", quantity=10, plural="weapons")
+        p.equipped_weapon = weapon_b
+        equip('weapon a')
+        assert len(p.inventory) == 1
+        assert p.equipped_weapon.name == 'weapon a'
+        assert p.inventory[0].name == 'weapon b'
+
+    def test_cant_find_to_equip(self):
+        p.equipped_weapon = None
+        weapon = Item("weapon a", quantity=10, plural="weapons")
+        p.inventory = [weapon]
+        equip('a dragon')
+        assert len(p.inventory) == 1
+        assert p.equipped_weapon is None
+
 
 class TestJob(unittest.TestCase):
-
-    def test_job(self):
+    def setUp(self):
+        p.job = None
         p.money = 0
         p.skills = {}
+        p.location = (0, 0)
+        p.phase = "day"
+
+    def test_job(self):
         job = Job(name="a job", skills_learned=['communication'], salary=45)
         p.job = job
         go_to_work()
@@ -155,13 +183,42 @@ class TestJob(unittest.TestCase):
         assert p.skills['communication'] >= 0
 
     def test_job_no_skills(self):
-        p.money = 0
-        p.skills = {}
         job = Job(name="a job", skills_learned=None, salary=45)
         p.job = job
         go_to_work()
         assert p.money == 45
         assert p.skills == {}
+
+    def test_no_job(self):
+        p.job = None
+        go_to_work()
+        assert p.money == 0
+
+    def test_job_location(self):
+        job = Job(name="a job", skills_learned=None, salary=45)
+        job.location = (10, 10)
+        p.job = job
+        go_to_work()
+        assert p.money == 0
+
+    def test_day_job_at_night(self):
+        job = Job(name="a job", skills_learned=None, salary=45)
+        p.job = job
+        p.phase = "night"
+        go_to_work()
+        assert p.money == 0
+
+    def test_night_job_at_day(self):
+        job = Job(name="a night job", skills_learned=None, salary=45)
+        p.job = job
+        go_to_work()
+        assert p.money == 0
+
+    def test_go_to_work_command(self):
+        job = Job(name="a job", skills_learned=None, salary=45)
+        p.job = job
+        commands_manager('go to work')
+        assert p.money == 45
 
 
 class TestAttacks(unittest.TestCase):
@@ -262,3 +319,68 @@ class TestCommonFunctions(unittest.TestCase):
 
     def test_odds(self):
         assert odds(1) is True
+
+
+class TestQuestCompletion(unittest.TestCase):
+    def setUp(self):
+        p.skills = {}
+        p.location = (0, 0)
+        self.mob = Mob("a cat", plural="cats", rarity="common")
+        self.mob.inventory = []
+        quest_item = Item("an emerald necklace", rarity="super rare", plural="necklaces", quantity=3)
+        self.mob.quest = quest_item, 3, "quest description string."
+        self.mob.skills = ['patience']
+        p.quest = self.mob, p.location
+
+    def test_not_enough_items(self):
+        p.inventory = [Item("an emerald necklace", rarity="super rare", plural="necklaces", quantity=1)]
+        turn_in_quest()
+        assert not p.skills
+        assert p.inventory[0].quantity == 1
+        assert len(self.mob.inventory) == 0
+
+    def test_not_correct_location(self):
+        p.inventory = [Item("an emerald necklace", rarity="super rare", plural="necklaces", quantity=3)]
+        p.location = (10, 10)
+        turn_in_quest()
+        assert not p.skills
+        assert p.inventory[0].quantity == 3
+        assert len(self.mob.inventory) == 0
+
+    def test_enough_items(self):
+        p.inventory = [Item("an emerald necklace", rarity="super rare", plural="necklaces", quantity=3)]
+        turn_in_quest()
+        assert p.inventory == []
+        assert len(self.mob.inventory) == 1
+        assert self.mob.inventory[0].quantity == 3
+        assert p.skills['patience'] != 0
+
+    def test_not_correct_items(self):
+        p.inventory = [Item("a teapot", rarity="uncommon", plural="teapots", quantity=1)]
+        turn_in_quest()
+        assert not p.skills
+        assert p.inventory[0].quantity == 1
+        assert len(self.mob.inventory) == 0
+
+
+class TestHaggle(unittest.TestCase):
+    def setUp(self):
+        p.inventory = []
+        p.money = 20
+        self.item = Item("a cake", plural="cakes", rarity="common", price=10, quantity=3)
+
+    def test_offer_zero(self):
+        haggle([self.item], 1, 0)
+        assert p.money == 20
+        assert not p.inventory
+
+    def test_offer_price(self):
+        haggle([self.item], 1, 10)
+        assert p.money == 10
+        assert len(p.inventory) == 1
+
+    def test_no_cash(self):
+        p.money = 0
+        haggle([self.item], 1, 10)
+        assert p.money == 0
+        assert not p.inventory

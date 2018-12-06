@@ -347,10 +347,10 @@ def go_to_work():
             print(f"You gained some skill mastery at work: {comma_separated(mastery)}%")
 
 
-def find_specific_job(words, location):
-    for job in location.jobs:
-        for word in remove_little_words(words):
-            if word in job.name or word == job.name:
+def find_specific_job(words, list_of_jobs):
+    for job in list_of_jobs:
+        for word in remove_little_words(words).split(' '):
+            if word.lower() in job.name.lower() or word.lower() == job.name.lower():
                 return job
 
 
@@ -363,7 +363,7 @@ def apply_for_job(words):
             print("What job are you applying for?")
             return
     else:
-        job = find_specific_job(words, p.building_local)
+        job = find_specific_job(words, p.building_local.jobs)
     if job:
         if job.inventory_needed and job.inventory_needed not in p.inventory:
             print(f"You need {job.inventory_needed} for this job.")
@@ -584,6 +584,8 @@ def turn_in_quest():
             break
     else:
         print(f"You don't have any {quest_item.plural}. You need {quantity}.")
+
+    p.inventory = [i for i in p.inventory if i.quantity > 0]
 
 
 def attack(mob_a, mob_b):
