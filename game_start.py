@@ -24,7 +24,7 @@ p.name = input("Welcome to the world, adventurer! What name would you like to be
 print(f"Nice to meet you, {p.name}!\nUse commands to interact with your world. At any time, type 'help' to see all "
       f"available commands.\nHere is your current status: \n")
 
-p.status()
+print(p.status())
 print()
 look_around()
 game_loop()

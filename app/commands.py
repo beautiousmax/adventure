@@ -58,7 +58,7 @@ def commands_manager(words):
         look_around()
 
     elif words[0] == "inventory":
-        p.pretty_inventory()
+        print(p.pretty_inventory())
 
     elif " ".join(words[0:2]) == "pick up":
         # TODO add inventory limit
@@ -68,7 +68,7 @@ def commands_manager(words):
         pick_up(" ". join(words[1:]))
 
     elif words[0] == "status":
-        p.status()
+        print(p.status())
 
     elif words[0] == "eat":
         eat_food(" ".join(words[1:]))
@@ -158,8 +158,8 @@ def look_around():
             print("Nothing seems to be nearby.")
 
     else:
-        wares = [f"{int_to_words(x.quantity)} {x.plural}" if x.quantity > 1 else x.name for x in p.building_local.wares]
-        if wares:
+        if p.building_local.wares:
+            wares = [f"{int_to_words(x.quantity)} {x.plural}" if x.quantity > 1 else x.name for x in p.building_local.wares]
             print(f"This {p.building_local.name} has these items for sale: {comma_separated(wares)}")
 
         if p.building_local.mobs:
@@ -172,11 +172,11 @@ def look_around():
             print("There isn't anything here.")
 
 
-def irritate_the_locals(i):
+def irritate_the_locals(item):
     """ Decide whether or not to agro mobs if the player tries to pick up a rare item.
     Returns list of mobs or False
     """
-    if i.rarity in ('rare', 'super rare') and odds(2) and the_map[p.location].mobs:
+    if item.rarity in ('rare', 'super rare') and odds(2) and the_map[p.location].mobs:
         angry_mob = [x for x in the_map[p.location].mobs if odds(2)]
         angry_mob = angry_mob if len(angry_mob) >= 1 else [the_map[p.location].mobs[0]]
         return angry_mob
@@ -683,10 +683,10 @@ def battle_manager(words, mobs, aggressing):
         eat_food(" ".join(words[1:]))
         return True
     elif words[0] == "inventory":
-        p.pretty_inventory()
+        print(p.pretty_inventory())
         battle_manager(input(), mobs, aggressing)
     elif words[0] == "status":
-        p.status()
+        print(p.status())
         battle_manager(input(), mobs, aggressing)
     else:
         print("You can't do that right now.")

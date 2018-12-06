@@ -1,4 +1,5 @@
 import unittest
+from unittest import mock
 
 from app.commands import *
 from app.main_classes import *
@@ -251,6 +252,11 @@ class TestChangeDirection(unittest.TestCase):
             change_direction(direction)
             assert p.location == (0, 1)
 
+    def test_go_nowhere(self):
+        p.location = (0, 0)
+        change_direction("sideways")
+        assert p.location == (0, 0)
+
 
 class TestPickUpCommand(unittest.TestCase):
     def test_pick_up_quantity_command_manager(self):
@@ -320,6 +326,16 @@ class TestCommonFunctions(unittest.TestCase):
     def test_odds(self):
         assert odds(1) is True
 
+    def test_the_name(self):
+        assert the_name('a squirrel named Hobb') == 'Hobb'
+        assert the_name('a squirrel') == 'the squirrel'
+
+    def test_are_is(self):
+        squirrel = Mob('a squirrel', plural='squirrels', rarity='common')
+        hat = Item('a hat', plural='hats', quantity=7, rarity='uncommon')
+        assert are_is([squirrel, hat]).split(' ')[0] == "are"
+        assert are_is([squirrel]).split(' ')[0] == "is"
+
 
 class TestQuestCompletion(unittest.TestCase):
     def setUp(self):
@@ -384,3 +400,108 @@ class TestHaggle(unittest.TestCase):
         haggle([self.item], 1, 10)
         assert p.money == 0
         assert not p.inventory
+
+    @mock.patch('app.commands.odds', return_value=True)
+    def test_lower_offer(self, odds):
+        haggle([self.item], 1, 5)
+        assert p.money == 15
+        assert len(p.inventory) == 1
+
+    def test_buy_two(self):
+        haggle([self.item], 2, 20)
+        assert p.money == 0
+        assert p.inventory[0].quantity == 2
+
+
+class TestIrritateTheLocals(unittest.TestCase):
+    @mock.patch('app.commands.odds', return_value=True)
+    def test_irritated(self, odds):
+        item = Item("an emerald necklace", rarity="super rare", plural="necklaces", quantity=3)
+        mob = Mob("a cat", plural="cats", rarity="common")
+        the_map[p.location].mobs = [mob]
+        assert irritate_the_locals(item) == [mob]
+
+    def test_not_rare_item(self):
+        item = Item("a teapot", rarity="uncommon", plural="teapots", quantity=1)
+        mob = Mob("a cat", plural="cats", rarity="common")
+        the_map[p.location].mobs = [mob]
+        assert irritate_the_locals(item) is False
+
+    @mock.patch('app.commands.odds', return_value=True)
+    def test_large_mob(self, odds):
+        item = Item("an emerald necklace", rarity="super rare", plural="necklaces", quantity=3)
+        mob_a = Mob("a cat", plural="cats", rarity="common")
+        mob_b = Mob("a sheep", plural="sheep", rarity="common")
+        mob_c = Mob("a bat", plural="bats", rarity="common")
+        the_map[p.location].mobs = [mob_a, mob_b, mob_c]
+        assert len(irritate_the_locals(item)) == 3
+
+
+class TestVisitBuildings(unittest.TestCase):
+    def setUp(self):
+        self.house = Building('a house', plural='houses')
+        self.office = Building('an office', plural='offices', ware_list=None)
+        the_map[p.location].buildings = [self.house, self.office]
+        p.building_local = None
+        p.phase = "day"
+
+    @mock.patch('app.commands.odds', return_value=True)
+    def test_visit_house(self, odds):
+        interact_with_building('house')
+        assert p.building_local == self.house
+
+    @mock.patch('app.commands.odds', return_value=True)
+    def test_visit_house_at_night(self, odds):
+        p.phase = "night"
+        interact_with_building('house')
+        assert p.building_local is None
+
+    @mock.patch('app.commands.odds', return_value=False)
+    def test_kicked_out_of_hosue(self, odds):
+        interact_with_building('house')
+        assert p.building_local is None
+
+    @mock.patch('app.commands.odds', return_value=True)
+    def test_visit_office(self, odds):
+        interact_with_building('office')
+        assert p.building_local == self.office
+
+    @mock.patch('app.commands.odds', return_value=False)
+    def test_office_closed(self, odds):
+        interact_with_building('office')
+        assert p.building_local is None
+
+
+class TestPlayer(unittest.TestCase):
+    def test_phase_change(self):
+        p.phase = "day"
+        p.phase_change()
+        assert p.phase == "night"
+        p.phase_change()
+        assert p.phase == "day"
+
+    def test_inventory(self):
+        p.equipped_weapon = None
+        p.inventory = [Item("a rock", quantity=3, plural="rocks", rarity="common")]
+        assert p.pretty_inventory() == "You have three rocks in your inventory."
+
+    def test_inventory_with_weapon(self):
+        p.inventory = [Item("an emerald necklace", rarity="super rare", plural="necklaces", quantity=3)]
+        p.equipped_weapon = Item("a rock", quantity=3, plural="rocks", rarity="common")
+        assert p.pretty_inventory() == "You have three necklaces in your inventory.\nYou are wielding three rocks."
+
+    def test_status(self):
+        p.building_local = None
+        p.equipped_weapon = None
+        p.inventory = []
+        p.money = 0
+        p.skills = {}
+        p.location = (0, 0)
+        p.health = 100
+        p.job = None
+        p.quest = None
+        s = "Currently, you have 100 health.\nYou are located on map coordinates (0, 0), which " \
+            f"is {the_map[p.location].square_type}.\nYou don't have any skills.\nYou have nothing in your inventory." \
+            f"\nYou have $0 in your wallet.\nYou do not have a job, and you are not contributing to society."
+
+        assert p.status() == s

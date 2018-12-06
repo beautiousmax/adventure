@@ -132,37 +132,31 @@ class Player(object):
             return "nothing"
 
     def pretty_inventory(self):
-        print(f"You have {self.formatted_inventory()} in your inventory.")
-        if self.equipped_weapon is not None:
-            # TODO show weapon rating ?
-            w = self.equipped_weapon
-            print(f"You are wielding {int_to_words(w.quantity)} "
-                  f"{remove_little_words(w.name) if w.quantity == 1 else w.plural}.")
+        w = self.equipped_weapon
+        inventory = {'inventory_items': f"You have {self.formatted_inventory()} in your inventory.",
+                     'weapon': f"You are wielding {int_to_words(w.quantity)} "
+                               f"{remove_little_words(w.name) if w.quantity == 1 else w.plural}." if w else None}
+        return '\n'.join(v for v in inventory.values() if v)
 
     def status(self):
-        print(f"Currently, you have {self.health} health. \nYou are located on map coordinates "
-              f"{self.location}, which is {the_map[self.location].square_type}.")
-        if p.building_local:
-            print(f"You are inside {p.building_local.name}.")
+        skills = [f"You have mastered {k}." if v >= 100 else f"You have learned {v}% of {k}." for k, v in self.skills.items()]
 
-        if self.skills:
-            for k, v in self.skills.items():
-                if v >= 100:
-                    print(f"You have mastered {k}.")
-                else:
-                    print(f"You have learned {v}% of {k}.")
-        else:
-            print("You don't have any skills.")
+        job = f"You have a job as a {self.job.name}." if self.job else None
+        quest = "You have a quest." if self.quest else None
+        job_string = "\n".join([job, quest]) if job or quest else "You do not have a job, and you are not " \
+                                                                  "contributing to society."
 
-        self.pretty_inventory()
-        print(f"You have ${self.money} in your wallet.")
+        status_string = {
+            'health': f'Currently, you have {self.health} health.',
+            'location': f'You are located on map coordinates {self.location}, '
+                        f'which is {the_map[self.location].square_type}.',
+            'building_local': f'You are inside {p.building_local.name}.' if p.building_local else None,
+            'skills': '\n'.join(skills) if skills else "You don't have any skills.",
+            'inventory': self.pretty_inventory(),
+            'money': f"You have ${self.money} in your wallet.",
+            'job': job_string}
 
-        if self.job:
-            print(f"You have a job as a {self.job.name}.")
-        if self.quest:
-            print(f"You have a quest.")
-        elif self.job is None and self.quest is None:
-            print("You do not have a job, and you are not contributing to society.")
+        return '\n'.join(v for v in status_string.values() if v)
 
 
 p = Player(name='', location=(0, 0))
