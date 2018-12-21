@@ -5,7 +5,7 @@ import time
 from reusables.string_manipulation import int_to_words
 
 from app.common_functions import formatted_items, comma_separated, parse_inventory_action, odds, remove_little_words, \
-    are_is, find_specifics, the_name
+    are_is, find_specifics, the_name, dialogue
 from app.main_classes import MapSquare, the_map, p, Mob
 
 
@@ -767,3 +767,165 @@ def equip(words):
         print(f"Equipped {w[0].name if w[0].quantity == 1 else w[0].plural}")
     else:
         print(f"Can't find {words} in your inventory.")
+
+
+class GoFish:
+    def __init__(self):
+        suits = ["hearts", "clubs", "diamonds", "spades"]
+        self.deck = [(str(v), s) for s in suits for v in range(2, 11)]
+        self.deck2 = [(e, s) for s in suits for e in ["ace", "jack", "queen", "king"]]
+        self.deck = self.deck + self.deck2
+        random.shuffle(self.deck)
+
+        self.mob_hand = self.deal(5)
+        self.player_hand = self.deal(5)
+
+    turn = 0
+
+    asked_for_values = []
+
+    def deal(self, number_of_cards):
+        print("Doing a deal")
+        if len(self.deck) >= number_of_cards:
+            d = self.deck[0:number_of_cards]
+            del self.deck[0:number_of_cards]
+            return d
+        elif number_of_cards > len(self.deck) > 0:
+            d = self.deck
+            del self.deck[0:]
+            return d
+        else:
+            return []
+
+    def refresh_hands(self):
+        if self.player_hand is False:
+            print("player gets new cards")
+            self.player_hand = self.deal(5)
+        if self.mob_hand is False:
+            print("mob gets new cards")
+            self.mob_hand = self.deal(5)
+
+    def does_mob_have_cards(self, value):
+        self.asked_for_values.append(value)
+        values = list(set([x[0] for x in self.mob_hand]))
+        print("MOB'S HAND", values)
+        if str(value) in values:
+            cards_taken = []
+            for card in self.mob_hand:
+                if card[0] == value:
+                    cards_taken.append(card)
+                    self.player_hand.append(card)
+            for card in cards_taken:
+                self.mob_hand.remove(card)
+            print(f'The mob turns over the {comma_separated([f"{x[0]} of {x[1]}" for x in cards_taken])}.')
+            print(f'You can go again.')
+            self.refresh_hands()
+            self.turn -= 1
+        else:
+            print("Mob says: GO FISH")
+            card = self.deal(1)
+            if card:
+                self.player_hand.append(card[0])
+                print(f"You picked up the {card[0][0]} of {card[0][1]}.")
+
+    def cpu_asks_you_for_cards(self):
+        mob_values = list(set([x[0] for x in self.mob_hand]))
+        random.shuffle(mob_values)
+        players_values = list(set([x[0] for x in self.player_hand]))
+
+        for v in self.asked_for_values:
+            if v in mob_values and v in players_values:
+                cards_taken = []
+                print(f"A The mob says: do you have any {v}'s'?")
+                for card in self.player_hand:
+                    if card[0] == v:
+                        cards_taken.append(card)
+                        self.mob_hand.append(card)
+                if cards_taken:
+                    for card in cards_taken:
+                        self.player_hand.remove(card)
+
+                    print(f'You turn over the {comma_separated([f"{x[0]} of {x[1]}" for x in cards_taken])}.')
+                    print(f'The mob can go again.')
+            self.refresh_hands()
+        else:
+            value = mob_values[0]
+            print(f"B The mob says: do you have any {value}'s?")
+            if value in players_values:
+                cards_taken = []
+                for card in self.player_hand:
+                    if card[0] == value:
+                        cards_taken.append(card)
+                        self.mob_hand.append(card)
+                for card in cards_taken:
+                    self.player_hand.remove(card)
+                if cards_taken:
+                    print(f'You turn over the {comma_separated([f"{x[0]} of {x[1]}" for x in cards_taken])}.')
+                    self.turn -= 1
+                    print(f'The mob can go again.')
+                    self.refresh_hands()
+            else:
+                print("You say: GO FISH")
+                card = self.deal(1)
+                if card:
+                    print("The mob picks up a card.")
+                    self.mob_hand += card
+
+    @staticmethod
+    def count_up_sets(hand):
+        sets = []
+        sets_values = []
+        for card in hand:
+            collection = [x for x in hand if x[0] == card[0]]
+            if len(collection) == 4 and card[0] not in sets_values:
+                sets_values.append(card[0])
+                sets = sets + collection
+
+        for s in sets:
+            hand.remove(s)
+
+        return hand, len(sets_values)
+
+    def sort_cards(self):
+        pass
+
+
+def mini_game_go_fish(mob):
+    """ Play a round of go fish with a mob """
+
+    game = GoFish()
+    player_score = 0
+    mob_score = 0
+
+    while True:
+        if game.turn % 2 == 0 and game.player_hand:
+            print()
+            print(f"Your score: {player_score}, {mob} score: {mob_score}")
+            values = list(set([x[0] for x in game.player_hand]))
+            all_values = [x[0] for x in game.player_hand]
+            options = {}
+            print("MOB'S HAND", list(set([x[0] for x in game.mob_hand])))
+            for v in values:
+                options[f"Do you have any {v}'s? ({all_values.count(v)} in hand)"] = game.does_mob_have_cards, v
+
+            dialogue(options)
+            game.refresh_hands()
+            game.player_hand, score = game.count_up_sets(game.player_hand)
+            player_score += score
+            game.turn += 1
+        elif game.turn % 2 == 1 and game.mob_hand:
+            print()
+            game.cpu_asks_you_for_cards()
+            game.refresh_hands()
+            game.mob_hand, score = game.count_up_sets(game.mob_hand)
+            mob_score += score
+            game.turn += 1
+        elif not game.deck:
+            break
+
+    if player_score > mob_score:
+        print(f"Game over, YOU WIN! {player_score} to {mob_score}")
+    elif mob_score > player_score:
+        print(f"Game over, {mob} wins! {mob_score} to {player_score}")
+    else:
+        print(f"Game over, scores tied! {mob_score} to {player_score}")

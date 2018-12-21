@@ -113,3 +113,25 @@ def the_name(unique_name):
             return name
     else:
         return f"the {remove_little_words(unique_name)}"
+
+
+def dialogue(options):
+    """Takes a dictionary of phrases and relevant commands, for example:
+    d = {'Hello': (talk, 'hello'),
+         'I hate you': (attack, p, m),
+         'Do you have any grapes': (print, 'nope')}
+    """
+    commands = [v for v in options.values()]
+    for i, k in enumerate(options.keys()):
+        print(i+1, k)
+
+    option = ''
+    # need to verify option is less than len(commands) + 1
+    while not option.isdigit():
+        option = input()
+        if option.isdigit():
+            while int(option) > len(commands):
+                option = input()
+
+    o = commands[int(option)-1]
+    o[0](*o[1:])
