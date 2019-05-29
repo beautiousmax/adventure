@@ -46,6 +46,7 @@ All available commands can be viewed anytime by typing "help"
 | ask \<mob\> *for a* quest    | Bother almost anything for the possibility of a quest |
 | turn in quest                | Complete a quest, you must be on the map square you picked it up from  | 
 | say hi to \<mob\>            | Try talking to people |
+| map                          | Get an overview of nearby explored areas |
 | exit                         | Quit the game |
    
 \* *Italicized* words are optional

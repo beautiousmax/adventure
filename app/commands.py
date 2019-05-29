@@ -27,6 +27,7 @@ def help_me():
                     "say hi to <a mob>": bool(the_map[p.location].mobs or p.building_local.mobs),
                     "turn in quest": bool(p.quest),
                     "go to work": bool(p.job),
+                    "map": True,
                     "exit": True}
 
     for command, status in command_list.items():
@@ -100,6 +101,8 @@ def commands_manager(words):
         go_to_work()
     elif words[0] == "ls":
         print("What, you think this is Linux?")
+    elif words[0] == "map":
+        the_map[p.location].map_picture()
     else:
         print("I don't know that command.")
 
@@ -728,7 +731,7 @@ def battle(attacking_mobs, aggressing=False):
 
         mob_health = []
         for mob in attacking_mobs:
-            mob_id = the_name(mob.name)
+            mob_id = the_name(mob.name).capitalize()
             if mob.health <= 0:
                 s = f" You add {comma_separated(formatted_items(mob.inventory))} to your " \
                     f"inventory." if mob.inventory else ''

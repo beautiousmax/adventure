@@ -91,6 +91,27 @@ class MapSquare(object):
         """ Remove items with quantity of zero from the map inventory"""
         self.items = [i for i in self.items if i.quantity != 0]
 
+    def map_picture(self):
+        """With the player's location in the center, draw a 5 x 5 map with map square type
+        and coordinates in each square"""
+        xy = (p.location[0] - 2, p.location[1] + 2)
+        map_coords = []
+        for y in range(0, 5):
+            row = [(xy[0] + x, xy[1] - y) for x in range(0, 5)]
+            map_coords.append(row)
+
+        pretty_map = []
+        for r in map_coords:
+            row = []
+            for cordinates in r:
+                if cordinates in the_map.keys():
+                    row.append("|{!s:10}|".format(the_map[cordinates].square_type))
+                else:
+                    row.append("|{!s:10}|".format(' '))
+            pretty_map.append(row)
+        for row in pretty_map:
+            print(''.join(row))
+
 
 the_map = {(0, 0): MapSquare(name="spawn")}
 
@@ -112,6 +133,7 @@ class Player(object):
 
     def phase_change(self):
         self.phase = 'day' if self.phase == 'night' else 'night'
+        # TODO don't despawn stuff right after going to a square
         for k, square in the_map.items():
             square.generate_items()
             for b in square.buildings:
@@ -143,8 +165,12 @@ class Player(object):
 
         job = f"You have a job as a {self.job.name}." if self.job else None
         quest = "You have a quest." if self.quest else None
-        job_string = "\n".join([job, quest]) if job or quest else "You do not have a job, and you are not " \
-                                                                  "contributing to society."
+        if job and quest:
+            job_string = "\n".join([job, quest])
+        elif job or quest:
+            job_string = job if job else quest
+        else:
+            job_string = "You do not have a job, and you are not contributing to society."
 
         status_string = {
             'health': f'Currently, you have {self.health} health.',

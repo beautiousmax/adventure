@@ -505,3 +505,16 @@ class TestPlayer(unittest.TestCase):
             f"\nYou have $0 in your wallet.\nYou do not have a job, and you are not contributing to society."
 
         assert p.status() == s
+
+    def test_status_with_quest(self):
+        p.building_local = None
+        p.equipped_weapon = None
+        p.inventory = []
+        p.money = 0
+        p.skills = {}
+        p.location = (0, 0)
+        p.health = 100
+        p.job = None
+        p.quest = True
+
+        assert 'quest' in p.status()
