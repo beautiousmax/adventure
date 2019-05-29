@@ -2,32 +2,29 @@ import time
 
 from termcolor import colored
 
-from app.commands import commands_manager, look_around
-from app.main_classes import p
+from app.commands import Adventure
 
 
-def game_loop():
-    """Loop that accepts player commands while player is alive"""
-    cycle_start = time.time()
-    while p.health > 0 and time.time() - cycle_start < 80:
-        commands_manager(input())
-    else:
-        if p.health > 0:
-            p.phase_change()
-            print(colored(f"It is now {p.phase}time.", "blue"))
-            game_loop()
+name = input("Welcome to the world, adventurer! What name would you like to be "
+             "known as in this land? \n")
 
+adventure = Adventure(name)
 
-p.name = input("Welcome to the world, adventurer! What name would you like to be "
-               "known as in this land? \n")
-
-print(f"Nice to meet you, {p.name}!\nUse commands to interact with your world. At any time, type 'help' to see all "
+print(f"Nice to meet you, {name}!\nUse commands to interact with your world. At any time, type 'help' to see all "
       f"available commands.\nHere is your current status: \n")
 
-print(p.status())
+print(adventure.player.status(adventure.map, adventure.player))
 print()
-look_around()
-game_loop()
+adventure.look_around()
+
+while True:
+    cycle_start = time.time()
+    while adventure.player.health > 0 and time.time() - cycle_start < 80:
+        adventure.commands_manager(input())
+    else:
+        if adventure.player.health > 0:
+            adventure.player.phase_change(adventure.map, adventure.player)
+            print(colored(f"It is now {adventure.player.phase}time.", "blue"))
 
 
 # next version ideas
