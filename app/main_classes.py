@@ -132,7 +132,7 @@ class Player:
         self.phase = 'day' if self.phase == 'night' else 'night'
         # TODO don't despawn stuff right after going to a square
         for k, square in the_map.items():
-            square.generate_items()
+            square.generate_items(the_map, p)
             for b in square.buildings:
                 if b.ware_list:
                     b.wares = drops(b.ware_list, Item, the_map, p)
