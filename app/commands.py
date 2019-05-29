@@ -1,4 +1,5 @@
 import random
+import re
 import sys
 import time
 
@@ -38,10 +39,42 @@ def help_me():
 def commands_manager(words):
     """ Command handler. """
     words = words.lower().split(" ")
-    if words[0] == "help":
-        help_me()
+    commands = {
+        "^visit.*": (interact_with_building, [" ".join(words[1:])]),
+        "^take.*": (pick_up, [" ".join(words[1:])]),
+        "^eat.*": (eat_food, [" ".join(words[1:])]),
+        "^buy.*": (buy, [" ".join(words[1:])]),
+        "^equip.*": (equip, [" ".join(words[1:])]),
+        "help": (help_me, []),
+        "map": (the_map[p.location].map_picture, []),
+        ".*turn in.*": (turn_in_quest, []),
+        "complete quest": (turn_in_quest, []),
+        "look around": (look_around, []),
+        ".*look.*": (look_around, []),
+        "^work.*": (go_to_work, []),
+        "go to work": (go_to_work, []),
+        "leave": (leave_building, []),
+        "inventory": (print, [p.pretty_inventory()]),
+        "status": (print, [p.status()]),
+        "ls": (print, ["What, you think this is Linux?"]),
+        "attack": (battle, [" ".join(words[1:]), True]),
+        "fight": (battle, [" ".join(words[1:]), True]),
+        "battle": (battle, [" ".join(words[1:]), True]),
+        ".*say.*": (talk, [words]),
+        ".*talk.*": (talk, [words]),
+        ".*ask.*": (talk, [words]),
+        "^pick up.*": (pick_up, [" ".join(words[2:])])
+    }
 
-    elif words[0] == "go" and ' '.join(words) != "go to work":
+    for k, v in commands.items():
+        if re.match(k, " ".join(words)):
+            v[0](*v[1])
+            return
+
+    if words[0] in commands.keys():
+        commands[words[0]](" ".join(words[1:]))
+
+    elif words[0] == "go":
         if words[1:] and ' '.join(words[1:]).strip() in ["n", "ne", "nw", "s", "se", "sw", "e", "w", "north",
                                                          "northeast", "northwest", "south", "southeast", "southwest",
                                                          "east", "west", "up", "down", "left", "right"]:
@@ -49,60 +82,19 @@ def commands_manager(words):
         else:
             print("Looks like you're headed nowhere fast!")
 
-    elif words[0] == "visit":
-        interact_with_building(" ".join(words[1:]))
-
-    elif words[0] == "leave" or words[0] == "exit" and p.building_local:
-        leave_building()
-
-    elif " ".join(words) == "look around" or "look" in words:
-        look_around()
-
-    elif words[0] == "inventory":
-        print(p.pretty_inventory())
-
-    elif " ".join(words[0:2]) == "pick up":
         # TODO add inventory limit
-        pick_up(" ".join(words[2:]))
 
-    elif words[0] == "take":
-        pick_up(" ". join(words[1:]))
-
-    elif words[0] == "status":
-        print(p.status())
-
-    elif words[0] == "eat":
-        eat_food(" ".join(words[1:]))
-
-    elif words[0] == "buy":
-        buy(" ".join(words[1:]))
-
-    elif "say" in words or "talk" in words or "ask" in words:
-        talk(words)
-
-    elif "turn in" in " ".join(words) or " ".join(words) == "complete quest":
-        turn_in_quest()
-
-    elif words[0] == "equip":
-        equip(" ".join(words[1:]))
-
-    elif words[0] in ("attack", "fight", "battle"):
-        battle(" ".join(words[1:]), aggressing=True)
+    elif words[0] == "exit" and p.building_local:
+        leave_building()
 
     elif words[0] == "exit" and p.building_local is None:
         p.health = 0
         print("Goodbye!")
         # TODO save game before exiting?
     elif words[0] == "apply" and p.building_local is not None:
-        # TODO can't apply for job you already have
         apply_for_job(' '.join(words[1:]))
-    elif words[0] == "work" or ' '.join(words) == "go to work":
         # TODO shouldn't be able to work back to back
-        go_to_work()
-    elif words[0] == "ls":
-        print("What, you think this is Linux?")
-    elif words[0] == "map":
-        the_map[p.location].map_picture()
+
     else:
         print("I don't know that command.")
 
@@ -368,6 +360,10 @@ def apply_for_job(words):
     else:
         job = find_specific_job(words, p.building_local.jobs)
     if job:
+        if job == p.job:
+            print("You already have this job.")
+            return
+
         if job.inventory_needed and job.inventory_needed not in p.inventory:
             print(f"You need {job.inventory_needed} for this job.")
             return
