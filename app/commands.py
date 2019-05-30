@@ -340,7 +340,8 @@ class Adventure:
             if mastery:
                 print(f"You gained some skill mastery at work: {comma_separated(mastery)}%")
 
-    def find_specific_job(self, words, list_of_jobs):
+    @staticmethod
+    def find_specific_job(words, list_of_jobs):
         for job in list_of_jobs:
             for word in remove_little_words(words).split(' '):
                 if word.lower() in job.name.lower() or word.lower() == job.name.lower():
@@ -533,7 +534,8 @@ class Adventure:
                 else:
                     print(yes_quest_responses[random.randint(0, len(yes_quest_responses) - 1)])
                     print(specific_mob.quest[2])
-                    if input("Do you accept the quest? yes/no:").lower() == "yes":
+                    if input("Do you accept the quest?{} yes/no:".format(
+                            ' This will replace your current quest.' if self.player.quest else '')).lower() == "yes":
                         self.player.quest = (specific_mob, self.player.location)
 
             else:
@@ -581,7 +583,8 @@ class Adventure:
 
         self.player.inventory = [i for i in self.player.inventory if i.quantity > 0]
 
-    def attack(self, mob_a, mob_b):
+    @staticmethod
+    def attack(mob_a, mob_b):
         """
         mob a uses equipped weapon, finds damage based on weapon rating, subtracts it from self.player.health
         (no weapon or item with weapon rating is a '0' rating)
@@ -645,13 +648,13 @@ class Adventure:
                 self.attack(self.player, mob)
             return True
         elif words[0] == "throw":
-            if len(mobs) == 0:
+            if len(mobs) == 1:
                 mob = mobs[0]
             else:
                 mob = find_specifics(remove_little_words(' '.join(words)), mobs)
                 if not mob:
                     mob = mob[0] if mob else mobs[0]
-                    self.throw(self.player, mob)
+            self.throw(self.player, mob)
             return True
         elif words[0] in ("leave", "exit"):
             if aggressing is False:

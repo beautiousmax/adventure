@@ -17,10 +17,12 @@ print(adventure.player.status(adventure.player))
 print()
 adventure.look_around()
 
-while True:
+while adventure.player.health > 0:
     cycle_start = time.time()
     while adventure.player.health > 0 and time.time() - cycle_start < 80:
         adventure.commands_manager(input())
+        if adventure.player.health <= 0:
+            break
     else:
         if adventure.player.health > 0:
             adventure.player.phase_change(adventure.map, adventure.player)
@@ -29,7 +31,6 @@ while True:
 
 # next version ideas
 
-# night and day
 # you can only work in the day time
 # inventory limits, square items and wares update at sunup and sundown
 # loose a bit of health if you don't sleep at night
