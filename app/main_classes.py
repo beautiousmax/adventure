@@ -91,7 +91,8 @@ class MapSquare:
         """ Remove items with quantity of zero from the map inventory"""
         self.items = [i for i in self.items if i.quantity != 0]
 
-    def map_picture(self, the_map, p):
+    @staticmethod
+    def map_picture(the_map, p):
         """With the player's location in the center, draw a 5 x 5 map with map square type
         and coordinates in each square"""
         xy = (p.location[0] - 2, p.location[1] + 2)
