@@ -138,8 +138,8 @@ class TestSpecifics(unittest.TestCase):
         assert squirrel[0].name == 'a squirrel'
 
     def test_find_specific_job(self):
-        cashier = Job('cashier', p=a.player, salary=10)
-        driver = Job('truck driver', p=a.player, salary=20)
+        cashier = Job('cashier', location=a.player.location, salary=10)
+        driver = Job('truck driver', location=a.player.location, salary=20)
         jobs = [cashier, driver]
         assert a.find_specific_job('driver', jobs) == driver
 
@@ -181,14 +181,14 @@ class TestJob(unittest.TestCase):
         a.player.phase = "day"
 
     def test_job(self):
-        job = Job(name="a job", p=a.player, skills_learned=['communication'], salary=45)
+        job = Job(name="a job", location=a.player.location, skills_learned=['communication'], salary=45)
         a.player.job = job
         a.go_to_work()
         assert a.player.money == 45
         assert a.player.skills['communication'] >= 0
 
     def test_job_no_skills(self):
-        job = Job(name="a job", p=a.player, skills_learned=None, salary=45)
+        job = Job(name="a job", location=a.player.location, skills_learned=None, salary=45)
         a.player.job = job
         a.go_to_work()
         assert a.player.money == 45
@@ -200,27 +200,27 @@ class TestJob(unittest.TestCase):
         assert a.player.money == 0
 
     def test_job_location(self):
-        job = Job(name="a job", p=a.player,  skills_learned=None, salary=45)
+        job = Job(name="a job", location=a.player.location,  skills_learned=None, salary=45)
         job.location = (10, 10)
         a.player.job = job
         a.go_to_work()
         assert a.player.money == 0
 
     def test_day_job_at_night(self):
-        job = Job(name="a job", p=a.player,  skills_learned=None, salary=45)
+        job = Job(name="a job", location=a.player.location,  skills_learned=None, salary=45)
         a.player.job = job
         a.player.phase = "night"
         a.go_to_work()
         assert a.player.money == 0
 
     def test_night_job_at_day(self):
-        job = Job(name="a night job", p=a.player,  skills_learned=None, salary=45)
+        job = Job(name="a night job", location=a.player.location, skills_learned=None, salary=45)
         a.player.job = job
         a.go_to_work()
         assert a.player.money == 0
 
     def test_go_to_work_command(self):
-        job = Job(name="a job", p=a.player,  skills_learned=None, salary=45)
+        job = Job(name="a job", location=a.player.location, skills_learned=None, salary=45)
         a.player.job = job
         a.commands_manager('go to work')
         assert a.player.money == 45

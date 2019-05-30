@@ -15,7 +15,7 @@ class Adventure:
         self.player = Player(name=name, location=(0, 0))
         self.map = {(0, 0): MapSquare(name="spawn")}
         self.player.square = self.map[(0, 0)]
-        self.map[(0, 0)].generate_items(self.player)
+        self.map[(0, 0)].generate_items()
         self.map[(0, 0)].generate_buildings(self.player)
         self.map[(0, 0)].generate_mobs(self.player)
 
@@ -54,6 +54,7 @@ class Adventure:
             "^buy.*": (self.buy, [" ".join(words[1:])]),
             "^equip.*": (self.equip, [" ".join(words[1:])]),
             "help": (self.help_me, []),
+            "^go (?!to work).*": (self.change_direction, [' '.join(words[1:]).strip()]),
             "map": (self.player.square.map_picture, [self.map, self.player]),
             ".*turn in.*": (self.turn_in_quest, []),
             "complete quest": (self.turn_in_quest, []),
@@ -80,15 +81,7 @@ class Adventure:
                 v[0](*v[1])
                 return
 
-        if words[0] == "go":
-            if words[1:] and ' '.join(words[1:]).strip() in ["n", "ne", "nw", "s", "se", "sw", "e", "w", "north",
-                                                             "northeast", "northwest", "south", "southeast", "southwest",
-                                                             "east", "west", "up", "down", "left", "right"]:
-                self.change_direction(" ".join(words[1:]).strip())
-            else:
-                print("Looks like you're headed nowhere fast!")
-
-        elif words[0] == "exit" and self.player.building_local:
+        if words[0] == "exit" and self.player.building_local:
             self.leave_building()
 
         elif words[0] == "exit" and self.player.building_local is None:
@@ -102,6 +95,12 @@ class Adventure:
 
     def change_direction(self, direction):
         """ Change direction """
+
+        if not direction or direction not in ["n", "ne", "nw", "s", "se", "sw", "e", "w", "north",
+                                              "northeast", "northwest", "south", "southeast", "southwest",
+                                              "east", "west", "up", "down", "left", "right"]:
+            print("Looks like you're headed nowhere fast!")
+            return
 
         # TODO travel to distant squares
         sys.stdout.write("Traveling . . .")
@@ -133,7 +132,7 @@ class Adventure:
             self.map[new_coordinates] = MapSquare()
             self.map[new_coordinates].generate_buildings(self.player)
             self.map[new_coordinates].generate_mobs(self.player)
-            self.map[new_coordinates].generate_items(self.player)
+            self.map[new_coordinates].generate_items()
         self.player.square = self.map[new_coordinates]
         print(f"You are now located on map coordinates {new_coordinates}, which is {self.player.square.square_type}.")
 
