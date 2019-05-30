@@ -13,7 +13,7 @@ adventure = Adventure(name)
 print(f"Nice to meet you, {name}!\nUse commands to interact with your world. At any time, type 'help' to see all "
       f"available commands.\nHere is your current status: \n")
 
-print(adventure.player.status(adventure.map, adventure.player))
+print(adventure.player.status(adventure.player))
 print()
 adventure.look_around()
 

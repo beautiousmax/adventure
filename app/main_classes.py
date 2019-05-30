@@ -10,20 +10,20 @@ from data.text import items, buildings, wild_mobs, names, adjectives
 colorama.init()
 
 
-def find_a_name(name_list, the_map, p):
+def find_a_name(name_list, p):
     n = name_list[random.randint(0, len(name_list)-1)]
-    if len(the_map[p.location].unique_names) <= len(names) + len(adjectives):
-        if n not in the_map[p.location].unique_names:
-            the_map[p.location].unique_names.append(n)
+    if len(p.square.unique_names) <= len(names) + len(adjectives):
+        if n not in p.square.unique_names:
+            p.square.unique_names.append(n)
             return n
         else:
-            return find_a_name(name_list, the_map, p)
+            return find_a_name(name_list, p)
     else:
-        the_map[p.location].unique_names = []
-        return find_a_name(name_list, the_map, p)
+        p.square.unique_names = []
+        return find_a_name(name_list, p)
 
 
-def drops(dictionary, object_in_question, the_map, p):
+def drops(dictionary, object_in_question, p):
     """ Randomly generates objects based on rarity """
     drops_i = []
 
@@ -46,23 +46,23 @@ def drops(dictionary, object_in_question, the_map, p):
             elif object_in_question == Mob:
                 if quantity > 1:
                     for m in range(0, quantity):
-                        drops_i.append(Mob(name=f"{k} named {find_a_name(names, the_map, p)}", the_map=the_map, p=p, **v))
+                        drops_i.append(Mob(name=f"{k} named {find_a_name(names, p)}", p=p, **v))
                 else:
-                    drops_i.append(Mob(name=k, the_map=the_map, p=p, **v))
+                    drops_i.append(Mob(name=k, p=p, **v))
             elif object_in_question == Building:
                 if quantity > 1 and v['category'] != 'residence':
                     for m in range(0, quantity):
                         if odds(2):
-                            drops_i.append(Building(name=f"The {find_a_name(adjectives, the_map, p)} "
-                                                         f"{remove_little_words(k).capitalize()}", the_map=the_map, p=p, **v))
+                            drops_i.append(Building(name=f"The {find_a_name(adjectives, p)} "
+                                                         f"{remove_little_words(k).capitalize()}", p=p, **v))
                         else:
-                            drops_i.append(Building(name=f"{find_a_name(names, the_map, p)}'s "
-                                                         f"{remove_little_words(k).capitalize()}", the_map=the_map, p=p, **v))
+                            drops_i.append(Building(name=f"{find_a_name(names, p)}'s "
+                                                         f"{remove_little_words(k).capitalize()}", p=p, **v))
                 elif quantity > 1 and v['category'] == 'residence':
                     for m in range(0, quantity):
-                        drops_i.append(Building(name=f"{find_a_name(names, the_map, p)}'s {remove_little_words(k)}", the_map=the_map, p=p, **v))
+                        drops_i.append(Building(name=f"{find_a_name(names, p)}'s {remove_little_words(k)}", p=p, **v))
                 else:
-                    drops_i.append(Building(name=k, the_map=the_map, p=p, **v))
+                    drops_i.append(Building(name=k, p=p, **v))
 
     return drops_i
 
@@ -78,14 +78,14 @@ class MapSquare:
     items = []
     buildings = []
 
-    def generate_items(self, the_map, p):
-        self.items = drops(add_dicts_together(items["master"], items[self.square_type]), Item, the_map, p)
+    def generate_items(self, p):
+        self.items = drops(add_dicts_together(items["master"], items[self.square_type]), Item, p)
 
-    def generate_buildings(self, the_map, p):
-        self.buildings = drops(add_dicts_together(buildings["master"], buildings[self.square_type]), Building, the_map, p)
+    def generate_buildings(self, p):
+        self.buildings = drops(add_dicts_together(buildings["master"], buildings[self.square_type]), Building, p)
 
-    def generate_mobs(self, the_map, p):
-        self.mobs = drops(add_dicts_together(wild_mobs["master"], wild_mobs[self.square_type]), Mob, the_map, p)
+    def generate_mobs(self, p):
+        self.mobs = drops(add_dicts_together(wild_mobs["master"], wild_mobs[self.square_type]), Mob, p)
 
     def clean_up_map(self):
         """ Remove items with quantity of zero from the map inventory"""
@@ -117,6 +117,7 @@ class Player:
     def __init__(self, name, location):
         self.name = name
         self.location = location
+        self.square = None
         self.money = 0
         self.quest = None
         self.job = None
@@ -132,10 +133,10 @@ class Player:
         self.phase = 'day' if self.phase == 'night' else 'night'
         # TODO don't despawn stuff right after going to a square
         for k, square in the_map.items():
-            square.generate_items(the_map, p)
+            square.generate_items(p)
             for b in square.buildings:
                 if b.ware_list:
-                    b.wares = drops(b.ware_list, Item, the_map, p)
+                    b.wares = drops(b.ware_list, Item, p)
 
     def formatted_inventory(self):
         formatted = []
@@ -157,7 +158,7 @@ class Player:
                                f"{remove_little_words(w.name) if w.quantity == 1 else w.plural}." if w else None}
         return '\n'.join(v for v in inventory.values() if v)
 
-    def status(self, the_map, p):
+    def status(self, p):
         skills = [f"You have mastered {k}." if v >= 100 else f"You have learned {v}% of {k}." for k, v in self.skills.items()]
 
         job = f"You have a job as a {self.job.name}." if self.job else None
@@ -172,7 +173,7 @@ class Player:
         status_string = {
             'health': f'Currently, you have {self.health} health.',
             'location': f'You are located on map coordinates {self.location}, '
-                        f'which is {the_map[self.location].square_type}.',
+                        f'which is {self.square.square_type}.',
             'building_local': f'You are inside {p.building_local.name}.' if p.building_local else None,
             'skills': '\n'.join(skills) if skills else "You don't have any skills.",
             'inventory': self.pretty_inventory(),
@@ -202,7 +203,7 @@ class Item:
 
 
 class Building(object):
-    def __init__(self, name, the_map, p, plural, category=None, rarity=None, ware_list=None, mobs=None, jobs=None):
+    def __init__(self, name, p, plural, category=None, rarity=None, ware_list=None, mobs=None, jobs=None):
         self.name = name
         self.p = p
         self.quantity = 1
@@ -210,8 +211,8 @@ class Building(object):
         self.category = category or None
         self.rarity = rarity or None
         self.ware_list = ware_list
-        self.wares = drops(ware_list, Item, the_map, p) if self.ware_list else None
-        self.mobs = drops(mobs, Mob, the_map, p) if mobs else None
+        self.wares = drops(ware_list, Item, p) if self.ware_list else None
+        self.mobs = drops(mobs, Mob, p) if mobs else None
         self.jobs = self.drop_job(jobs) if jobs else None
 
     def drop_job(self, jobs):
@@ -233,17 +234,16 @@ class Job:
 
 
 class Mob:
-    def __init__(self, name, the_map, p, plural, rarity):
+    def __init__(self, name, p, plural, rarity):
         self.name = name
         self.plural = plural
-        self.location = the_map[p.location]
         self.quantity = 1
         self.rarity = rarity
 
         self.skills = self.skills()
         self.quest = None
 
-        self.inventory = drops(add_dicts_together(items['master'], items[self.location.square_type]), Item, the_map, p)
+        self.inventory = drops(add_dicts_together(items['master'], items[p.square.square_type]), Item, p)
         self.health = 100
         self.equipped_weapon = self.equip()
 
@@ -271,7 +271,7 @@ class Mob:
         random.shuffle(all_skills)
         return all_skills[0:2]
 
-    def generate_quest(self, the_map, p):
+    def generate_quest(self, p):
         """
         inventory based
         bring me 100 of super common object to learn patience
@@ -287,7 +287,7 @@ class Mob:
 
         if odds(3):
 
-            quest_items = add_dicts_together(items["master"], items[the_map[p.location].square_type])
+            quest_items = add_dicts_together(items["master"], items[p.square.square_type])
             quest_item = random.choice(list(quest_items.keys()))
 
             i = Item(quest_item, 0, **quest_items[quest_item])

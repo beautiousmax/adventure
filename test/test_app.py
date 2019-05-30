@@ -47,7 +47,7 @@ class TestParseInventoryAction(unittest.TestCase):
         self.assertTrue(quantity is None and word is None)
 
     def test_add_new_item_to_inventory(self):
-        mob = Mob(name="Bob", the_map=a.map, p=a.player, plural="Bobs", rarity="common")
+        mob = Mob(name="Bob", p=a.player, plural="Bobs", rarity="common")
         mob.inventory = []
         test_item = Item("a stick", quantity=5, plural="sticks")
         a.add_item_to_inventory(test_item, 1, mob)
@@ -56,7 +56,7 @@ class TestParseInventoryAction(unittest.TestCase):
         assert mob.inventory[0].quantity == 1
 
     def test_add_existing_item_to_inventory(self):
-        mob = Mob(name="Bob", the_map=a.map, p=a.player, plural="Bobs", rarity="common")
+        mob = Mob(name="Bob", p=a.player, plural="Bobs", rarity="common")
         mob.inventory = [Item("a hat", quantity=1, plural="hats")]
         test_item = Item("a hat", quantity=5, plural="hats")
         a.add_item_to_inventory(test_item, 1, mob)
@@ -65,7 +65,7 @@ class TestParseInventoryAction(unittest.TestCase):
         assert mob.inventory[0].quantity == 2
 
     def test_add_item_to_equipped_weapon_stack(self):
-        mob = Mob(name="Bob", the_map=a.map, p=a.player, plural="Bobs", rarity="common")
+        mob = Mob(name="Bob", p=a.player, plural="Bobs", rarity="common")
         mob.inventory = []
         mob.equipped_weapon = Item("a stick", quantity=1, plural="sticks")
         test_item = Item("a stick", quantity=5, plural="sticks")
@@ -107,7 +107,7 @@ class TestEat(unittest.TestCase):
 class TestSpecifics(unittest.TestCase):
     mobs = []
     for k, v in wild_mobs["master"].items():
-        mobs.append(Mob(name=k, the_map=a.map, p=a.player, **v))
+        mobs.append(Mob(name=k, p=a.player, **v))
 
     def test_find_specifics_singular(self):
         squirrel = find_specifics('squirrel', self.mobs)
@@ -177,7 +177,7 @@ class TestJob(unittest.TestCase):
         a.player.job = None
         a.player.money = 0
         a.player.skills = {}
-        a.player.location = (0, 0)
+        a.player.square = a.map[(0, 0)]
         a.player.phase = "day"
 
     def test_job(self):
@@ -228,21 +228,21 @@ class TestJob(unittest.TestCase):
 
 class TestAttacks(unittest.TestCase):
     def test_throw(self):
-        a.map[a.player.location].items = []
+        a.player.square.items = []
         weapon = Item("weapon", quantity=10, plural="weapons", weapon_rating=2)
         a.player.equipped_weapon = weapon
-        mob_b = Mob("bob", the_map=a.map, p=a.player, plural="bobs", rarity="common")
+        mob_b = Mob("bob", p=a.player, plural="bobs", rarity="common")
         a.throw(a.player, mob_b)
         assert mob_b.health != 100
-        assert a.map[a.player.location].items != []
-        assert a.map[a.player.location].items[0].name == "weapon"
-        assert a.map[a.player.location].items[0].quantity == 1
+        assert a.player.square.items != []
+        assert a.player.square.items[0].name == "weapon"
+        assert a.player.square.items[0].quantity == 1
         assert a.player.equipped_weapon.quantity == 9
 
     def test_attack(self):
         weapon = Item("weapon", quantity=1, plural="weapons", weapon_rating=5)
         a.player.equipped_weapon = weapon
-        mob_b = Mob("bob", the_map=a.map, p=a.player, plural="bobs", rarity="common")
+        mob_b = Mob("bob", p=a.player, plural="bobs", rarity="common")
         mob_b.health = 100
         a.attack(a.player, mob_b)
         assert mob_b.health <= 50
@@ -278,16 +278,16 @@ class TestPickUpCommand(unittest.TestCase):
 
             a.player.inventory = []
             test_item = Item("a rock", quantity=10, plural="rocks")
-            a.map[a.player.location].items = [test_item]
+            a.player.square.items = [test_item]
             a.commands_manager(words)
 
             self.assertTrue(len(a.player.inventory) == 1)
             self.assertTrue(a.player.inventory[0].name == "a rock")
             self.assertTrue(a.player.inventory[0].quantity == quantity)
             if quantity == 10:
-                self.assertFalse(a.map[a.player.location].items)
+                self.assertFalse(a.player.square.items)
             else:
-                self.assertTrue(a.map[a.player.location].items[0].quantity == 10 - quantity)
+                self.assertTrue(a.player.square.items[0].quantity == 10 - quantity)
 
     def test_pick_up_quantity_directly(self):
 
@@ -301,7 +301,7 @@ class TestPickUpCommand(unittest.TestCase):
 
             a.player.inventory = []
             test_item = Item("a rock", quantity=10, plural="rocks")
-            a.map[a.player.location].items = [test_item]
+            a.player.square.items = [test_item]
             a.pick_up(words)
 
             self.assertTrue(len(a.player.inventory) == 1)
@@ -335,7 +335,7 @@ class TestCommonFunctions(unittest.TestCase):
         assert the_name('a squirrel') == 'the squirrel'
 
     def test_are_is(self):
-        squirrel = Mob('a squirrel', the_map=a.map, p=a.player, plural='squirrels', rarity='common')
+        squirrel = Mob('a squirrel', p=a.player, plural='squirrels', rarity='common')
         hat = Item('a hat', plural='hats', quantity=7, rarity='uncommon')
         assert are_is([squirrel, hat]).split(' ')[0] == "are"
         assert are_is([squirrel]).split(' ')[0] == "is"
@@ -344,8 +344,8 @@ class TestCommonFunctions(unittest.TestCase):
 class TestQuestCompletion(unittest.TestCase):
     def setUp(self):
         a.player.skills = {}
-        a.player.location = (0, 0)
-        self.mob = Mob("a cat", the_map=a.map, p=a.player, plural="cats", rarity="common")
+        a.player.square = a.map[(0, 0)]
+        self.mob = Mob("a cat", p=a.player, plural="cats", rarity="common")
         self.mob.inventory = []
         quest_item = Item("an emerald necklace", rarity="super rare", plural="necklaces", quantity=3)
         self.mob.quest = quest_item, 3, "quest description string."
@@ -421,31 +421,31 @@ class TestIrritateTheLocals(unittest.TestCase):
     @mock.patch('app.commands.odds', return_value=True)
     def test_irritated(self, odds):
         item = Item("an emerald necklace", rarity="super rare", plural="necklaces", quantity=3)
-        mob = Mob("a cat", the_map=a.map, p=a.player, plural="cats", rarity="common")
-        a.map[a.player.location].mobs = [mob]
+        mob = Mob("a cat", p=a.player, plural="cats", rarity="common")
+        a.player.square.mobs = [mob]
         assert a.irritate_the_locals(item) == [mob]
 
     def test_not_rare_item(self):
         item = Item("a teapot", rarity="uncommon", plural="teapots", quantity=1)
-        mob = Mob("a cat", the_map=a.map, p=a.player, plural="cats", rarity="common")
-        a.map[a.player.location].mobs = [mob]
+        mob = Mob("a cat", p=a.player, plural="cats", rarity="common")
+        a.player.square.mobs = [mob]
         assert a.irritate_the_locals(item) is False
 
     @mock.patch('app.commands.odds', return_value=True)
     def test_large_mob(self, odds):
         item = Item("an emerald necklace", rarity="super rare", plural="necklaces", quantity=3)
-        mob_a = Mob("a cat", the_map=a.map, p=a.player, plural="cats", rarity="common")
-        mob_b = Mob("a sheep", the_map=a.map, p=a.player, plural="sheep", rarity="common")
-        mob_c = Mob("a bat", the_map=a.map, p=a.player, plural="bats", rarity="common")
-        a.map[a.player.location].mobs = [mob_a, mob_b, mob_c]
+        mob_a = Mob("a cat", p=a.player, plural="cats", rarity="common")
+        mob_b = Mob("a sheep", p=a.player, plural="sheep", rarity="common")
+        mob_c = Mob("a bat", p=a.player, plural="bats", rarity="common")
+        a.player.square.mobs = [mob_a, mob_b, mob_c]
         assert len(a.irritate_the_locals(item)) == 3
 
 
 class TestVisitBuildings(unittest.TestCase):
     def setUp(self):
-        self.house = Building('a house', the_map=a.map, p=a.player, plural='houses')
-        self.office = Building('an office', the_map=a.map, p=a.player, plural='offices', ware_list=None)
-        a.map[a.player.location].buildings = [self.house, self.office]
+        self.house = Building('a house', p=a.player, plural='houses')
+        self.office = Building('an office', p=a.player, plural='offices', ware_list=None)
+        a.player.square.buildings = [self.house, self.office]
         a.player.building_local = None
         a.player.phase = "day"
 
@@ -501,14 +501,15 @@ class TestPlayer(unittest.TestCase):
         a.player.money = 0
         a.player.skills = {}
         a.player.location = (0, 0)
+        a.player.square = a.map[(0, 0)]
         a.player.health = 100
         a.player.job = None
         a.player.quest = None
         s = "Currently, you have 100 health.\nYou are located on map coordinates (0, 0), which " \
-            f"is {a.map[a.player.location].square_type}.\nYou don't have any skills.\nYou have nothing in your inventory." \
+            f"is {a.player.square.square_type}.\nYou don't have any skills.\nYou have nothing in your inventory." \
             f"\nYou have $0 in your wallet.\nYou do not have a job, and you are not contributing to society."
 
-        assert a.player.status(a.map, a.player) == s
+        assert a.player.status(a.player) == s
 
     def test_status_with_quest(self):
         a.player.building_local = None
@@ -517,8 +518,9 @@ class TestPlayer(unittest.TestCase):
         a.player.money = 0
         a.player.skills = {}
         a.player.location = (0, 0)
+        a.player.square = a.map[(0, 0)]
         a.player.health = 100
         a.player.job = None
         a.player.quest = True
 
-        assert 'quest' in a.player.status(a.map, a.player)
+        assert 'quest' in a.player.status(a.player)

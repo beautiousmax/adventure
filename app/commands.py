@@ -14,9 +14,10 @@ class Adventure:
     def __init__(self, name):
         self.player = Player(name=name, location=(0, 0))
         self.map = {(0, 0): MapSquare(name="spawn")}
-        self.map[(0, 0)].generate_items(self.map, self.player)
-        self.map[(0, 0)].generate_buildings(self.map, self.player)
-        self.map[(0, 0)].generate_mobs(self.map, self.player)
+        self.player.square = self.map[(0, 0)]
+        self.map[(0, 0)].generate_items(self.player)
+        self.map[(0, 0)].generate_buildings(self.player)
+        self.map[(0, 0)].generate_mobs(self.player)
 
     def help_me(self):
         """ List of commands based on situation """
@@ -24,16 +25,16 @@ class Adventure:
                         "go <southwest>": True,
                         "inventory": True,
                         "status": True,
-                        "pick up <something>": bool(self.map[self.player.location].items and self.player.building_local is None),
+                        "pick up <something>": bool(self.player.square.items and self.player.building_local is None),
                         "eat <something>": bool([x for x in self.player.inventory if x.category == "food"]),
-                        "visit <a building>": bool(self.map[self.player.location].buildings),
+                        "visit <a building>": bool(self.player.square.buildings),
                         "leave <the building>": bool(self.player.building_local),
                         "buy <something>": bool(self.player.building_local and self.player.building_local.wares),
                         "apply <for a job>": bool(self.player.building_local and self.player.building_local.jobs),
-                        "battle <a mob>": bool(self.map[self.player.location].mobs or self.player.building_local.mobs),
+                        "battle <a mob>": bool(self.player.square.mobs or self.player.building_local.mobs),
                         "equip <something>": bool(self.player.inventory),
-                        "ask <a mob> for a quest": bool(self.map[self.player.location].mobs or self.player.building_local.mobs),
-                        "say hi to <a mob>": bool(self.map[self.player.location].mobs or self.player.building_local.mobs),
+                        "ask <a mob> for a quest": bool(self.player.square.mobs or self.player.building_local.mobs),
+                        "say hi to <a mob>": bool(self.player.square.mobs or self.player.building_local.mobs),
                         "turn in quest": bool(self.player.quest),
                         "go to work": bool(self.player.job),
                         "map": True,
@@ -53,7 +54,7 @@ class Adventure:
             "^buy.*": (self.buy, [" ".join(words[1:])]),
             "^equip.*": (self.equip, [" ".join(words[1:])]),
             "help": (self.help_me, []),
-            "map": (self.map[self.player.location].map_picture, [self.map, self.player]),
+            "map": (self.player.square.map_picture, [self.map, self.player]),
             ".*turn in.*": (self.turn_in_quest, []),
             "complete quest": (self.turn_in_quest, []),
             "look around": (self.look_around, []),
@@ -62,7 +63,7 @@ class Adventure:
             "go to work": (self.go_to_work, []),
             "leave": (self.leave_building, []),
             "inventory": (print, [self.player.pretty_inventory()]),
-            "status": (print, [self.player.status(self.map, self.player)]),
+            "status": (print, [self.player.status(self.player)]),
             "ls": (print, ["What, you think this is Linux?"]),
             "attack": (self.battle, [" ".join(words[1:]), True]),
             "fight": (self.battle, [" ".join(words[1:]), True]),
@@ -125,13 +126,16 @@ class Adventure:
         if direction.lower() in ("w", "nw", "sw", "west", "northwest", "southwest", "left"):
             x -= 1
 
-        self.player.location = (x, y)
-        if self.player.location not in self.map.keys():
-            self.map[self.player.location] = MapSquare()
-            self.map[self.player.location].generate_buildings(self.map, self.player)
-            self.map[self.player.location].generate_mobs(self.map, self.player)
-            self.map[self.player.location].generate_items(self.map, self.player)
-        print(f"You are now located on map coordinates {self.player.location}, which is {self.map[self.player.location].square_type}.")
+        new_coordinates = (x, y)
+        self.player.location = new_coordinates
+
+        if new_coordinates not in self.map.keys():
+            self.map[new_coordinates] = MapSquare()
+            self.map[new_coordinates].generate_buildings(self.player)
+            self.map[new_coordinates].generate_mobs(self.player)
+            self.map[new_coordinates].generate_items(self.player)
+        self.player.square = self.map[new_coordinates]
+        print(f"You are now located on map coordinates {new_coordinates}, which is {self.player.square.square_type}.")
 
         # TODO add limits for items generated
         self.look_around()
@@ -139,16 +143,16 @@ class Adventure:
     def look_around(self):
         """ Describe the player's surroundings """
         if self.player.building_local is None:
-            if self.map[self.player.location].items:
-                print(f"You can see {comma_separated(formatted_items(self.map[self.player.location].items))} near you.")
-            if self.map[self.player.location].buildings:
-                q = len(self.map[self.player.location].buildings)
+            if self.player.square.items:
+                print(f"You can see {comma_separated(formatted_items(self.player.square.items))} near you.")
+            if self.player.square.buildings:
+                q = len(self.player.square.buildings)
                 if q == 1:
-                    q = self.map[self.player.location].buildings[0].quantity
-                print(f"The building{'s' if q > 1 else ''} here {are_is(self.map[self.player.location].buildings)}.")
-            if self.map[self.player.location].mobs:
-                print(f"There {are_is(self.map[self.player.location].mobs)} here.")
-            if self.map[self.player.location].items == [] and self.map[self.player.location].buildings == [] and self.map[self.player.location].mobs == []:
+                    q = self.player.square.buildings[0].quantity
+                print(f"The building{'s' if q > 1 else ''} here {are_is(self.player.square.buildings)}.")
+            if self.player.square.mobs:
+                print(f"There {are_is(self.player.square.mobs)} here.")
+            if self.player.square.items == [] and self.player.square.buildings == [] and self.player.square.mobs == []:
                 print("Nothing seems to be nearby.")
 
         else:
@@ -169,22 +173,22 @@ class Adventure:
         """ Decide whether or not to agro mobs if the player tries to pick up a rare item.
         Returns list of mobs or False
         """
-        if item.rarity in ('rare', 'super rare') and odds(2) and self.map[self.player.location].mobs:
-            angry_mob = [x for x in self.map[self.player.location].mobs if odds(2)]
-            angry_mob = angry_mob if len(angry_mob) >= 1 else [self.map[self.player.location].mobs[0]]
+        if item.rarity in ('rare', 'super rare') and odds(2) and self.player.square.mobs:
+            angry_mob = [x for x in self.player.square.mobs if odds(2)]
+            angry_mob = angry_mob if len(angry_mob) >= 1 else [self.player.square.mobs[0]]
             return angry_mob
         return False
 
     def pick_up(self, words):
         """ Add items from surroundings to player inventory """
-        if not self.map[self.player.location].items:
+        if not self.player.square.items:
             print("Nothing to pick up.")
             return
 
         quantity, item_text = parse_inventory_action(words)
         item_text = 'all' if item_text is None else item_text
 
-        specific_items = find_specifics(item_text, self.map[self.player.location].items)
+        specific_items = find_specifics(item_text, self.player.square.items)
         if not specific_items:
             print("Sorry, I can't find that.")
             return
@@ -201,7 +205,7 @@ class Adventure:
                 items_added.append((item, q))
                 item.quantity -= q
             else:
-                self.map[self.player.location].clean_up_map()
+                self.player.square.clean_up_map()
                 # TODO if you 'take sea shells' it prints added sea shell and sea shells to your inventory....
                 if items_added:
                     print(f"Added {comma_separated([x[0].name if x[1] == 1 else x[0].plural for x in items_added])} "
@@ -212,14 +216,14 @@ class Adventure:
                 self.battle(angry_mob)
                 break
         else:
-            self.map[self.player.location].clean_up_map()
+            self.player.square.clean_up_map()
             if items_added:
                 print(f"Added {comma_separated([x[0].name if x[1] == 1 else x[0].plural for x in items_added])} "
                       f"to your inventory.")
 
     def add_item_to_inventory(self, item_to_add, quantity, mob=None):
         mob = mob or self.player
-        mob_inventory = mob.inventory if mob is not self.map else self.map[self.player.location].items
+        mob_inventory = mob.inventory if mob is not self.map else self.player.square.items
 
         if mob != self.map and mob.equipped_weapon is not None and item_to_add.name == mob.equipped_weapon.name:
             mob.equipped_weapon.quantity += quantity
@@ -389,7 +393,7 @@ class Adventure:
 
     def interact_with_building(self, words):
         """ Try entering a building """
-        building = find_specifics(words, self.map[self.player.location].buildings)
+        building = find_specifics(words, self.player.square.buildings)
         building = building[0] if building else None
         if building is not None:
             if building.category == 'building':
@@ -495,7 +499,7 @@ class Adventure:
     def talk(self, words):
         """ Say hello to mobs and ask for quests """
 
-        mobs = self.map[self.player.location].mobs if self.player.building_local is None else self.player.building_local.mobs
+        mobs = self.player.square.mobs if self.player.building_local is None else self.player.building_local.mobs
 
         specific_mob = find_specifics(words, mobs)
 
@@ -522,7 +526,7 @@ class Adventure:
                                    f"The {single_mob} scratches his head thoughtfully."]
 
             if "quest" in words:
-                specific_mob.generate_quest(self.map, self.player)
+                specific_mob.generate_quest(self.player)
                 if specific_mob.quest is None:
                     print(no_quest_responses[random.randint(0, len(no_quest_responses) - 1)])
 
@@ -672,7 +676,7 @@ class Adventure:
             print(self.player.pretty_inventory())
             self.battle_manager(input(), mobs, aggressing)
         elif words[0] == "status":
-            print(self.player.status())
+            print(self.player.status(self.player))
             self.battle_manager(input(), mobs, aggressing)
         else:
             print("You can't do that right now.")
@@ -680,7 +684,7 @@ class Adventure:
 
     def battle(self, attacking_mobs, aggressing=False):
         # TODO all of this needs colors
-        list_of_locals = self.player.building_local.mobs if self.player.building_local else self.map[self.player.location].mobs
+        list_of_locals = self.player.building_local.mobs if self.player.building_local else self.player.square.mobs
         if not attacking_mobs:
             print("Who are you attacking?")
             return
