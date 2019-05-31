@@ -539,7 +539,7 @@ class Adventure:
                         self.battle([specific_mob])
                     else:
                         print(no_quest_responses[random.randint(0, len(no_quest_responses) - 1)])
-                else:
+                elif specific_mob.quest is not False:
                     print(yes_quest_responses[random.randint(0, len(yes_quest_responses) - 1)])
                     print(specific_mob.quest[2])
                     if input("Do you accept the quest?{} yes/no:".format(
@@ -749,9 +749,18 @@ class Adventure:
                 if 0 < mob.health <= 50 and aggressing is False:
                     print(f"{mob_id} decided the fight's not worth it and has bowed out.")
                     attacking = False
-            attacking_mobs = [m for m in attacking_mobs if m.health > 0]
+            attacking_mobs = []
+            for mob in attacking_mobs:
+                if mob.name in self.player.hit_list and mob.health <= 0:
+                    reward = random.randint(100, 500)
+                    self.player.money += reward
+                    self.player.hit_list.remove(mob.name)
+                    print(f"You have eliminated the pesky {mob.name}. For your troubles, you earn {reward}.")
+                if mob.health > 0:
+                    attacking_mobs.append(mob)
             if not attacking_mobs:
                 print("Everyone attacking you is now dead. Carry on.")
+
                 attacking = False
             if aggressing is True and attacking is True:
                 for m in attacking_mobs:

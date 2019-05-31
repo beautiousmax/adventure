@@ -150,6 +150,7 @@ class Player:
     skills = {}
     health = 100
     greeting_count = 0
+    hit_list = []
 
     def phase_change(self, the_map):
         self.phase = 'day' if self.phase == 'night' else 'night'
@@ -338,5 +339,19 @@ class Mob:
             self.quest = i, int(q), f"{self.p.name}, if you bring " \
                                     f"me {q} {i.plural if int(q) > 1 else remove_little_words(i.name)}, " \
                                     f"I will teach you a valuable skill."
+        elif odds(70):
+            mobs = []
+            for biome, building in buildings.items():
+                for b, attributes in building.items():
+                    if attributes.get('mobs'):
+                        mobs.append(*attributes['mobs'])
+            for biome, mob in wild_mobs.items():
+                mobs.append(*mob)
+            target = f"{mobs[random.randint(0, len(mobs))]} named {names[random.randint(0, len(names)-1)]}"
+            print(f"Well, we'll keep this off the record, but I can arrange for some money to find its way "
+                  f"into your account if you make {target} disappear, if you know what I mean...")
+            self.p.hit_list.append(target)
+            return False
+
         else:
             return None
