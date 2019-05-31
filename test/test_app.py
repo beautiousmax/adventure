@@ -143,6 +143,18 @@ class TestSpecifics(unittest.TestCase):
         jobs = [cashier, driver]
         assert a.find_specific_job('driver', jobs) == driver
 
+    def test_find_specifics_returns_one_item_for_two_word_items(self):
+        pie = Item('an apple pie', plural='apple pies', quantity=7, rarity='uncommon')
+        assert len(find_specifics("apple pie", [pie])) == 1
+
+    def test_find_specifics_with_none(self):
+        pie = Item('an apple pie', plural='apple pies', quantity=7, rarity='uncommon')
+        assert len(find_specifics(None, [pie])) == 1
+
+    def test_find_specifics_with_everything(self):
+        pie = Item('an apple pie', plural='apple pies', quantity=7, rarity='uncommon')
+        assert len(find_specifics("everything", [pie])) == 1
+
 
 class TestEquip(unittest.TestCase):
     def test_equip(self):
@@ -339,10 +351,6 @@ class TestCommonFunctions(unittest.TestCase):
         hat = Item('a hat', plural='hats', quantity=7, rarity='uncommon')
         assert are_is([squirrel, hat]).split(' ')[0] == "are"
         assert are_is([squirrel]).split(' ')[0] == "is"
-
-    def test_find_specifics_returns_one_item_for_two_word_items(self):
-        pie = Item('an apple pie', plural='apple pies', quantity=7, rarity='uncommon')
-        assert len(find_a_name("apple pie", [pie])) == 1
 
 
 class TestQuestCompletion(unittest.TestCase):

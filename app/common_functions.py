@@ -94,9 +94,12 @@ def find_specifics(words, list_of_objects):
     specifics = []
     if list_of_objects is None:
         return specifics
-    if words in ('all', 'everyone', 'everything') or words is None or words == '':
+    if words is None or words == '':
         return list_of_objects
-    for word in remove_little_words(words).split(' '):
+    words = remove_little_words(words).split(' ')
+    if any(word in ('all', 'everyone', 'everything') for word in words):
+        return list_of_objects
+    for word in words:
         for o in list_of_objects:
             for individual_word in remove_little_words(o.name).lower().split(' '):
                 if (word.lower() in individual_word.lower() or word.lower() == individual_word.lower() or

@@ -205,6 +205,16 @@ class Player:
 
         return '\n'.join(v for v in status_string.values() if v)
 
+    def increase_skill(self, skill, increase):
+        try:
+            if self.skills[skill] < 100:
+                if increase + self.skills[skill] > 100:
+                    increase = 100 - self.skills[skill]
+                self.skills[skill] += increase
+        except KeyError:
+            self.skills[skill] = increase
+        print(f"You now have {increase}% mastery of {skill}.")
+
 
 class Item:
     def __init__(self, name, quantity, plural, category=None, perishable=None,

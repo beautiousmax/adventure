@@ -183,7 +183,7 @@ class Adventure:
         if not self.player.square.items:
             print("Nothing to pick up.")
             return
-
+        words = words.replace(',', '')
         quantity, item_text = parse_inventory_action(words)
         item_text = 'all' if item_text is None else item_text
 
@@ -205,7 +205,6 @@ class Adventure:
                 item.quantity -= q
             else:
                 self.player.square.clean_up_map()
-                # TODO if you 'take sea shells' it prints added sea shell and sea shells to your inventory....
                 if items_added:
                     print(f"Added {comma_separated([x[0].name if x[1] == 1 else x[0].plural for x in items_added])} "
                           f"to your inventory.")
@@ -500,9 +499,10 @@ class Adventure:
         """ Say hello to mobs and ask for quests """
 
         mobs = self.player.square.mobs if self.player.building_local is None else self.player.building_local.mobs
-
-        specific_mob = find_specifics(words, mobs)
-
+        if len(mobs) == 1:
+            specific_mob = mobs
+        else:
+            specific_mob = find_specifics(words, mobs)
         if not specific_mob:
             print("Don't know who to talk to.")
         else:
@@ -554,15 +554,9 @@ class Adventure:
                 else:
                     print(greeting_responses[random.randint(0, len(greeting_responses) - 1)])
                     if self.player.greeting_count % 20 == 0:
-                        increase = random.randint(0, 5)
-                        try:
-                            if self.player.skills['communication'] < 100:
-                                if increase + self.player.skills['communication'] > 100:
-                                    increase = 100 - self.player.skills['communication']
-                                self.player.skills['communication'] += increase
-                        except KeyError:
-                            self.player.skills['communication'] = increase
-                        print(f"You have been outgoing enough to increase your communication to {increase}%.")
+                        print(f"You have been really outgoing!")
+                        self.player.increase_skill('communication', random.randint(0, 5))
+
             else:
                 print(non_responses[random.randint(0, len(non_responses) - 1)])
 
@@ -591,11 +585,8 @@ class Adventure:
 
                     skill = mob.skills[random.randint(0, len(mob.skills) - 1)]
                     percentage = random.randint(1, 100)
-                    print(f"In exchange, the {mob_name} teaches you {skill}. You gain {percentage}% mastery.")
-                    try:
-                        self.player.skills[skill] += percentage
-                    except KeyError:
-                        self.player.skills[skill] = percentage
+                    print(f"In exchange, the {mob_name} teaches you some {skill}.")
+                    self.player.increase_skill(skill, percentage)
                     self.player.quest = None
                 else:
                     # TODO you have to un-equip the thing to turn in if you are wielding it
