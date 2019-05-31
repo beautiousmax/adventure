@@ -340,6 +340,10 @@ class TestCommonFunctions(unittest.TestCase):
         assert are_is([squirrel, hat]).split(' ')[0] == "are"
         assert are_is([squirrel]).split(' ')[0] == "is"
 
+    def test_find_specifics_returns_one_item_for_two_word_items(self):
+        pie = Item('an apple pie', plural='apple pies', quantity=7, rarity='uncommon')
+        assert len(find_a_name("apple pie", [pie])) == 1
+
 
 class TestQuestCompletion(unittest.TestCase):
     def setUp(self):
@@ -479,9 +483,9 @@ class TestVisitBuildings(unittest.TestCase):
 class TestPlayer(unittest.TestCase):
     def test_phase_change(self):
         a.player.phase = "day"
-        a.player.phase_change(a.map, a.player)
+        a.player.phase_change(a.map)
         assert a.player.phase == "night"
-        a.player.phase_change(a.map, a.player)
+        a.player.phase_change(a.map)
         assert a.player.phase == "day"
 
     def test_inventory(self):

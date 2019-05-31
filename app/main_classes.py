@@ -149,10 +149,12 @@ class Player:
     inventory = []
     skills = {}
     health = 100
+    greeting_count = 0
 
-    def phase_change(self, the_map, p):
+    def phase_change(self, the_map):
         self.phase = 'day' if self.phase == 'night' else 'night'
         # TODO don't despawn stuff right after going to a square
+        # TODO reset all mob health to 100 every morning
         for k, square in the_map.items():
             square.generate_items()
             for b in square.buildings:
@@ -268,6 +270,7 @@ class Mob:
         self.inventory = drop_item(add_dicts_together(items['master'], items[p.square.square_type]))
         self.health = 100
         self.equipped_weapon = self.equip()
+        self.irritation_level = 0
 
     def equip(self):
         nice_weapons = []

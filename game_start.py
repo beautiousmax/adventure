@@ -25,7 +25,7 @@ while adventure.player.health > 0:
             break
     else:
         if adventure.player.health > 0:
-            adventure.player.phase_change(adventure.map, adventure.player)
+            adventure.player.phase_change(adventure.map)
             print(colored(f"It is now {adventure.player.phase}time.", "blue"))
 
 

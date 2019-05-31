@@ -510,7 +510,7 @@ class Adventure:
             single_mob = remove_little_words(specific_mob.name)
             non_responses = [f"The {single_mob} just looks at you.",
                              f"The {single_mob} doesn't respond.",
-                             f"The {single_mob} might not speak english.",
+                             f"The {single_mob} is pretending not to speak english.",
                              f"The {single_mob} lets out a high pitched and unintelligible shriek.",
                              f"The {single_mob} ignores you completely."]
 
@@ -525,18 +525,44 @@ class Adventure:
                                    f"The {single_mob} says 'Fiiiineeee, I'll give you a quest'.",
                                    f"The {single_mob} scratches his head thoughtfully."]
 
-            if "quest" in words:
-                specific_mob.generate_quest(self.player)
-                if specific_mob.quest is None:
-                    print(no_quest_responses[random.randint(0, len(no_quest_responses) - 1)])
+            greeting_responses = [f"The {single_mob} nods.",
+                                  f"The {single_mob} smiles and waves at you.",
+                                  f"The {single_mob} sneers at your impertinence.",
+                                  f"The {single_mob} gives you a cheerful 'Hello!'"]
 
+            if "quest" in words:
+                specific_mob.generate_quest()
+                if specific_mob.quest is None:
+                    specific_mob.irritation_level += 1
+                    if odds(11 - specific_mob.irritation_level):
+                        print(f"The {single_mob} is very annoyed by your nagging.")
+                        self.battle([specific_mob])
+                    else:
+                        print(no_quest_responses[random.randint(0, len(no_quest_responses) - 1)])
                 else:
                     print(yes_quest_responses[random.randint(0, len(yes_quest_responses) - 1)])
                     print(specific_mob.quest[2])
                     if input("Do you accept the quest?{} yes/no:".format(
                             ' This will replace your current quest.' if self.player.quest else '')).lower() == "yes":
                         self.player.quest = (specific_mob, self.player.location)
-
+            elif any(word in ("hi", "hello", "greet", "greetings", "howdy") for word in words):
+                self.player.greeting_count += 1
+                specific_mob.irritation_level += 1
+                if odds(11 - specific_mob.irritation_level):
+                    print(f"The {single_mob} takes great offence at your words.")
+                    self.battle([specific_mob])
+                else:
+                    print(greeting_responses[random.randint(0, len(greeting_responses) - 1)])
+                    if self.player.greeting_count % 20 == 0:
+                        increase = random.randint(0, 5)
+                        try:
+                            if self.player.skills['communication'] < 100:
+                                if increase + self.player.skills['communication'] > 100:
+                                    increase = 100 - self.player.skills['communication']
+                                self.player.skills['communication'] += increase
+                        except KeyError:
+                            self.player.skills['communication'] = increase
+                        print(f"You have been outgoing enough to increase your communication to {increase}%.")
             else:
                 print(non_responses[random.randint(0, len(non_responses) - 1)])
 
