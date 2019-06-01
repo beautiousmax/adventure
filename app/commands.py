@@ -749,21 +749,21 @@ class Adventure:
                 if 0 < mob.health <= 50 and aggressing is False:
                     print(f"{mob_id} decided the fight's not worth it and has bowed out.")
                     attacking = False
-            attacking_mobs = []
+            alive_mobs = []
             for mob in attacking_mobs:
                 if mob.name in self.player.hit_list and mob.health <= 0:
                     reward = random.randint(100, 500)
                     self.player.money += reward
                     self.player.hit_list.remove(mob.name)
-                    print(f"You have eliminated the pesky {mob.name}. For your troubles, you earn {reward}.")
+                    print(f"You have eliminated the pesky {remove_little_words(mob.name)}. For your troubles, you earn {reward}.")
                 if mob.health > 0:
-                    attacking_mobs.append(mob)
-            if not attacking_mobs:
+                    alive_mobs.append(mob)
+            if not alive_mobs:
                 print("Everyone attacking you is now dead. Carry on.")
-
                 attacking = False
+
             if aggressing is True and attacking is True:
-                for m in attacking_mobs:
+                for m in alive_mobs:
                     self.attack(m, self.player)
             if self.player.health <= 0:
                 print("You died. The end.")
