@@ -530,16 +530,20 @@ class Adventure:
                                   f"The {single_mob} smiles and waves at you.",
                                   f"The {single_mob} sneers at your impertinence.",
                                   f"The {single_mob} gives you a cheerful 'Hello!'"]
+            fighting_responses = [f"The {single_mob} is very annoyed by your nagging.",
+                                  "Those are fighting words.",
+                                  f"The {single_mob} takes great offence to you.",
+                                  f"The {single_mob}'s patience has snapped."]
+            specific_mob.irritation_level += 1
+            if odds(11 - specific_mob.irritation_level):
+                print(fighting_responses[random.randint(0, len(no_quest_responses) - 1)])
+                self.battle([specific_mob])
+                return
 
             if "quest" in words:
                 specific_mob.generate_quest()
                 if specific_mob.quest is None:
-                    specific_mob.irritation_level += 1
-                    if odds(11 - specific_mob.irritation_level):
-                        print(f"The {single_mob} is very annoyed by your nagging.")
-                        self.battle([specific_mob])
-                    else:
-                        print(no_quest_responses[random.randint(0, len(no_quest_responses) - 1)])
+                    print(no_quest_responses[random.randint(0, len(no_quest_responses) - 1)])
                 elif specific_mob.quest is not False:
                     print(yes_quest_responses[random.randint(0, len(yes_quest_responses) - 1)])
                     print(specific_mob.quest[2])
@@ -549,15 +553,10 @@ class Adventure:
             elif any(word in ("hi", "hello", "greet", "greetings", "howdy") for word in words):
                 self.player.greeting_count += 1
                 specific_mob.irritation_level += 1
-                if odds(11 - specific_mob.irritation_level):
-                    print(f"The {single_mob} takes great offence at your words.")
-                    self.battle([specific_mob])
-                else:
-                    print(greeting_responses[random.randint(0, len(greeting_responses) - 1)])
-                    if self.player.greeting_count % 20 == 0:
-                        print(f"You have been really outgoing!")
-                        self.player.increase_skill('communication', random.randint(0, 5))
-
+                print(greeting_responses[random.randint(0, len(greeting_responses) - 1)])
+                if self.player.greeting_count % 20 == 0:
+                    print(f"You have been really outgoing!")
+                    self.player.increase_skill('communication', random.randint(0, 5))
             else:
                 specific_mob.irritation_level += 1
                 print(non_responses[random.randint(0, len(non_responses) - 1)])

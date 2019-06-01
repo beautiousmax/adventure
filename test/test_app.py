@@ -158,12 +158,12 @@ class TestSpecifics(unittest.TestCase):
 
 class TestEquip(unittest.TestCase):
     def setUp(self):
-        self.weapon = Item("weapon", quantity=10, plural="weapons", weapon_rating=5)
+        self.weapon = Item("weapon a", quantity=10, plural="weapons", weapon_rating=5)
         a.player.inventory = [self.weapon]
         a.player.equipped_weapon = None
 
     def test_equip(self):
-        a.equip('weapon')
+        a.equip('weapon a')
         assert a.player.inventory == []
         assert a.player.equipped_weapon == self.weapon
         assert a.player.equipped_weapon.weapon_rating == 5
@@ -171,9 +171,9 @@ class TestEquip(unittest.TestCase):
     def test_equip_with_already_equipped_weapon(self):
         weapon_b = Item("weapon b", quantity=10, plural="weapons")
         a.player.equipped_weapon = weapon_b
-        a.equip('weapon')
+        a.equip('weapon a')
         assert len(a.player.inventory) == 1
-        assert a.player.equipped_weapon.name == 'weapon'
+        assert a.player.equipped_weapon.name == 'weapon a'
         assert a.player.inventory[0].name == 'weapon b'
 
     def test_cant_find_to_equip(self):
