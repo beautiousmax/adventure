@@ -157,26 +157,26 @@ class TestSpecifics(unittest.TestCase):
 
 
 class TestEquip(unittest.TestCase):
+    def setUp(self):
+        self.weapon = Item("weapon", quantity=10, plural="weapons", weapon_rating=5)
+        a.player.inventory = [self.weapon]
+        a.player.equipped_weapon = None
+
     def test_equip(self):
-        weapon = Item("weapon", quantity=10, plural="weapons", weapon_rating=5)
-        a.player.inventory = [weapon]
         a.equip('weapon')
         assert a.player.inventory == []
-        assert a.player.equipped_weapon == weapon
+        assert a.player.equipped_weapon == self.weapon
         assert a.player.equipped_weapon.weapon_rating == 5
 
     def test_equip_with_already_equipped_weapon(self):
-        weapon_a = Item("weapon a", quantity=10, plural="weapons")
-        a.player.inventory = [weapon_a]
         weapon_b = Item("weapon b", quantity=10, plural="weapons")
         a.player.equipped_weapon = weapon_b
-        a.equip('weapon a')
+        a.equip('weapon')
         assert len(a.player.inventory) == 1
-        assert a.player.equipped_weapon.name == 'weapon a'
+        assert a.player.equipped_weapon.name == 'weapon'
         assert a.player.inventory[0].name == 'weapon b'
 
     def test_cant_find_to_equip(self):
-        a.player.equipped_weapon = None
         weapon = Item("weapon a", quantity=10, plural="weapons")
         a.player.inventory = [weapon]
         a.equip('a dragon')
@@ -358,6 +358,7 @@ class TestQuestCompletion(unittest.TestCase):
         a.player.skills = {}
         a.player.square = a.map[(0, 0)]
         self.mob = Mob("a cat", p=a.player, plural="cats", rarity="common")
+        a.player.square.mobs = [self.mob]
         self.mob.inventory = []
         quest_item = Item("an emerald necklace", rarity="super rare", plural="necklaces", quantity=3)
         self.mob.quest = quest_item, 3, "quest description string."
@@ -393,6 +394,14 @@ class TestQuestCompletion(unittest.TestCase):
         assert not a.player.skills
         assert a.player.inventory[0].quantity == 1
         assert len(self.mob.inventory) == 0
+
+    def test_mob_is_missing(self):
+        a.player.inventory = [Item("an emerald necklace", rarity="super rare", plural="necklaces", quantity=3)]
+        a.player.square.mobs.remove(self.mob)
+        a.turn_in_quest()
+        assert not a.player.skills
+        assert a.player.inventory[0].quantity == 3
+        assert a.player.quest is None
 
 
 class TestHaggle(unittest.TestCase):

@@ -150,19 +150,22 @@ class Player:
     skills = {}
     health = 100
     greeting_count = 0
+    body_count = 0
     hit_list = []
 
     def phase_change(self, the_map):
         self.phase = 'day' if self.phase == 'night' else 'night'
         # TODO don't despawn stuff right after going to a square
-        # TODO reset all mob health to 100 every morning
         # TODO randomly spawn new mobs on squares with less than 5 mobs
-        # TODO unused quests get reset
         for k, square in the_map.items():
             square.generate_items()
             for b in square.buildings:
                 if b.ware_list:
                     b.wares = drop_item(b.ware_list)
+            if self.phase == 'day':
+                for mob in square.mobs:
+                    mob.health = 100
+                    mob.quest = None
 
     def formatted_inventory(self):
         formatted = []
