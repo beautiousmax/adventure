@@ -499,7 +499,8 @@ class Adventure:
         """ Say hello to mobs and ask for quests """
 
         mobs = self.player.square.mobs if self.player.building_local is None else self.player.building_local.mobs
-        if len(mobs) == 1:
+
+        if mobs and len(mobs) == 1:
             specific_mob = mobs
         else:
             specific_mob = find_specifics(words, mobs)
