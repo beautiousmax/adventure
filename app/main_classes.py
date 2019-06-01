@@ -155,17 +155,20 @@ class Player:
 
     def phase_change(self, the_map):
         self.phase = 'day' if self.phase == 'night' else 'night'
-        # TODO don't despawn stuff right after going to a square
         # TODO randomly spawn new mobs on squares with less than 5 mobs
         for k, square in the_map.items():
-            square.generate_items()
+            if self.location != k:
+                square.generate_items()
             for b in square.buildings:
                 if b.ware_list:
                     b.wares = drop_item(b.ware_list)
             if self.phase == 'day':
                 for mob in square.mobs:
                     mob.health = 100
-                    mob.quest = None
+                    mob.quest = None if self.quest is None else mob.quest
+            if len(square.mobs) < 5:
+                if odds(3):
+                    square.mobs += drop_mob(drop_mob(add_dicts_together(wild_mobs["master"], wild_mobs[self.square]), self))
 
     def formatted_inventory(self):
         formatted = []
