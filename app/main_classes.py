@@ -85,7 +85,8 @@ def drop_mob(dictionary, p, limit=None):
                 if k not in [n.name for n in p.square.mobs]:
                     drops_i.append(Mob(name=k, p=p, **v))
                 else:
-                    drops_i.append(Mob(name=find_unique_names(1, p.square.unique_mob_names)[0], p=p, **v))
+                    name = find_unique_names(1, p.square.unique_mob_names)[0]
+                    drops_i.append(Mob(name=f"{k} named {name}", p=p, **v))
     return drops_i
 
 
@@ -176,8 +177,9 @@ class Player:
             if self.location != k:
                 square.generate_items()
             for b in square.buildings:
-                if b.ware_list:
-                    b.wares = drop_item(b.ware_list)
+                if self.building_local != b:
+                    if b.ware_list:
+                        b.wares = drop_item(b.ware_list)
             if self.phase == 'day':
                 for mob in square.mobs:
                     mob.health = 100
@@ -266,9 +268,18 @@ class Building(object):
         self.category = category or None
         self.rarity = rarity or None
         self.ware_list = ware_list
-        self.wares = drop_item(ware_list) if self.ware_list else None
+        self.wares = self.drop_wares()
         self.mobs = drop_mob(mobs, p) if mobs else None
         self.jobs = self.drop_job(jobs) if jobs else None
+
+    def drop_wares(self):
+        if self.ware_list:
+            wares = drop_item(self.ware_list)
+            while not wares:
+                wares = drop_item(self.ware_list)
+            return wares
+        else:
+            return []
 
     def drop_job(self, jobs):
         drops_i = []

@@ -239,8 +239,7 @@ class TestJob(unittest.TestCase):
 
 
 class TestApplyForJob(unittest.TestCase):
-    @mock.patch('app.commands.odds', return_value=True)
-    def test_apply_for_job(self, _):
+    def test_apply_for_job(self):
         building = Building(name="office", plural="offices", rarity="common", p=a.player)
         a.player.job = None
         a.player.square.buildings = [building]
@@ -679,7 +678,7 @@ class TestSortTheDead(unittest.TestCase):
         assert a.player.skills['self loathing'] >= 2
 
 
-class TestMobDropper(unittest.TestCase):
+class TestDropper(unittest.TestCase):
     @mock.patch('app.main_classes.dropper', return_value=25)
     def test_drop_with_limit(self, _):
         list_of_mobs = drop_mob(wild_mobs['master'], a.player, limit=20)

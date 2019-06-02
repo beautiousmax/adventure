@@ -173,7 +173,7 @@ class Adventure:
         Returns list of mobs or False
         """
         if item.rarity in ('rare', 'super rare') and odds(2) and self.player.square.mobs:
-            angry_mob = [x for x in self.player.square.mobs if odds(2)]
+            angry_mob = [x for x in self.player.square.mobs if odds(2) and x.health > 50]
             angry_mob = angry_mob if len(angry_mob) >= 1 else [self.player.square.mobs[0]]
             return angry_mob
         return False
@@ -367,15 +367,15 @@ class Adventure:
                 print(f"You need {job.inventory_needed} for this job.")
                 return
 
-            match_score = 100
+            match_score = 0
 
             for skill in job.skills_needed:
                 if skill in self.player.skills.keys():
                     if self.player.skills[skill] > 90:
                         print(f"Wow, it says here you are really good at {skill}.")
-                    match_score -= self.player.skills[skill] / len(job.skills_needed)
+                    match_score += (self.player.skills[skill] / len(job.skills_needed))
 
-            match_score = 1 if match_score <= 0 else match_score
+            match_score = 1 if match_score >= 100 else 100 - match_score
 
             if odds(match_score):
                 print(f"Congratulations {self.player.name}, you got the job!")
@@ -608,6 +608,9 @@ class Adventure:
 
     @staticmethod
     def attack(mob_a, mob_b):
+        # TODO only eat one bagel not all bagels
+        # TODO multiple mobs attack?
+        # TODO after bowing out of a fight, you should be able to take thing without them attacking
         """
         mob a uses equipped weapon, finds damage based on weapon rating, subtracts it from self.player.health
         (no weapon or item with weapon rating is a '0' rating)
@@ -694,7 +697,7 @@ class Adventure:
             return False
         elif words[0] == "equip":
             self.equip(" ".join(words[1:]))
-            return True
+            self.battle_manager(input(), mobs, aggressing)
         elif words[0] == "eat":
             self.eat_food(" ".join(words[1:]))
             return True
