@@ -75,7 +75,7 @@ def remove_little_words(phrase):
 
 
 def odds(x):
-    return bool(random.randint(1, x) == 1)
+    return bool(random.randint(1, int(x)) == 1)
 
 
 def are_is(noun_list):

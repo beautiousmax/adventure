@@ -1,4 +1,7 @@
 import time
+import os
+from pathlib import Path
+import traceback
 
 from termcolor import colored
 
@@ -20,7 +23,15 @@ adventure.look_around()
 while adventure.player.health > 0:
     cycle_start = time.time()
     while adventure.player.health > 0 and time.time() - cycle_start < 80:
-        adventure.commands_manager(input())
+        try:
+            adventure.commands_manager(input())
+        except Exception as err:
+            print(colored(f"Holy moly, you came across a huge issues!", 'red'))
+            with open(Path(os.path.abspath(os.path.dirname(__file__)), 'errors.log'), 'a', encoding='utf-8') as err_log:
+                err_log.write(traceback.format_exc())
+                err_log.write("\n\n")
+            print('We wrote the issue to "errors.log", I will try to keep going, but I am unsure if it will work')
+
         if adventure.player.health <= 0:
             break
     else:

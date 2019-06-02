@@ -10,17 +10,16 @@ from data.text import items, buildings, wild_mobs, names, adjectives
 colorama.init()
 
 
-def find_a_name(name_list, unique_names):
-    n = name_list[random.randint(0, len(name_list)-1)]
-    if len(unique_names) <= len(names) + len(adjectives):
-        if n not in unique_names:
-            unique_names.append(n)
-            return n
-        else:
-            return find_a_name(name_list, unique_names)
-    else:
-        unique_names = []
-        return find_a_name(name_list, unique_names)
+def find_unique_adjectives(quantity, taken_names):
+    free_adjectives = [x for x in adjectives if x not in taken_names]
+    random.shuffle(free_adjectives)
+    return free_adjectives[:quantity]
+
+
+def find_unique_names(quantity, taken_names):
+    free_names = [x for x in names if x not in taken_names]
+    random.shuffle(free_names)
+    return free_names[:quantity]
 
 
 def dropper(rarity):
