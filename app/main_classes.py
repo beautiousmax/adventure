@@ -179,9 +179,9 @@ class Player:
                 for mob in square.mobs:
                     mob.health = 100
                     mob.quest = None if self.quest is None else mob.quest
-            if len(square.mobs) < 5:
-                if odds(3):
-                    square.mobs += drop_mob(drop_mob(add_dicts_together(wild_mobs["master"], wild_mobs[self.square]), self))
+            limit = len(names) - len(self.square.unique_mob_names)
+            if self.phase == 'day' and len(square.mobs) < len(names):
+                square.mobs += drop_mob(add_dicts_together(wild_mobs["master"], wild_mobs[self.square.square_type]), self, limit)
 
     def formatted_inventory(self):
         formatted = []

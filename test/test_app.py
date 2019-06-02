@@ -534,6 +534,15 @@ class TestPlayer(unittest.TestCase):
         a.player.phase_change(a.map)
         assert a.player.phase == "day"
 
+    @mock.patch('app.common_functions.odds', return_value=True)
+    @mock.patch('app.main_classes.dropper', return_value=1)
+    def test_phase_change_generates_new_mobs(self, dropper, odds):
+        mob = Mob(name="Bob", p=a.player, plural="Bobs", rarity="common")
+        a.player.square.mobs = [mob]
+        a.player.phase = "night"
+        a.player.phase_change(a.map)
+        assert len(a.player.square.mobs) > 1
+
     def test_inventory(self):
         a.player.equipped_weapon = None
         a.player.inventory = [Item("a rock", quantity=3, plural="rocks", rarity="common")]
