@@ -336,7 +336,7 @@ class Adventure:
 
             mastery = [f"{s} - {m}" for s, m in self.player.skills.items()]
             if mastery:
-                print(f"You gained some skill mastery at work: {comma_separated(mastery)}%")
+                print(f"You gained some skill mastery at work! {comma_separated(mastery)}%")
 
     @staticmethod
     def find_specific_job(words, list_of_jobs):
@@ -534,7 +534,8 @@ class Adventure:
                                   "Those are fighting words.",
                                   f"The {single_mob} takes great offence to you.",
                                   f"The {single_mob}'s patience has snapped."]
-            specific_mob.irritation_level += 1
+            if specific_mob.irritation_level < 10:
+                specific_mob.irritation_level += 1
             if odds(11 - specific_mob.irritation_level):
                 print(fighting_responses[random.randint(0, len(no_quest_responses) - 1)])
                 self.battle([specific_mob])
@@ -551,15 +552,14 @@ class Adventure:
                             ' This will replace your current quest.' if self.player.quest else '')).lower() == "yes":
                         self.player.quest = (specific_mob, self.player.location)
             elif any(word in ("hi", "hello", "greet", "greetings", "howdy") for word in words):
-                self.player.greeting_count += 1
-                specific_mob.irritation_level += 1
                 print(greeting_responses[random.randint(0, len(greeting_responses) - 1)])
-                if self.player.greeting_count % 20 == 0:
-                    print(f"You have been really outgoing!")
-                    self.player.increase_skill('communication', random.randint(0, 5))
             else:
-                specific_mob.irritation_level += 1
                 print(non_responses[random.randint(0, len(non_responses) - 1)])
+
+            self.player.greeting_count += 1
+            if self.player.greeting_count % 20 == 0:
+                print(f"By the way, you have been really outgoing lately!")
+                self.player.increase_skill('communication', random.randint(0, 5))
 
     def turn_in_quest(self):
         """ Complete the quest if criteria is met, otherwise help player remember quest details """
@@ -707,6 +707,37 @@ class Adventure:
             print("You can't do that right now.")
             self.battle_manager(input(), mobs, aggressing)
 
+    def sort_the_dead(self, list_of_mobs, roster):
+        alive_mobs = []
+        for mob in list_of_mobs:
+            if mob.health > 0:
+                alive_mobs.append(mob)
+            else:
+                mob_id = the_name(mob.name).capitalize()
+                if mob.equipped_weapon:
+                    mob.inventory.append(mob.equipped_weapon)
+                stuff = mob.inventory
+                self.player.body_count += 1
+                s = f" You add {comma_separated(formatted_items(stuff))} to your " \
+                    f"inventory." if stuff else ''
+                print(f"You killed {mob_id}.{s}")
+                for i in stuff:
+                    self.add_item_to_inventory(i, i.quantity)
+
+                if odds(3):
+                    self.player.increase_skill('strength', 2)
+
+                if mob.name in self.player.hit_list:
+                    reward = random.randint(100, 500)
+                    self.player.money += reward
+                    self.player.hit_list.remove(mob.name)
+                    print(f"You have eliminated the pesky {remove_little_words(mob.name)}. For your troubles, you earn {reward}.")
+                if self.player.body_count % 5 == 0:
+                    print("You've really been racking up the body count.")
+                    self.player.increase_skill('self loathing', random.randint(2, 8))
+                roster.remove(mob)
+        return alive_mobs
+
     def battle(self, attacking_mobs, aggressing=False):
         # TODO all of this needs colors
         list_of_locals = self.player.building_local.mobs if self.player.building_local else self.player.square.mobs
@@ -740,33 +771,9 @@ class Adventure:
             if self.player.health > 0:
                 attacking = self.battle_manager(input(), attacking_mobs, aggressing)
 
-            alive_mobs = []
-            for mob in attacking_mobs:
+            alive_mobs = self.sort_the_dead(attacking_mobs, list_of_locals)
+            for mob in alive_mobs:
                 mob_id = the_name(mob.name).capitalize()
-                if mob.health <= 0:
-                    if mob.equipped_weapon:
-                        mob.inventory.append(mob.equipped_weapon)
-                    stuff = mob.inventory
-                    self.player.body_count += 1
-                    s = f" You add {comma_separated(formatted_items(stuff))} to your " \
-                        f"inventory." if stuff else ''
-                    print(f"You killed {mob_id}.{s}")
-
-                    for i in stuff:
-                        self.add_item_to_inventory(i, i.quantity)
-                    if odds(3):
-                        self.player.increase_skill('strength', 2)
-                    list_of_locals.remove(mob)
-                    if mob.name in self.player.hit_list:
-                        reward = random.randint(100, 500)
-                        self.player.money += reward
-                        self.player.hit_list.remove(mob.name)
-                        print(f"You have eliminated the pesky {remove_little_words(mob.name)}. For your troubles, you earn {reward}.")
-                    if self.player.body_count % 5 == 0:
-                        print("You've really been racking up the body count.")
-                        self.player.increase_skill('self loathing', random.randint(2, 8))
-                else:
-                    alive_mobs.append(mob)
                 if 0 < mob.health <= 50 and aggressing is False:
                     print(f"{mob_id} decided the fight's not worth it and has bowed out.")
                     attacking = False

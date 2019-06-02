@@ -158,12 +158,12 @@ class TestSpecifics(unittest.TestCase):
 
 class TestEquip(unittest.TestCase):
     def setUp(self):
-        self.weapon = Item("weapon a", quantity=10, plural="weapons", weapon_rating=5)
+        self.weapon = Item("weapon x", quantity=10, plural="weapons", weapon_rating=5)
         a.player.inventory = [self.weapon]
         a.player.equipped_weapon = None
 
     def test_equip(self):
-        a.equip('weapon a')
+        a.equip('weapon x')
         assert a.player.inventory == []
         assert a.player.equipped_weapon == self.weapon
         assert a.player.equipped_weapon.weapon_rating == 5
@@ -171,13 +171,13 @@ class TestEquip(unittest.TestCase):
     def test_equip_with_already_equipped_weapon(self):
         weapon_b = Item("weapon b", quantity=10, plural="weapons")
         a.player.equipped_weapon = weapon_b
-        a.equip('weapon a')
+        a.equip('weapon x')
         assert len(a.player.inventory) == 1
-        assert a.player.equipped_weapon.name == 'weapon a'
+        assert a.player.equipped_weapon.name == 'weapon x'
         assert a.player.inventory[0].name == 'weapon b'
 
     def test_cant_find_to_equip(self):
-        weapon = Item("weapon a", quantity=10, plural="weapons")
+        weapon = Item("weapon x", quantity=10, plural="weapons")
         a.player.inventory = [weapon]
         a.equip('a dragon')
         assert len(a.player.inventory) == 1
@@ -261,15 +261,21 @@ class TestAttacks(unittest.TestCase):
 
 
 class TestChangeDirection(unittest.TestCase):
+    def setUp(self):
+        a.player.location = (0, 0)
+
     def test_go_directions(self):
-        directions = ['north', 'n', 'up']
-        for direction in directions:
-            a.player.location = (0, 0)
+        directions = {'north': (0, 1),
+                      'n': (0, 1),
+                      'up': (0, 1),
+                      'ne': (1, 1),
+                      'sw': (-1, -1)}
+        for direction, position in directions.items():
             a.change_direction(direction)
-            assert a.player.location == (0, 1)
+            assert a.player.location == position
+            a.player.location = (0, 0)
 
     def test_go_nowhere(self):
-        a.player.location = (0, 0)
         a.change_direction("sideways")
         assert a.player.location == (0, 0)
 
@@ -319,6 +325,29 @@ class TestPickUpCommand(unittest.TestCase):
             self.assertTrue(len(a.player.inventory) == 1)
             self.assertTrue(a.player.inventory[0].name == "a rock")
             self.assertTrue(a.player.inventory[0].quantity == quantity)
+
+    def test_nothing_to_pick_up(self):
+        a.player.square.items = []
+        a.player.inventory = []
+        a.pick_up("something")
+
+        assert not a.player.inventory
+
+    def test_cannot_pick_up_non_square_thing(self):
+        a.player.square.items = [Item("a rock", quantity=10, plural="rocks")]
+        a.player.inventory = []
+        a.pick_up("something")
+
+        assert not a.player.inventory
+        assert len(a.player.square.items) == 1
+
+    def test_cannot_pick_up_too_many(self):
+        a.player.square.items = [Item("a rock", quantity=10, plural="rocks")]
+        a.player.inventory = []
+        a.pick_up("20 rocks")
+
+        assert not a.player.inventory
+        assert len(a.player.square.items) == 1
 
 
 class TestCommonFunctions(unittest.TestCase):
@@ -482,7 +511,7 @@ class TestVisitBuildings(unittest.TestCase):
         assert a.player.building_local is None
 
     @mock.patch('app.commands.odds', return_value=False)
-    def test_kicked_out_of_hosue(self, odds):
+    def test_kicked_out_of_house(self, odds):
         a.interact_with_building('house')
         assert a.player.building_local is None
 
@@ -545,3 +574,29 @@ class TestPlayer(unittest.TestCase):
         a.player.quest = True
 
         assert 'quest' in a.player.status(a.player)
+
+
+@mock.patch('app.commands.odds', return_value=False)
+class TestTalk(unittest.TestCase):
+    def setUp(self):
+        self.mob = Mob("a cat", p=a.player, plural="cats", rarity="common")
+        self.mob.irritation_level = 0
+        a.player.square.mobs = [self.mob]
+        a.player.greeting_count = 0
+
+    def test_say_hello_increases_player_greeting_count(self, _):
+        a.talk('say hello to the cat')
+        assert a.player.greeting_count == 1
+
+    def test_talking_with_only_mob_on_square(self, _):
+        a.talk('say hello')
+        assert self.mob.irritation_level == 1
+        assert a.player.greeting_count == 1
+
+
+@mock.patch('app.commands.odds', return_value=True)
+class TestBrokenPatience(unittest.TestCase):
+    def broken_patience(self, _):
+        # self.mob.irritation_level = 10
+        # talking to this mob results in battle
+        pass

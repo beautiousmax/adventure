@@ -91,6 +91,7 @@ def capitalize_first(string):
 
 
 def find_specifics(words, list_of_objects):
+    # TODO first assume player spelled the thing right, then sort through everything
     specifics = []
     if list_of_objects is None:
         return specifics
@@ -106,7 +107,11 @@ def find_specifics(words, list_of_objects):
                         word.lower() == o.plural.lower() or word.lower() in o.plural):
                     specifics.append(o)
                     break
-    return list(set(specifics))
+    specifics = list(set(specifics))
+    more_specifics = None
+    if len(specifics) > 1:
+        more_specifics = [x for x in specifics if x.name == ' '.join(words) or x.plural == ' '.join(words)]
+    return specifics if not more_specifics else more_specifics
 
 
 def the_name(unique_name):

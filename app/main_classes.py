@@ -38,38 +38,48 @@ def dropper(rarity):
     return quantity
 
 
-def drop_building(dictionary, p):
+def drop_building(dictionary, p, limit=None):
+    limit = limit or len(adjectives)
     drops_i = []
 
     for k, v in dictionary.items():
         quantity = dropper(v['rarity'])
+        quantity = limit if quantity > limit else quantity
         if quantity:
             if quantity > 1 and v['category'] != 'residence':
-                for m in range(0, quantity):
-                    if odds(2):
-                        drops_i.append(Building(name=f"The {find_a_name(adjectives, p.square.unique_names)} "
-                                                     f"{remove_little_words(k).capitalize()}", p=p, **v))
-                    else:
-                        drops_i.append(Building(name=f"{find_a_name(names, p.square.unique_names)}'s "
-                                                     f"{remove_little_words(k).capitalize()}", p=p, **v))
+                n = random.randint(0, quantity)
+                unique_names = find_unique_names(quantity - n, p.square.unique_building_names)
+                p.square.unique_building_names += unique_names
+                for i in range(0, quantity - n):
+                    drops_i.append(Building(name=f"{unique_names[i]}'s {remove_little_words(k).capitalize()}", p=p, **v))
+                unique_adjectives = find_unique_adjectives(n, p.square.unique_building_names)
+                p.square.unique_building_names += unique_adjectives
+                for i in range(0, n):
+                    drops_i.append(Building(name=f"the {unique_adjectives[i]} {remove_little_words(k).capitalize()}", p=p, **v))
+
             elif quantity > 1 and v['category'] == 'residence':
-                for m in range(0, quantity):
-                    drops_i.append(Building(name=f"{find_a_name(names, p.square.unique_names)}'s "
-                                                 f"{remove_little_words(k)}", p=p, **v))
+                unique_house_names = find_unique_names(quantity, p.square.unique_house_names)
+                p.square.unique_house_names += unique_house_names
+                for i in range(0, quantity):
+                    drops_i.append(Building(name=f"{unique_house_names[i]}'s {remove_little_words(k)}", p=p, **v))
             else:
                 drops_i.append(Building(name=k, p=p, **v))
     return drops_i
 
 
-def drop_mob(dictionary, p):
+def drop_mob(dictionary, p, limit=None):
+    limit = limit or len(names)
     drops_i = []
 
     for k, v in dictionary.items():
         quantity = dropper(v['rarity'])
+        quantity = limit if quantity > limit else quantity
         if quantity:
             if quantity > 1:
-                for m in range(0, quantity):
-                    drops_i.append(Mob(name=f"{k} named {find_a_name(names, p.square.unique_names)}", p=p, **v))
+                unique_names = find_unique_names(quantity, p.square.unique_mob_names)
+                p.square.unique_mob_names += unique_names
+                for i in range(0, quantity):
+                    drops_i.append(Mob(name=f"{k} named {unique_names[i]}", p=p, **v))
             else:
                 drops_i.append(Mob(name=k, p=p, **v))
     return drops_i
@@ -92,7 +102,9 @@ class MapSquare:
         square_types = ["forest", "mountains", "desert", "city", "swamp", "ocean"]
         self.square_type = square_types[random.randint(0, len(square_types) - 1)]
         self.name = name
-        self.unique_names = []
+        self.unique_mob_names = []
+        self.unique_building_names = []
+        self.unique_house_names = []
 
     mobs = []
     items = []
@@ -126,6 +138,7 @@ class MapSquare:
             row = []
             for cordinates in r:
                 if cordinates in the_map.keys():
+                    # TODO write a star if the square has the player's quest on it
                     row.append("|{!s:10}|".format(the_map[cordinates].square_type))
                 else:
                     row.append("|{!s:10}|".format(' '))
@@ -216,10 +229,7 @@ class Player:
 
     def increase_skill(self, skill, increase):
         try:
-            if self.skills[skill] < 100:
-                if increase + self.skills[skill] > 100:
-                    increase = 100 - self.skills[skill]
-                self.skills[skill] += increase
+            self.skills[skill] += increase
         except KeyError:
             self.skills[skill] = increase
         print(f"You now have {increase}% mastery of {skill}.")
@@ -347,7 +357,7 @@ class Mob:
             self.quest = i, int(q), f"{self.p.name}, if you bring " \
                                     f"me {q} {i.plural if int(q) > 1 else remove_little_words(i.name)}, " \
                                     f"I will teach you a valuable skill."
-        elif odds(70):
+        elif odds(5):
             mobs = []
             for biome, building in buildings.items():
                 for b, attributes in building.items():
