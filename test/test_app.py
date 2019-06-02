@@ -125,8 +125,8 @@ class TestSpecifics(unittest.TestCase):
         assert squirrel[0].name == 'a squirrel'
 
     def test_find_specifics_all(self):
-        all = find_specifics('all', self.mobs)
-        assert all == self.mobs
+        all_mobs = find_specifics('all', self.mobs)
+        assert all_mobs == self.mobs
 
     def test_misspelled_specifics(self):
         m = find_specifics('abcdefg', self.mobs)
@@ -236,6 +236,21 @@ class TestJob(unittest.TestCase):
         a.player.job = job
         a.commands_manager('go to work')
         assert a.player.money == 45
+
+
+class TestApplyForJob(unittest.TestCase):
+    @mock.patch('app.commands.odds', return_value=True)
+    def test_apply_for_job(self, _):
+        building = Building(name="office", plural="offices", rarity="common", p=a.player)
+        a.player.job = None
+        a.player.square.buildings = [building]
+        job_opening = Job('drudgeon', a.player.location, skills_needed=['communication'])
+        a.player.square.buildings[0].jobs = [job_opening]
+        a.player.building_local = a.player.square.buildings[0]
+        a.player.skills = {'communication': 100}
+        a.apply_for_job("drudgeon")
+
+        assert a.player.job
 
 
 class TestAttacks(unittest.TestCase):
@@ -456,7 +471,7 @@ class TestHaggle(unittest.TestCase):
         assert not a.player.inventory
 
     @mock.patch('app.commands.odds', return_value=True)
-    def test_lower_offer(self, odds):
+    def test_lower_offer(self, _):
         a.haggle([self.item], 1, 5)
         assert a.player.money == 15
         assert len(a.player.inventory) == 1
@@ -469,7 +484,7 @@ class TestHaggle(unittest.TestCase):
 
 class TestIrritateTheLocals(unittest.TestCase):
     @mock.patch('app.commands.odds', return_value=True)
-    def test_irritated(self, odds):
+    def test_irritated(self, _):
         item = Item("an emerald necklace", rarity="super rare", plural="necklaces", quantity=3)
         mob = Mob("a cat", p=a.player, plural="cats", rarity="common")
         a.player.square.mobs = [mob]
@@ -482,7 +497,7 @@ class TestIrritateTheLocals(unittest.TestCase):
         assert a.irritate_the_locals(item) is False
 
     @mock.patch('app.commands.odds', return_value=True)
-    def test_large_mob(self, odds):
+    def test_large_mob(self, _):
         item = Item("an emerald necklace", rarity="super rare", plural="necklaces", quantity=3)
         mob_a = Mob("a cat", p=a.player, plural="cats", rarity="common")
         mob_b = Mob("a sheep", p=a.player, plural="sheep", rarity="common")
@@ -500,28 +515,28 @@ class TestVisitBuildings(unittest.TestCase):
         a.player.phase = "day"
 
     @mock.patch('app.commands.odds', return_value=True)
-    def test_visit_house(self, odds):
+    def test_visit_house(self, _):
         a.interact_with_building('house')
         assert a.player.building_local == self.house
 
     @mock.patch('app.commands.odds', return_value=True)
-    def test_visit_house_at_night(self, odds):
+    def test_visit_house_at_night(self, _):
         a.player.phase = "night"
         a.interact_with_building('house')
         assert a.player.building_local is None
 
     @mock.patch('app.commands.odds', return_value=False)
-    def test_kicked_out_of_house(self, odds):
+    def test_kicked_out_of_house(self, _):
         a.interact_with_building('house')
         assert a.player.building_local is None
 
     @mock.patch('app.commands.odds', return_value=True)
-    def test_visit_office(self, odds):
+    def test_visit_office(self, _):
         a.interact_with_building('office')
         assert a.player.building_local == self.office
 
     @mock.patch('app.commands.odds', return_value=False)
-    def test_office_closed(self, odds):
+    def test_office_closed(self, _):
         a.interact_with_building('office')
         assert a.player.building_local is None
 
@@ -585,7 +600,6 @@ class TestPlayer(unittest.TestCase):
         assert 'quest' in a.player.status(a.player)
 
 
-@mock.patch('app.commands.odds', return_value=False)
 class TestTalk(unittest.TestCase):
     def setUp(self):
         self.mob = Mob("a cat", p=a.player, plural="cats", rarity="common")
@@ -593,19 +607,80 @@ class TestTalk(unittest.TestCase):
         a.player.square.mobs = [self.mob]
         a.player.greeting_count = 0
 
+    @mock.patch('app.commands.odds', return_value=False)
     def test_say_hello_increases_player_greeting_count(self, _):
         a.talk('say hello to the cat')
         assert a.player.greeting_count == 1
 
+    @mock.patch('app.commands.odds', return_value=False)
     def test_talking_with_only_mob_on_square(self, _):
         a.talk('say hello')
         assert self.mob.irritation_level == 1
         assert a.player.greeting_count == 1
 
+    @mock.patch('app.commands.odds', return_value=False)
+    def test_outgoing_talking(self, _):
+        a.player.greeting_count = 14
+        a.player.skills = {}
+        a.talk('say hello')
+        assert self.mob.irritation_level == 1
+        assert a.player.greeting_count == 15
+        assert a.player.skills['communication']
 
-@mock.patch('app.commands.odds', return_value=True)
-class TestBrokenPatience(unittest.TestCase):
-    def broken_patience(self, _):
-        # self.mob.irritation_level = 10
-        # talking to this mob results in battle
-        pass
+
+class TestSortTheDead(unittest.TestCase):
+    def setUp(self):
+        self.mob_a = Mob("a cat", p=a.player, plural="cats", rarity="common")
+        self.mob_b = Mob("a man", p=a.player, plural="men", rarity="common")
+        self.mob_a.inventory, self.mob_b.inventory = [], []
+        a.player.skills = {}
+        self.roster = [self.mob_a, self.mob_b]
+        self.list_of_mobs = [self.mob_a, self.mob_b]
+
+    def test_nobody_is_dead(self):
+        mobs = a.sort_the_dead(self.list_of_mobs, self.roster)
+        assert len(self.roster) == 2
+        assert len(mobs) == 2
+
+    def test_everyone_is_dead(self):
+        self.mob_a.health = 0
+        self.mob_b.health = 0
+        mobs = a.sort_the_dead(self.list_of_mobs, self.roster)
+        assert not self.roster
+        assert not mobs
+
+    def test_hitlist_guy_is_dead(self):
+        a.player.hit_list = ['a man']
+        a.player.money = 0
+        self.mob_b.health = 0
+        a.sort_the_dead(self.list_of_mobs, self.roster)
+        assert a.player.money >= 100
+        assert a.player.hit_list == []
+
+    def test_inventory_is_added_to_player(self):
+        weapon = Item("weapon", quantity=10, plural="weapons", weapon_rating=2)
+        self.mob_a.equipped_weapon = weapon
+        self.mob_a.health = 0
+        a.player.inventory = []
+        a.sort_the_dead(self.list_of_mobs, self.roster)
+        assert a.player.inventory[0].name == "weapon"
+
+    @mock.patch('app.commands.odds', return_value=True)
+    def test_strength_increase(self, _):
+        self.mob_a.health = 0
+        self.mob_b.health = 0
+        a.sort_the_dead(self.list_of_mobs, self.roster)
+        assert a.player.skills['strength'] == 4
+
+    def test_self_loathing_increase(self):
+        a.player.body_count = 4
+        self.mob_a.health = 0
+        a.sort_the_dead(self.list_of_mobs, self.roster)
+        assert a.player.skills['self loathing'] >= 2
+
+
+class TestMobDropper(unittest.TestCase):
+    @mock.patch('app.main_classes.dropper', return_value=25)
+    def test_drop_with_limit(self, _):
+        list_of_mobs = drop_mob(wild_mobs['master'], a.player, limit=20)
+        assert len(list_of_mobs) == 20

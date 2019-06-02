@@ -43,7 +43,8 @@ def drop_building(dictionary, p, limit=None):
 
     for k, v in dictionary.items():
         quantity = dropper(v['rarity'])
-        quantity = limit if quantity > limit else quantity
+        quantity = quantity if quantity < limit else limit
+        limit -= quantity
         if quantity:
             if quantity > 1 and v['category'] != 'residence':
                 n = random.randint(0, quantity)
@@ -67,12 +68,13 @@ def drop_building(dictionary, p, limit=None):
 
 
 def drop_mob(dictionary, p, limit=None):
-    limit = limit or len(names)
+    limit = limit or len(names) - len(p.square.unique_mob_names)
     drops_i = []
 
     for k, v in dictionary.items():
         quantity = dropper(v['rarity'])
-        quantity = limit if quantity > limit else quantity
+        quantity = quantity if quantity < limit else limit
+        limit -= quantity
         if quantity:
             if quantity > 1:
                 unique_names = find_unique_names(quantity, p.square.unique_mob_names)
@@ -80,7 +82,10 @@ def drop_mob(dictionary, p, limit=None):
                 for i in range(0, quantity):
                     drops_i.append(Mob(name=f"{k} named {unique_names[i]}", p=p, **v))
             else:
-                drops_i.append(Mob(name=k, p=p, **v))
+                if k not in [n.name for n in p.square.mobs]:
+                    drops_i.append(Mob(name=k, p=p, **v))
+                else:
+                    drops_i.append(Mob(name=find_unique_names(1, p.square.unique_mob_names)[0], p=p, **v))
     return drops_i
 
 
@@ -167,7 +172,6 @@ class Player:
 
     def phase_change(self, the_map):
         self.phase = 'day' if self.phase == 'night' else 'night'
-        # TODO randomly spawn new mobs on squares with less than 5 mobs
         for k, square in the_map.items():
             if self.location != k:
                 square.generate_items()

@@ -557,9 +557,9 @@ class Adventure:
                 print(non_responses[random.randint(0, len(non_responses) - 1)])
 
             self.player.greeting_count += 1
-            if self.player.greeting_count % 20 == 0:
+            if self.player.greeting_count % 15 == 0:
                 print(f"By the way, you have been really outgoing lately!")
-                self.player.increase_skill('communication', random.randint(0, 5))
+                self.player.increase_skill('communication', random.randint(1, 5))
 
     def turn_in_quest(self):
         """ Complete the quest if criteria is met, otherwise help player remember quest details """
@@ -594,6 +594,7 @@ class Adventure:
                     print(f"In exchange, the {mob_name} teaches you some {skill}.")
                     self.player.increase_skill(skill, percentage)
                     self.player.quest = None
+                    mob.quest = None
                 else:
                     # TODO you have to un-equip the thing to turn in if you are wielding it
                     # TODO turning in the same quest twice doesn't seem to work if you have the item
@@ -616,7 +617,7 @@ class Adventure:
         w = mob_a.equipped_weapon
         try:
             damage = random.randint(usefulness[w.weapon_rating][0], usefulness[w.weapon_rating][1])
-        except AttributeError:
+        except (AttributeError, TypeError):
             damage = random.randint(usefulness[0][0], usefulness[0][1])
 
         # TODO this needs capitalized too
@@ -777,12 +778,6 @@ class Adventure:
                 if 0 < mob.health <= 50 and aggressing is False:
                     print(f"{mob_id} decided the fight's not worth it and has bowed out.")
                     attacking = False
-                if mob.name in self.player.hit_list and mob.health <= 0:
-                    reward = random.randint(100, 500)
-                    self.player.money += reward
-                    self.player.hit_list.remove(mob.name)
-                    print(f"You have eliminated the pesky {remove_little_words(mob.name)}. For your troubles, you earn {reward}.")
-
             if not alive_mobs:
                 print("Everyone attacking you is now dead. Carry on.")
                 attacking = False
