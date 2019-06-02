@@ -1,0 +1,52 @@
+city:
+  a hipster:
+    plural: hipsters
+    rarity: uncommon
+  a homeless man:
+    plural: homeless men
+    rarity: uncommon
+desert:
+  a snake:
+    plural: snakes
+    rarity: uncommon
+forest:
+  a deer:
+    plural: deer
+    rarity: common
+  a hermit monk:
+    plural: hermit monks
+    rarity: rare
+  a wolf:
+    plural: wolves
+    rarity: uncommon
+  a wood nymph:
+    plural: wood nymphs
+    rarity: super rare
+master:
+  a cat:
+    plural: cats
+    rarity: uncommon
+  a squirrel:
+    plural: squirrels
+    rarity: common
+  a witch:
+    plural: witches
+    rarity: rare
+mountains:
+  a goat:
+    plural: goats
+    rarity: uncommon
+  a goat herder:
+    plural: goat herders
+    rarity: uncommon
+ocean:
+  a crab:
+    plural: crabs
+    rarity: uncommon
+  a jellyfish:
+    plural: jellyfish
+    rarity: uncommon
+swamp:
+  a mosquito:
+    plural: mosquitoes
+    rarity: super common

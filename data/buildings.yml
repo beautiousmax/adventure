@@ -1,0 +1,284 @@
+city:
+  a bar:
+    category: building
+    jobs:
+      bartender:
+        salary: 40
+        skills_learned:
+        - patience
+        - intelligence
+        skills_needed:
+        - communication
+    plural: bars
+    rarity: common
+    ware_list:
+      a shot of whiskey:
+        category: food
+        perishable: true
+        plural: shots of whiskey
+        price: 3
+        rarity: common
+  a blacksmith:
+    category: building
+    plural: blacksmiths
+    rarity: uncommon
+  a coffee shop:
+    category: building
+    plural: coffee shops
+    rarity: common
+    ware_list:
+      cup of coffee:
+        category: food
+        plural: cups of coffee
+        price: 5
+        rarity: super common
+      fat free muffin:
+        category: food
+        plural: fat free muffins
+        price: 4
+        rarity: super common
+desert:
+  a silk tent:
+    category: residence
+    plural: silk tents
+    rarity: uncommon
+forest:
+  a hunting lodge:
+    category: building
+    plural: hunting lodges
+    rarity: uncommon
+master:
+  a car dealership:
+    category: building
+    jobs:
+      car salesman:
+        salary: 117
+        skills_needed:
+        - communication
+        - self loathing
+      general manager:
+        salary: 318
+        skills_needed:
+        - leadership
+        - communication
+    mobs:
+      a shopper:
+        plural: shoppers
+        rarity: uncommon
+    plural: car dealerships
+    rarity: rare
+    ware_list:
+      a grey honda civic:
+        category: vehicle
+        plural: grey honda civics
+        price: 18887
+        rarity: common
+      a white lamborghini:
+        category: vehicle
+        plural: white lamborhinis
+        price: 487999
+        rarity: super rare
+      an orange lamborghini:
+        category: vehicle
+        plural: orange lamborghinis
+        price: 479888
+        rarity: rare
+  a castle:
+    category: building
+    jobs:
+      security guard:
+        salary: 90
+        skills_needed:
+        - strength
+      servant:
+        salary: 80
+        skills_needed:
+        - strength
+        - patience
+        - cleanliness
+    mobs:
+      a servant girl:
+        plural: servants
+        rarity: uncommon
+    plural: castles
+    rarity: super rare
+  a convenience store:
+    category: building
+    jobs:
+      cashier:
+        salary: 85
+        skills_learned:
+        - self loathing
+        - math
+        - communication
+        - patience
+        skills_needed:
+        - communication
+    plural: convenience stores
+    rarity: uncommon
+    ware_list:
+      a bottle of water:
+        category: food
+        plural: bottles of water
+        price: 4
+        rarity: common
+      a box of matches:
+        plural: boxes of matches
+        price: 2
+        rarity: common
+      a gallon of milk:
+        category: food
+        perishable: true
+        plural: gallons of milk
+        price: 3
+        rarity: common
+      a gun:
+        plural: guns
+        price: 345
+        rarity: uncommon
+        weapon_rating: 5
+      a mars bar:
+        category: food
+        plural: mars bars
+        price: 1
+        rarity: common
+      an apple:
+        category: food
+        plural: apples
+        price: 1
+        rarity: common
+  a food mart:
+    category: building
+    jobs:
+      cashier:
+        salary: 85
+        skills_learned:
+        - self loathing
+        - math
+        - communication
+        - patience
+        skills_needed:
+        - communication
+      delivery driver:
+        salary: 75
+        skills_needed:
+        - driving
+      night stocker:
+        salary: 45
+        skills_needed:
+        - strength
+    plural: food marts
+    rarity: common
+    ware_list:
+      a gallon of milk:
+        category: food
+        perishable: true
+        plural: gallons of milk
+        price: 3
+        rarity: common
+      a mars bar:
+        category: food
+        plural: mars bars
+        price: 1
+        rarity: common
+      an apple:
+        category: food
+        plural: apples
+        price: 1
+        rarity: common
+      beef:
+        category: food
+        perishable: true
+        plural: beef
+        price: 10
+        rarity: uncommon
+  a hospital:
+    category: building
+    jobs:
+      doctor:
+        salary: 526
+        skills_needed:
+        - science
+        - math
+        - communication
+        - patience
+        - cleanliness
+        - intelligence
+    mobs:
+      a sick old man:
+        plural: sick people
+        rarity: uncommon
+    plural: hospitals
+    rarity: rare
+    ware_list:
+      miracle pill:
+        category: medicine
+        plural: miracle pills
+        price: 100
+        rarity: uncommon
+  a house:
+    category: residence
+    jobs:
+      lawn mower:
+        inventory_needed: lawn mower
+        skills_needed: strength
+    plural: houses
+    rarity: common
+  an office building:
+    category: building
+    jobs:
+      human resources manager:
+        salary: 283
+        skills_needed:
+        - communication
+      software developer:
+        salary: 279
+        skills_needed:
+        - communication
+        - engineering
+      telemarketer:
+        salary: 57
+        skills_needed:
+        - communication
+    mobs:
+      an employee:
+        plural: employees
+        rarity: common
+    plural: hospitals
+    rarity: uncommon
+mountains:
+  a wind power farm:
+    category: building
+    plural: wind power farms
+    rarity: rare
+  an ancient temple:
+    category: building
+    jobs:
+      priest:
+        skills_needed:
+        - patience
+        - intelligence
+    mobs:
+      a sage old man:
+        plural: sage old men
+        rarity: common
+    plural: ancient temples
+    rarity: super rare
+ocean:
+  a volcanic base:
+    category: building
+    jobs:
+      evil overlord:
+        salary: 550
+        skills_needed:
+        - communication
+        - strength
+        - science
+        - intelligence
+    plural: volcanic bases
+    rarity: super rare
+swamp:
+  a shed:
+    category: building
+    plural: sheds
+    rarity: uncommon
