@@ -106,7 +106,17 @@ class Adventure:
         sys.stdout.write("Traveling . . .")
         sys.stdout.flush()
         count = 5
-        travel_time = 1 if not [x for x in self.player.inventory if x.category == 'vehicle'] else .2
+        vehicles = [x.rarity for x in self.player.inventory if x.category == 'vehicle']
+        travel_time = 1
+        if 'super rare' in vehicles:
+            travel_time = 0
+        elif 'rare' in vehicles:
+            travel_time = .1
+        elif 'common' in vehicles:
+            travel_time = .2
+        elif vehicles:
+            travel_time = .5
+
         while count > 0:
             time.sleep(travel_time)
             sys.stdout.write(" .")
