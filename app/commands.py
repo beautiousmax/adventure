@@ -6,8 +6,9 @@ import time
 from reusables.string_manipulation import int_to_words
 
 from app.common_functions import formatted_items, comma_separated, parse_inventory_action, odds, remove_little_words, \
-    are_is, find_specifics, the_name
-from app.main_classes import MapSquare, Mob, Player
+    are_is, find_specifics
+from app.main_classes import MapSquare, Player
+from app.battle import Battle
 
 
 class Adventure:
@@ -66,9 +67,9 @@ class Adventure:
             "inventory": (print, [self.player.pretty_inventory()]),
             "status": (print, [self.player.status(self.player)]),
             "ls": (print, ["What, you think this is Linux?"]),
-            "attack": (self.battle, [" ".join(words[1:]), True]),
-            "fight": (self.battle, [" ".join(words[1:]), True]),
-            "battle": (self.battle, [" ".join(words[1:]), True]),
+            "^attack": (self.battle_kickoff, [" ".join(words[1:])]),
+            "^fight": (self.battle_kickoff, [" ".join(words[1:])]),
+            "^battle": (self.battle_kickoff, [" ".join(words[1:])]),
             ".*say.*": (self.talk, [words]),
             ".*talk.*": (self.talk, [words]),
             ".*ask.*": (self.talk, [words]),
@@ -221,7 +222,8 @@ class Adventure:
                 print(f"""Uh oh, {"the locals don't" if len(angry_mob) > 1 else "someone doesn't"} like you """
                       f"""trying to take """
                       f"""their {remove_little_words(item.name) if item.quantity == 1 else item.plural}!""")
-                self.battle(angry_mob)
+                battle = Battle(self, angry_mob, [self.player], contested_item=item)
+                battle.battle_loop()
                 break
         else:
             self.player.square.clean_up_map()
@@ -248,6 +250,7 @@ class Adventure:
     def eat_food(self, words):
         """ Eat food in your inventory to gain health """
         # TODO add drinking for coffee and whiskey shots
+        # TODO only eat one bagel not all bagels
         quantity, item_text = parse_inventory_action(words)
 
         if quantity is None and item_text is None:
@@ -548,7 +551,8 @@ class Adventure:
                 specific_mob.irritation_level += 1
             if odds(11 - specific_mob.irritation_level):
                 print(fighting_responses[random.randint(0, len(no_quest_responses) - 1)])
-                self.battle([specific_mob])
+                battle = Battle(self, [specific_mob], [self.player])
+                battle.battle_loop()
                 return
 
             if "quest" in words:
@@ -616,191 +620,19 @@ class Adventure:
 
         self.player.inventory = [i for i in self.player.inventory if i.quantity > 0]
 
-    @staticmethod
-    def attack(mob_a, mob_b):
-        # TODO only eat one bagel not all bagels
-        # TODO multiple mobs attack?
-        # TODO after bowing out of a fight, you should be able to take thing without them attacking
-        """
-        mob a uses equipped weapon, finds damage based on weapon rating, subtracts it from self.player.health
-        (no weapon or item with weapon rating is a '0' rating)
-        """
-        usefulness = [(0, 10), (10, 15), (15, 25), (25, 32), (32, 50), (50, 60)]
-
-        w = mob_a.equipped_weapon
-        try:
-            damage = random.randint(usefulness[w.weapon_rating][0], usefulness[w.weapon_rating][1])
-        except (AttributeError, TypeError):
-            damage = random.randint(usefulness[0][0], usefulness[0][1])
-
-        # TODO this needs capitalized too
-        mob_b.health -= damage
-        print(f"{mob_a.name} inflicted {damage} damage to {mob_b.name}. {mob_b.name} has {mob_b.health} health left.")
-
-    def throw(self, mob_a, mob_b):
-        """
-        While you can toss higher level weapons, it doesn't do as much damage as wielding them would
-        """
-        # TODO only throw equipped weapons??
-        usefulness = [(0, 20), (10, 30), (20, 40), (10, 25), (5, 15), (0, 10)]
-
-        w = mob_a.equipped_weapon
-        try:
-            damage = random.randint(usefulness[w.weapon_rating][0], usefulness[w.weapon_rating][1])
-        except AttributeError:
-            damage = random.randint(usefulness[0][0], usefulness[0][1])
-
-        # TODO this needs capitalized too
-        mob_b.health -= damage
-        w.quantity -= 1
-        self.add_item_to_inventory(w, 1, self.map)
-        print(f"{mob_a.name} inflicted {damage} damage to {mob_b.name}. {mob_b.name} has {mob_b.health} health left.")
-        if w.quantity == 0:
-            print(f"You are out of {w.plural}.")
-            mob_a.equipped_weapon = None
-
-    def battle_help(self, aggressing):
-        """ List of commands available during battle """
-        command_list = {"attack": True,
-                        "throw": bool(self.player.equipped_weapon),
-                        "eat <something>": bool([x for x in self.player.inventory if x.category == "food"]),
-                        "run away": True,
-                        "leave": bool(aggressing is False),
-                        "inventory": True,
-                        "equip": bool(self.player.inventory),
-                        "status": True}
-        for command, status in command_list.items():
-            if status:
-                print(command)
-
-    def battle_manager(self, words, mobs, aggressing):
-        """battle command manager"""
-        words = words.lower().split(" ")
-        if words[0] == "help":
-            self.battle_help(aggressing)
-            self.battle_manager(input(), mobs, aggressing)
-        elif words[0] == "attack":
-            for mob in mobs:
-                self.attack(self.player, mob)
-            return True
-        elif words[0] == "throw":
-            if len(mobs) == 1:
-                mob = mobs[0]
-            else:
-                mob = find_specifics(remove_little_words(' '.join(words)), mobs)
-                if not mob:
-                    mob = mob[0] if mob else mobs[0]
-            self.throw(self.player, mob)
-            return True
-        elif words[0] in ("leave", "exit"):
-            if aggressing is False:
-                print("The battle is over.")
-                return False
-            else:
-                print("You can't leave the battle. You must fight!")
-                return True
-        elif words == "run" or "run away" in " ".join(words):
-            dirs = ["north", "south", "east", "west"]
-            random_dir = dirs[random.randint(0, len(dirs) - 1)]
-            print(f"You run away in a cowardly panic.")
-            self.change_direction(random_dir)
-            return False
-        elif words[0] == "equip":
-            self.equip(" ".join(words[1:]))
-            self.battle_manager(input(), mobs, aggressing)
-        elif words[0] == "eat":
-            self.eat_food(" ".join(words[1:]))
-            return True
-        elif words[0] == "inventory":
-            print(self.player.pretty_inventory())
-            self.battle_manager(input(), mobs, aggressing)
-        elif words[0] == "status":
-            print(self.player.status(self.player))
-            self.battle_manager(input(), mobs, aggressing)
-        else:
-            print("You can't do that right now.")
-            self.battle_manager(input(), mobs, aggressing)
-
-    def sort_the_dead(self, list_of_mobs, roster):
-        alive_mobs = []
-        for mob in list_of_mobs:
-            if mob.health > 0:
-                alive_mobs.append(mob)
-            else:
-                mob_id = the_name(mob.name).capitalize()
-                if mob.equipped_weapon:
-                    mob.inventory.append(mob.equipped_weapon)
-                stuff = mob.inventory
-                self.player.body_count += 1
-                s = f" You add {comma_separated(formatted_items(stuff))} to your " \
-                    f"inventory." if stuff else ''
-                print(f"You killed {mob_id}.{s}")
-                for i in stuff:
-                    self.add_item_to_inventory(i, i.quantity)
-
-                if odds(3):
-                    self.player.increase_skill('strength', 2)
-
-                if mob.name in self.player.hit_list:
-                    reward = random.randint(100, 500)
-                    self.player.money += reward
-                    self.player.hit_list.remove(mob.name)
-                    print(f"You have eliminated the pesky {remove_little_words(mob.name)}. For your troubles, you earn {reward}.")
-                if self.player.body_count % 5 == 0:
-                    print("You've really been racking up the body count.")
-                    self.player.increase_skill('self loathing', random.randint(2, 8))
-                roster.remove(mob)
-        return alive_mobs
-
-    def battle(self, attacking_mobs, aggressing=False):
-        # TODO all of this needs colors
+    def battle_kickoff(self, words, attacking_mobs=None):
+        attacking_mobs = attacking_mobs or None
         list_of_locals = self.player.building_local.mobs if self.player.building_local else self.player.square.mobs
         if not attacking_mobs:
-            print("Who are you attacking?")
-            return
-        elif not isinstance(attacking_mobs[0], Mob):
-            attacking_mobs = find_specifics(attacking_mobs, list_of_locals)
+            attacking_mobs = find_specifics(words, list_of_locals)
         if not attacking_mobs:
-            print("Can't find anyone to pick a fight with.")
+            print("Who are you attacking?")
             return
         else:
             m = comma_separated(formatted_items(attacking_mobs))
             print(f"Look out, {m[0].upper()}{m[1:]} {'is' if len(attacking_mobs) == 1 else 'are'} gearing up to fight!")
-            weapons = []
-            for n in attacking_mobs:
-                w = n.equipped_weapon
-                if n.equipped_weapon is not None:
-                    mob_id = the_name(n.name)
-
-                    weapons.append(f"{mob_id} is wielding {w.name if w.quantity == 1 else w.plural}")
-            # TODO this needs capitalized eventually
-            if weapons:
-                print(f"{comma_separated(weapons)}.")
-        attacking = True
-        while attacking is True:
-            if aggressing is False:
-                for m in attacking_mobs:
-                    self.attack(m, self.player)
-
-            if self.player.health > 0:
-                attacking = self.battle_manager(input(), attacking_mobs, aggressing)
-
-            alive_mobs = self.sort_the_dead(attacking_mobs, list_of_locals)
-            for mob in alive_mobs:
-                mob_id = the_name(mob.name).capitalize()
-                if 0 < mob.health <= 50 and aggressing is False:
-                    print(f"{mob_id} decided the fight's not worth it and has bowed out.")
-                    attacking = False
-            if not alive_mobs:
-                print("Everyone attacking you is now dead. Carry on.")
-                attacking = False
-
-            if aggressing is True and attacking is True:
-                for m in alive_mobs:
-                    self.attack(m, self.player)
-            if self.player.health <= 0:
-                print("You died. The end.")
-                attacking = False
+            battle = Battle(adventure=self, list_of_attackers=[self.player], list_of_defenders=attacking_mobs)
+            battle.battle_loop()
 
     def equip(self, words):
         """ Select item from player inventory to use as battle weapon """

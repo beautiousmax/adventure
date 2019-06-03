@@ -2,6 +2,7 @@ import unittest
 from unittest import mock
 
 from app.commands import Adventure
+from app.battle import Battle
 from app.common_functions import *
 from app.main_classes import *
 from data.text import wild_mobs
@@ -192,14 +193,16 @@ class TestJob(unittest.TestCase):
         a.player.square = a.map[(0, 0)]
         a.player.phase = "day"
 
-    def test_job(self):
+    @mock.patch('time.sleep', return_value=None)
+    def test_job(self, _):
         job = Job(name="a job", location=a.player.location, skills_learned=['communication'], salary=45)
         a.player.job = job
         a.go_to_work()
         assert a.player.money == 45
         assert a.player.skills['communication'] >= 0
 
-    def test_job_no_skills(self):
+    @mock.patch('time.sleep', return_value=None)
+    def test_job_no_skills(self, _):
         job = Job(name="a job", location=a.player.location, skills_learned=None, salary=45)
         a.player.job = job
         a.go_to_work()
@@ -231,7 +234,8 @@ class TestJob(unittest.TestCase):
         a.go_to_work()
         assert a.player.money == 0
 
-    def test_go_to_work_command(self):
+    @mock.patch('time.sleep', return_value=None)
+    def test_go_to_work_command(self, _):
         job = Job(name="a job", location=a.player.location, skills_learned=None, salary=45)
         a.player.job = job
         a.commands_manager('go to work')
@@ -253,32 +257,44 @@ class TestApplyForJob(unittest.TestCase):
 
 
 class TestAttacks(unittest.TestCase):
-    def test_throw(self):
+    def setUp(self):
         a.player.square.items = []
         weapon = Item("weapon", quantity=10, plural="weapons", weapon_rating=2)
         a.player.equipped_weapon = weapon
-        mob_b = Mob("bob", p=a.player, plural="bobs", rarity="common")
-        a.throw(a.player, mob_b)
-        assert mob_b.health != 100
+        self.mob_b = Mob("bob", p=a.player, plural="bobs", rarity="common")
+        self.b = Battle(a, [a.player], [self.mob_b])
+
+    def test_throw(self):
+        self.b.throw([a.player], [self.mob_b])
+        assert self.mob_b.health != 100
         assert a.player.square.items != []
         assert a.player.square.items[0].name == "weapon"
         assert a.player.square.items[0].quantity == 1
         assert a.player.equipped_weapon.quantity == 9
 
     def test_attack(self):
-        weapon = Item("weapon", quantity=1, plural="weapons", weapon_rating=5)
-        a.player.equipped_weapon = weapon
-        mob_b = Mob("bob", p=a.player, plural="bobs", rarity="common")
-        mob_b.health = 100
-        a.attack(a.player, mob_b)
-        assert mob_b.health <= 50
+        self.b.attack([a.player], [self.mob_b])
+        assert self.mob_b.health != 100
+
+    def test_cannot_run_away(self):
+        a.player.location = (0, 0)
+        self.b.run_away()
+        assert a.player.location == (0, 0)
+
+    @mock.patch('time.sleep', return_value=None)
+    def test_run_away(self, _):
+        a.player.location = (0, 0)
+        self.b = Battle(a, [self.mob_b], [a.player])
+        self.b.run_away()
+        assert a.player.location != (0, 0)
 
 
 class TestChangeDirection(unittest.TestCase):
     def setUp(self):
         a.player.location = (0, 0)
 
-    def test_go_directions(self):
+    @mock.patch('time.sleep', return_value=None)
+    def test_go_directions(self, _):
         directions = {'north': (0, 1),
                       'n': (0, 1),
                       'up': (0, 1),
@@ -570,7 +586,6 @@ class TestPlayer(unittest.TestCase):
     def test_status(self):
         a.player.building_local = None
         a.player.equipped_weapon = None
-        a.player.inventory = []
         a.player.money = 0
         a.player.skills = {}
         a.player.location = (0, 0)
@@ -579,7 +594,7 @@ class TestPlayer(unittest.TestCase):
         a.player.job = None
         a.player.quest = None
         s = "Currently, you have 100 health.\nYou are located on map coordinates (0, 0), which " \
-            f"is {a.player.square.square_type}.\nYou don't have any skills.\nYou have nothing in your inventory." \
+            f"is {a.player.square.square_type}.\nYou don't have any skills." \
             f"\nYou have $0 in your wallet.\nYou do not have a job, and you are not contributing to society."
 
         assert a.player.status(a.player) == s
@@ -632,27 +647,29 @@ class TestSortTheDead(unittest.TestCase):
         self.mob_a = Mob("a cat", p=a.player, plural="cats", rarity="common")
         self.mob_b = Mob("a man", p=a.player, plural="men", rarity="common")
         self.mob_a.inventory, self.mob_b.inventory = [], []
+        a.player.building_local = None
+        a.player.square.mobs = [self.mob_a, self.mob_b]
         a.player.skills = {}
-        self.roster = [self.mob_a, self.mob_b]
         self.list_of_mobs = [self.mob_a, self.mob_b]
+        self.b = Battle(a, [a.player], [self.mob_a, self.mob_b])
 
     def test_nobody_is_dead(self):
-        mobs = a.sort_the_dead(self.list_of_mobs, self.roster)
-        assert len(self.roster) == 2
+        mobs = self.b.sort_the_dead(self.list_of_mobs)
+        assert len(a.player.square.mobs) == 2
         assert len(mobs) == 2
 
     def test_everyone_is_dead(self):
         self.mob_a.health = 0
         self.mob_b.health = 0
-        mobs = a.sort_the_dead(self.list_of_mobs, self.roster)
-        assert not self.roster
+        mobs = self.b.sort_the_dead(self.list_of_mobs)
+        assert not a.player.square.mobs
         assert not mobs
 
     def test_hitlist_guy_is_dead(self):
         a.player.hit_list = ['a man']
         a.player.money = 0
         self.mob_b.health = 0
-        a.sort_the_dead(self.list_of_mobs, self.roster)
+        self.b.sort_the_dead(self.list_of_mobs)
         assert a.player.money >= 100
         assert a.player.hit_list == []
 
@@ -661,20 +678,19 @@ class TestSortTheDead(unittest.TestCase):
         self.mob_a.equipped_weapon = weapon
         self.mob_a.health = 0
         a.player.inventory = []
-        a.sort_the_dead(self.list_of_mobs, self.roster)
+        self.b.sort_the_dead(self.list_of_mobs)
         assert a.player.inventory[0].name == "weapon"
 
-    @mock.patch('app.commands.odds', return_value=True)
+    @mock.patch('app.battle.odds', return_value=True)
     def test_strength_increase(self, _):
         self.mob_a.health = 0
-        self.mob_b.health = 0
-        a.sort_the_dead(self.list_of_mobs, self.roster)
-        assert a.player.skills['strength'] == 4
+        self.b.sort_the_dead(self.list_of_mobs)
+        assert a.player.skills['strength'] == 2
 
     def test_self_loathing_increase(self):
         a.player.body_count = 4
         self.mob_a.health = 0
-        a.sort_the_dead(self.list_of_mobs, self.roster)
+        self.b.sort_the_dead(self.list_of_mobs)
         assert a.player.skills['self loathing'] >= 2
 
 

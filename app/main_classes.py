@@ -79,7 +79,7 @@ def drop_mob(dictionary, p, limit=None):
             if quantity > 1:
                 unique_names = find_unique_names(quantity, p.square.unique_mob_names)
                 p.square.unique_mob_names += unique_names
-                for i in range(0, quantity):
+                for i in range(0, len(unique_names)):
                     drops_i.append(Mob(name=f"{k} named {unique_names[i]}", p=p, **v))
             else:
                 if k not in [n.name for n in p.square.mobs]:
@@ -226,7 +226,6 @@ class Player:
                         f'which is {self.square.square_type}.',
             'building_local': f'You are inside {p.building_local.name}.' if p.building_local else None,
             'skills': '\n'.join(skills) if skills else "You don't have any skills.",
-            'inventory': self.pretty_inventory(),
             'money': f"You have ${self.money} in your wallet.",
             'job': job_string}
 
