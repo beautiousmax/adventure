@@ -1,6 +1,7 @@
 import random
 
 import colorama
+from termcolor import colored
 from reusables.string_manipulation import int_to_words
 
 from app.common_functions import comma_separated, add_dicts_together, remove_little_words, odds
@@ -370,6 +371,7 @@ class Mob:
             self.quest = i, int(q), f"{self.p.name}, if you bring " \
                                     f"me {q} {i.plural if int(q) > 1 else remove_little_words(i.name)}, " \
                                     f"I will teach you a valuable skill."
+            return
         elif odds(5):
             mobs = []
             for biome, building in buildings.items():
@@ -379,9 +381,9 @@ class Mob:
             for biome, mob in wild_mobs.items():
                 for k in mob.keys():
                     mobs.append(k)
-            target = f"{mobs[random.randint(0, len(mobs))]} named {names[random.randint(0, len(names)-1)]}"
+            target = f"{mobs[random.randint(0, len(mobs)-1)]} named {names[random.randint(0, len(names)-1)]}"
             print(f"Well, we'll keep this off the record, but I can arrange for some money to find its way "
-                  f"into your account if you make {target} disappear, if you know what I mean...")
+                  f"into your account if you make {colored(target), 'yellow'} disappear, if you know what I mean...")
             self.p.hit_list.append(target)
             return False
 

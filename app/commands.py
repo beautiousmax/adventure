@@ -556,16 +556,16 @@ class Adventure:
                 return
 
             if "quest" in words:
-                specific_mob.generate_quest()
-                if specific_mob.quest is None:
-                    if specific_mob.quest is not False:
-                        print(no_quest_responses[random.randint(0, len(no_quest_responses) - 1)])
-                elif specific_mob.quest is not False:
+                quest = specific_mob.generate_quest()
+                if specific_mob.quest:
                     print(yes_quest_responses[random.randint(0, len(yes_quest_responses) - 1)])
                     print(specific_mob.quest[2])
                     if input("Do you accept the quest?{} yes/no:".format(
                             ' This will replace your current quest.' if self.player.quest else '')).lower() == "yes":
                         self.player.quest = (specific_mob, self.player.location)
+                elif quest is None:
+                    if quest is not False:
+                        print(no_quest_responses[random.randint(0, len(no_quest_responses) - 1)])
             elif any(word in ("hi", "hello", "greet", "greetings", "howdy") for word in words):
                 print(greeting_responses[random.randint(0, len(greeting_responses) - 1)])
             else:
