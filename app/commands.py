@@ -6,7 +6,7 @@ import time
 from reusables.string_manipulation import int_to_words
 
 from app.common_functions import formatted_items, comma_separated, parse_inventory_action, odds, remove_little_words, \
-    are_is, find_specifics
+    are_is, find_specifics, the_name
 from app.main_classes import MapSquare, Player
 from app.battle import Battle
 
@@ -185,7 +185,9 @@ class Adventure:
         """
         if item.rarity in ('rare', 'super rare') and odds(2) and self.player.square.mobs:
             angry_mob = [x for x in self.player.square.mobs if odds(2) and x.health > 50]
-            angry_mob = angry_mob if len(angry_mob) >= 1 else [self.player.square.mobs[0]]
+            if len(angry_mob) <= 1:
+                if self.player.square.mobs[0].health > 50:
+                    angry_mob = [self.player.square.mobs[0]]
             return angry_mob
         return False
 
@@ -222,8 +224,7 @@ class Adventure:
                 print(f"""Uh oh, {"the locals don't" if len(angry_mob) > 1 else "someone doesn't"} like you """
                       f"""trying to take """
                       f"""their {remove_little_words(item.name) if item.quantity == 1 else item.plural}!""")
-                battle = Battle(self, angry_mob, [self.player], contested_item=item)
-                battle.battle_loop()
+                self.battle_kickoff(None, angry_mob, [self.player], contested_item=item)
                 break
         else:
             self.player.square.clean_up_map()
@@ -551,14 +552,14 @@ class Adventure:
                 specific_mob.irritation_level += 1
             if odds(11 - specific_mob.irritation_level):
                 print(fighting_responses[random.randint(0, len(no_quest_responses) - 1)])
-                battle = Battle(self, [specific_mob], [self.player])
-                battle.battle_loop()
+                self.battle_kickoff(None, [specific_mob], [self.player])
                 return
 
             if "quest" in words:
                 specific_mob.generate_quest()
                 if specific_mob.quest is None:
-                    print(no_quest_responses[random.randint(0, len(no_quest_responses) - 1)])
+                    if specific_mob.quest is not False:
+                        print(no_quest_responses[random.randint(0, len(no_quest_responses) - 1)])
                 elif specific_mob.quest is not False:
                     print(yes_quest_responses[random.randint(0, len(yes_quest_responses) - 1)])
                     print(specific_mob.quest[2])
@@ -620,18 +621,38 @@ class Adventure:
 
         self.player.inventory = [i for i in self.player.inventory if i.quantity > 0]
 
-    def battle_kickoff(self, words, attacking_mobs=None):
+    def battle_kickoff(self, words, attacking_mobs=None, defending_mobs=None, contested_item=None):
         attacking_mobs = attacking_mobs or None
+        defending_mobs = defending_mobs or None
+        contested_item = contested_item or None
         list_of_locals = self.player.building_local.mobs if self.player.building_local else self.player.square.mobs
-        if not attacking_mobs:
-            attacking_mobs = find_specifics(words, list_of_locals)
-        if not attacking_mobs:
+        if defending_mobs:
+            m = comma_separated(formatted_items(attacking_mobs))
+            print(f"Look out, {m[0].upper()}{m[1:]} {'is' if len(attacking_mobs) == 1 else 'are'} gearing up to fight!")
+            for mob in attacking_mobs:
+                w = mob.equipped_weapon
+                if mob.equipped_weapon is not None:
+                    mob_id = the_name(mob.name)
+                    print(f"{mob_id} is wielding {w.name if w.quantity == 1 else w.plural}.")
+            battle = Battle(adventure=self, list_of_attackers=attacking_mobs, list_of_defenders=defending_mobs,
+                            contested_item=contested_item)
+            battle.battle_loop()
+            return
+
+        else:
+            defending_mobs = find_specifics(words, list_of_locals)
+        if not defending_mobs:
             print("Who are you attacking?")
             return
         else:
-            m = comma_separated(formatted_items(attacking_mobs))
-            print(f"Look out, {m[0].upper()}{m[1:]} {'is' if len(attacking_mobs) == 1 else 'are'} gearing up to fight!")
-            battle = Battle(adventure=self, list_of_attackers=[self.player], list_of_defenders=attacking_mobs)
+            m = comma_separated(formatted_items(defending_mobs))
+            print(f"Look out, {m[0].upper()}{m[1:]} {'is' if len(defending_mobs) == 1 else 'are'} gearing up to fight!")
+            for mob in defending_mobs:
+                w = mob.equipped_weapon
+                if mob.equipped_weapon is not None:
+                    mob_id = the_name(mob.name)
+                    print(f"{mob_id} is wielding {w.name if w.quantity == 1 else w.plural}")
+            battle = Battle(adventure=self, list_of_attackers=[self.player], list_of_defenders=defending_mobs)
             battle.battle_loop()
 
     def equip(self, words):

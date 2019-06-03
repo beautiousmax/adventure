@@ -377,7 +377,8 @@ class Mob:
                     if attributes.get('mobs'):
                         mobs.append(*attributes['mobs'])
             for biome, mob in wild_mobs.items():
-                mobs.append(*mob)
+                for k in mob.keys():
+                    mobs.append(k)
             target = f"{mobs[random.randint(0, len(mobs))]} named {names[random.randint(0, len(names)-1)]}"
             print(f"Well, we'll keep this off the record, but I can arrange for some money to find its way "
                   f"into your account if you make {target} disappear, if you know what I mean...")

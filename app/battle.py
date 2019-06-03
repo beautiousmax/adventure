@@ -10,6 +10,7 @@ class Battle:
         self.attackers = list_of_attackers
         self.defenders = list_of_defenders
         self.contested_item = contested_item or None
+        self.coward = False
 
     def battle_help(self):
         """ List of commands available during battle """
@@ -103,6 +104,7 @@ class Battle:
         if self.adventure.player in self.attackers:
             print("You can't leave the battle. You must fight!")
         else:
+            self.coward = True
             self.attackers = []
             print("You run away in a cowardly panic.")
             dirs = ["north", "south", "east", "west"]
@@ -116,26 +118,31 @@ class Battle:
                 self.defenders = self.sort_the_dead(self.defenders)
                 if not self.defenders:
                     print("Everyone you were attacking is now dead. Carry on.")
+                    break
             else:
                 self.attack(self.attackers, self.defenders)
-                for attacker in self.attackers:
-                    if attacker.health <= 50:
-                        print(f"{the_name(attacker.name).capitalize()} decided the fight is not worth it and has bowed out.")
-                self.attackers = [mob for mob in self.attackers if mob.health > 50]
                 if not self.attackers:
-                    print("Nobody left is attacking you.")
-                    if self.contested_item:
-                        self.adventure.add_item_to_inventory(self.contested_item, self.contested_item.quantity)
-                        print(f"Added {self.contested_item.name if self.contested_item.quantity == 1 else self.contested_item.plural} to your inventory.")
+                    print("Everyone attacking you is now dead. Carry on.")
+                    break
 
             if self.adventure.player.health <= 0:
                 break
 
             if self.adventure.player in self.defenders:
                 self.battle_commands_manager()
+                for attacker in self.attackers:
+                    if attacker.health <= 50:
+                        print(f"{the_name(attacker.name).capitalize()} decided the fight is not worth it and has bowed out.")
+                self.attackers = [mob for mob in self.attackers if mob.health > 50]
+                if not self.attackers and not self.coward:
+                    print("Nobody is attacking you anymore.")
+                    if self.contested_item:
+                        self.adventure.add_item_to_inventory(self.contested_item, self.contested_item.quantity)
+                        print(f"Added {self.contested_item.name if self.contested_item.quantity == 1 else self.contested_item.plural} to your inventory.")
+                        self.contested_item.quantity = 0
+                        self.adventure.player.square.clean_up_map()
                 self.attackers = self.sort_the_dead(self.attackers)
-                if not self.attackers:
-                    print("Everyone attacking you is now dead. Carry on.")
+
             else:
                 self.attack(self.defenders, self.attackers)
                 # TODO mobs can eat food if they have it to regain health maybe?
@@ -152,13 +159,18 @@ class Battle:
                 "^eat.*": (self.adventure.eat_food, [" ".join(words[1:])]),
                 "status": (print, [self.adventure.player.status(self.adventure.player)]),
                 "inventory": (print, [self.adventure.player.pretty_inventory()]),
-                "run away": (self.run_away, [])
+                "run away": (self.run_away, []),
+                "equip": (self.adventure.equip, [" ".join(words[1:])])
             }
 
+            paused = False
             for k, v in battle_paused_commands.items():
                 if re.match(k, " ".join(words)):
                     v[0](*v[1])
-                    continue
+                    paused = True
+                    break
+            if paused:
+                continue
 
             if self.adventure.player in self.attackers:
                 attacking_actions = {
@@ -175,4 +187,11 @@ class Battle:
                 if re.match(k, " ".join(words)):
                     v[0](*v[1])
                     break
-            break
+            else:
+                paused = True
+                print("I don't know that command.")
+
+            if paused:
+                continue
+            else:
+                break
