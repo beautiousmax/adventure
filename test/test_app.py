@@ -256,6 +256,7 @@ class TestApplyForJob(unittest.TestCase):
         a.apply_for_job("drudgeon")
 
         assert a.player.job
+        assert not a.player.square.buildings[0].jobs
 
 
 class TestAttacks(unittest.TestCase):

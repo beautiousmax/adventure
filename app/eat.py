@@ -1,5 +1,7 @@
 import random
 
+from termcolor import colored
+
 from app.common_functions import find_specifics, parse_inventory_action
 from data.text import buildings
 
@@ -41,7 +43,8 @@ class Eat:
                     if self.adventure.player.health < 100:
                         regenerate = self.determine_restorative_properties(food)
                         self.adventure.player.health += regenerate
-                        print(f"Regenerated {regenerate} health by eating {food.name}")
+                        print(f"Regenerated {regenerate} health by eating {food.name}. "
+                              f"You now have {colored(self.adventure.player.health, 'yellow')}% health.")
                     else:
                         print("You have perfect health, no need to eat!")
                         self.adventure.player.clean_up_inventory()
@@ -66,5 +69,4 @@ class Eat:
             else:
                 return random.randint(20, 100 - self.adventure.player.health)
         else:
-            print(self.adventure.player.health)
             return random.randint(1, 100 - self.adventure.player.health)

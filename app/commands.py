@@ -149,7 +149,6 @@ class Adventure:
         self.player.square = self.map[new_coordinates]
         print(f"You are now located on map coordinates {new_coordinates}, which is {self.player.square.square_type}.")
 
-        # TODO add limits for items generated
         self.look_around()
 
     def look_around(self):
@@ -337,7 +336,7 @@ class Adventure:
             if odds(match_score):
                 print(f"Congratulations {self.player.name}, you got the job!")
                 self.player.job = job
-                # TODO clean-up job so it doesn't show on job listing?
+                self.player.building_local.jobs.remove(job)
 
             else:
                 bad_news = [f"I'm sorry, we're looking for candidates with more "

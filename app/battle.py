@@ -1,6 +1,8 @@
 import random
 import re
 
+from termcolor import colored
+
 from app.common_functions import the_name, comma_separated, formatted_items, odds, remove_little_words
 
 
@@ -151,10 +153,10 @@ class Battle:
 
     def death(self):
         if not self.adventure.player.job:
-            print("You died. The end.")
+            print(f"{colored('You died.', 'magenta')} The end.")
             return
         else:
-            print("You died, but luckily your job provides you health insurance.")
+            print(f"{colored('You died,', 'magenta')} but luckily your job provides you health insurance.")
             cost_to_live = random.randint(200, 500)
             if self.adventure.player.money >= cost_to_live:
                 print(f"You shell out {cost_to_live} to the insurance guys and rejoin the living at 50% health!")

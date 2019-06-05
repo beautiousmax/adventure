@@ -185,6 +185,7 @@ class Player:
         self.inventory = [i for i in self.inventory if i.quantity != 0]
 
     def phase_change(self, the_map):
+        # TODO randomly re-generate jobs occasionally
         self.phase = 'day' if self.phase == 'night' else 'night'
         for k, square in the_map.items():
             if self.location != k:
