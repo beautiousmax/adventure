@@ -381,15 +381,21 @@ class Adventure:
                 print(f"You need {job.inventory_needed} for this job.")
                 return
 
-            match_score = 0
+            match_score = 1
 
-            for skill in job.skills_needed:
-                if skill in self.player.skills.keys():
-                    if self.player.skills[skill] > 90:
-                        print(f"Wow, it says here you are really good at {skill}.")
-                    match_score += (self.player.skills[skill] / len(job.skills_needed))
-
-            match_score = 1 if match_score >= 100 else 100 - match_score
+            if job.skills_needed:
+                level = 0
+                for skill in job.skills_needed:
+                    if skill in self.player.skills.keys():
+                        if self.player.skills[skill] > 90:
+                            print(f"Wow, it says here you are really good at {skill}.")
+                        level += self.player.skills[skill]
+                average_level = level / len(job.skills_needed)
+                score_card = {90: 1, 80: 3, 70: 5, 60: 8, 0: 15}
+                for average, score in score_card.items():
+                    if average_level >= average:
+                        match_score = score
+                        break
 
             if odds(match_score):
                 print(f"Congratulations {self.player.name}, you got the job!")

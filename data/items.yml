@@ -112,6 +112,10 @@ master:
     plural: piles of broken glass
     rarity: uncommon
     weapon_rating: 1
+  a lawn mower:
+    plural: lawn mowers
+    rarity: super rare
+    weapon_rating: 3
 mountains:
   a glacier:
     plural: glaciers
