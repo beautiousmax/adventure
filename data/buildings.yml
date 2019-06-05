@@ -147,6 +147,30 @@ master:
         plural: apples
         price: 1
         rarity: common
+      a gleaming helmet of imperviousness:
+        category: armor
+        plural: gleaming helmets of imperviousness
+        price: 3000
+        rarity: rare
+        defense: 5
+      an unfading breastplate of rightous indignation:
+        category: armor
+        plural: unfading breastplates of rightous indignation
+        price: 5500
+        rarity: rare
+        defense: 5
+      shining footware of ceaseless splendor:
+        category: armor
+        plural: pairs of shining footware of ceaseless splendor
+        price: 3000
+        rarity: rare
+        defense: 5
+      kevlar body armor:
+        category: armor
+        plural: suits of kevlar body armor
+        price: 1000
+        defense: 3
+        rarity: uncommon
   a food mart:
     category: building
     jobs:
@@ -264,6 +288,13 @@ mountains:
         rarity: common
     plural: ancient temples
     rarity: super rare
+    ware_list:
+      a holy shingaurd blessed by the gods:
+        plural: holy shingaurds blessed by the gods
+        cost: 2200
+        rarity: rare
+        category: armor
+        defense: 4
 ocean:
   a volcanic base:
     category: building

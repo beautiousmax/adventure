@@ -178,6 +178,7 @@ class Player:
     greeting_count = 0
     body_count = 0
     hit_list = []
+    # TODO add a command to view hit list
     speed_bonus = False
 
     def clean_up_inventory(self):
@@ -185,7 +186,6 @@ class Player:
         self.inventory = [i for i in self.inventory if i.quantity != 0]
 
     def phase_change(self, the_map):
-        # TODO randomly re-generate jobs occasionally
         self.phase = 'day' if self.phase == 'night' else 'night'
         for k, square in the_map.items():
             if self.location != k:
@@ -200,14 +200,14 @@ class Player:
                             for name, values in v['jobs'].items():
                                 jobs[name] = values
                     b.jobs = b.drop_job(jobs)
-            if self.phase == 'day':
-                self.speed_bonus = False
-                for mob in square.mobs:
-                    mob.health = 100
-                    mob.quest = None if self.quest is None else mob.quest
-                limit = len(names) - len(self.square.unique_mob_names)
-                if len(square.mobs) < len(names) and self.location != k:
-                    square.mobs += drop_mob(add_dicts_together(wild_mobs["master"], wild_mobs[self.square.square_type]), self, limit)
+                if self.phase == 'day':
+                    self.speed_bonus = False
+                    for mob in square.mobs:
+                        mob.health = 100
+                        mob.quest = None if self.quest is None else mob.quest
+                    limit = len(names) - len(self.square.unique_mob_names)
+                    if len(square.mobs) < len(names) and self.location != k:
+                        square.mobs += drop_mob(add_dicts_together(wild_mobs["master"], wild_mobs[self.square.square_type]), self, limit)
 
     def formatted_inventory(self):
         formatted = []
@@ -262,7 +262,7 @@ class Player:
 
 class Item:
     def __init__(self, name, quantity, plural, category=None, perishable=None,
-                 flammable=None, rarity=None, price=None, weapon_rating=None):
+                 flammable=None, rarity=None, price=None, weapon_rating=None, defense=None):
         self.name = name
         self.quantity = quantity
         self.plural = plural
@@ -272,11 +272,12 @@ class Item:
         self.rarity = rarity or None
         self.price = price or None
         self.weapon_rating = weapon_rating or None
+        self.defense = defense or None
 
     def copy(self):
         return Item(name=self.name, quantity=self.quantity, plural=self.plural, category=self.category,
                     perishable=self.perishable, flammable=self.flammable, rarity=self.rarity,
-                    weapon_rating=self.weapon_rating)
+                    weapon_rating=self.weapon_rating, defense=self.defense)
 
 
 class Building(object):
