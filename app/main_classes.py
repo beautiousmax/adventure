@@ -171,6 +171,11 @@ class Player:
     greeting_count = 0
     body_count = 0
     hit_list = []
+    speed_bonus = False
+
+    def clean_up_inventory(self):
+        """ Remove items with quantity of zero from the map inventory"""
+        self.inventory = [i for i in self.inventory if i.quantity != 0]
 
     def phase_change(self, the_map):
         self.phase = 'day' if self.phase == 'night' else 'night'
@@ -182,12 +187,13 @@ class Player:
                     if b.ware_list:
                         b.wares = drop_item(b.ware_list)
             if self.phase == 'day':
+                self.speed_bonus = False
                 for mob in square.mobs:
                     mob.health = 100
                     mob.quest = None if self.quest is None else mob.quest
-            limit = len(names) - len(self.square.unique_mob_names)
-            if self.phase == 'day' and len(square.mobs) < len(names):
-                square.mobs += drop_mob(add_dicts_together(wild_mobs["master"], wild_mobs[self.square.square_type]), self, limit)
+                limit = len(names) - len(self.square.unique_mob_names)
+                if len(square.mobs) < len(names) and self.location != k:
+                    square.mobs += drop_mob(add_dicts_together(wild_mobs["master"], wild_mobs[self.square.square_type]), self, limit)
 
     def formatted_inventory(self):
         formatted = []
@@ -377,7 +383,8 @@ class Mob:
             for biome, building in buildings.items():
                 for b, attributes in building.items():
                     if attributes.get('mobs'):
-                        mobs.append(*attributes['mobs'])
+                        for k in attributes['mobs'].keys():
+                            mobs.append(k)
             for biome, mob in wild_mobs.items():
                 for k in mob.keys():
                     mobs.append(k)
