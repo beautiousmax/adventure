@@ -147,7 +147,23 @@ class Battle:
                 self.attack(self.defenders, self.attackers)
                 # TODO mobs can eat food if they have it to regain health maybe?
         if self.adventure.player.health <= 0:
-            print("You died. The end")
+            self.death()
+
+    def death(self):
+        if not self.adventure.player.job:
+            print("You died. The end.")
+            return
+        else:
+            print("You died, but luckily your job provides you health insurance.")
+            cost_to_live = random.randint(200, 500)
+            if self.adventure.player.money >= cost_to_live:
+                print(f"You shell out {cost_to_live} to the insurance guys and rejoin the living at 50% health!")
+                self.adventure.player.health = 50
+                self.adventure.player.money -= cost_to_live
+                self.battle_loop()
+            else:
+                print(f"However, it costs {cost_to_live} to save you, and you only have {self.adventure.player.money} in your account.")
+                print("The end.")
 
     def battle_commands_manager(self):
         while True and self.attackers:
