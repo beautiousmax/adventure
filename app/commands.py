@@ -9,6 +9,7 @@ from app.common_functions import formatted_items, comma_separated, parse_invento
     are_is, find_specifics, the_name
 from app.main_classes import MapSquare, Player
 from app.battle import Battle
+from app.eat import Eat
 
 
 class Adventure:
@@ -52,6 +53,7 @@ class Adventure:
             "^visit.*": (self.interact_with_building, [" ".join(words[1:])]),
             "^take.*": (self.pick_up, [" ".join(words[1:])]),
             "^eat.*": (self.eat_food, [" ".join(words[1:])]),
+            "^drink.*": (self.eat_food, [" ".join(words[1:])]),
             "^buy.*": (self.buy, [" ".join(words[1:])]),
             "^equip.*": (self.equip, [" ".join(words[1:])]),
             "help": (self.help_me, []),
@@ -108,15 +110,15 @@ class Adventure:
         sys.stdout.flush()
         count = 5
         vehicles = [x.rarity for x in self.player.inventory if x.category == 'vehicle']
-        travel_time = 1
+        travel_time = 1 if self.player.speed_bonus is False else .8
         if 'super rare' in vehicles:
             travel_time = 0
         elif 'rare' in vehicles:
-            travel_time = .1
+            travel_time = .1 if self.player.speed_bonus is False else 0
         elif 'common' in vehicles:
-            travel_time = .2
+            travel_time = .2 if self.player.speed_bonus is False else .1
         elif vehicles:
-            travel_time = .5
+            travel_time = .5 if self.player.speed_bonus is False else .4
 
         while count > 0:
             time.sleep(travel_time)
@@ -147,7 +149,6 @@ class Adventure:
         self.player.square = self.map[new_coordinates]
         print(f"You are now located on map coordinates {new_coordinates}, which is {self.player.square.square_type}.")
 
-        # TODO add limits for items generated
         self.look_around()
 
     def look_around(self):
@@ -250,67 +251,8 @@ class Adventure:
 
     def eat_food(self, words):
         """ Eat food in your inventory to gain health """
-        # TODO add drinking for coffee and whiskey shots
-        # TODO only eat one bagel not all bagels
-        quantity, item_text = parse_inventory_action(words)
-
-        if quantity is None and item_text is None:
-            print("I can't figure out what you want to eat!")
-            return
-
-        def eat(item_eaten, q):
-            if q > item_eaten.quantity:
-                print("Cant eat that many")
-                return
-
-            item_eaten.quantity -= q
-
-            if item_eaten.quantity == 0:
-                self.player.inventory.remove(item_eaten)
-            # TODO chance to loose health eating mysterious berries?
-            # TODO stop eating when health is 100
-            # TODO eat bagel ate all bagels not singular bagel
-            for x in range(0, q):
-                if self.player.health < 100:
-                    if item_eaten.name == "a magic pill":
-                        regenerate = 100 - self.player.health
-                    else:
-                        regenerate = random.randint(0, 100 - self.player.health)
-                    self.player.health += regenerate
-                    print(f"Regenerated {regenerate} health by eating {item_eaten.name}.")
-
-        food = [x for x in self.player.inventory if x.category == "food"]
-        if item_text and "perishable" in item_text:
-            food = [x for x in self.player.inventory if x.category == "food" and x.perishable]
-
-        if item_text is None and quantity is "all":
-            for i in food:
-                eat(i, i.quantity)
-
-        elif "food" in item_text:
-            for i in food:
-                if isinstance(quantity, int):
-                    if i.quantity <= quantity:
-                        i.quantity = 0
-                        quantity -= i.quantity
-                        eat(i, quantity)
-                    elif quantity < i.quantity:
-                        i.quantity -= quantity
-                        quantity = 0
-                    else:
-                        break
-                else:
-                    eat(i, i.quantity)
-
-        else:
-            for i in food:
-                if item_text in i.name or item_text in i.plural:
-                    if quantity == "all":
-                        quantity = i.quantity
-                    eat(i, quantity)
-                    return
-            else:
-                print(f"Couldn't eat {item_text}")
+        eat = Eat(self, words)
+        eat.eat_foods()
 
     def go_to_work(self):
         """ Spend time at work to earn money and experience """
@@ -400,7 +342,7 @@ class Adventure:
             if odds(match_score):
                 print(f"Congratulations {self.player.name}, you got the job!")
                 self.player.job = job
-                # TODO clean-up job so it doesn't show on job listing?
+                self.player.building_local.jobs.remove(job)
 
             else:
                 bad_news = [f"I'm sorry, we're looking for candidates with more "

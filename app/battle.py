@@ -1,6 +1,8 @@
 import random
 import re
 
+from termcolor import colored
+
 from app.common_functions import the_name, comma_separated, formatted_items, odds, remove_little_words
 
 
@@ -130,6 +132,7 @@ class Battle:
 
             if self.adventure.player in self.defenders:
                 self.battle_commands_manager()
+                self.attackers = self.sort_the_dead(self.attackers)
                 for attacker in self.attackers:
                     if attacker.health <= 50:
                         print(f"{the_name(attacker.name).capitalize()} decided the fight is not worth it and has bowed out.")
@@ -141,13 +144,28 @@ class Battle:
                         print(f"Added {self.contested_item.name if self.contested_item.quantity == 1 else self.contested_item.plural} to your inventory.")
                         self.contested_item.quantity = 0
                         self.adventure.player.square.clean_up_map()
-                self.attackers = self.sort_the_dead(self.attackers)
 
             else:
                 self.attack(self.defenders, self.attackers)
                 # TODO mobs can eat food if they have it to regain health maybe?
         if self.adventure.player.health <= 0:
-            print("You died. The end")
+            self.death()
+
+    def death(self):
+        if not self.adventure.player.job:
+            print(f"{colored('You died.', 'magenta')} The end.")
+            return
+        else:
+            print(f"{colored('You died,', 'magenta')} but luckily your job provides you health insurance.")
+            cost_to_live = random.randint(200, 500)
+            if self.adventure.player.money >= cost_to_live:
+                print(f"You shell out {cost_to_live} to the insurance guys and rejoin the living at 50% health!")
+                self.adventure.player.health = 50
+                self.adventure.player.money -= cost_to_live
+                self.battle_loop()
+            else:
+                print(f"However, it costs {cost_to_live} to save you, and you only have {self.adventure.player.money} in your account.")
+                print("The end.")
 
     def battle_commands_manager(self):
         while True and self.attackers:

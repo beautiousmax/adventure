@@ -76,33 +76,35 @@ class TestParseInventoryAction(unittest.TestCase):
 
 
 class TestEat(unittest.TestCase):
-    def test_eat_a_bagel(self):
-        food = Item("a bagel", quantity=10, plural="bagels", category="food")
-        a.player.inventory = [food]
-        a.eat_food("a bagel")
-        self.assertTrue(len(a.player.inventory) == 1)
-        self.assertTrue(a.player.inventory[0].quantity == 9)
+    def setUp(self):
+        a.player.health = 50
+        self.food = Item("a bagel", quantity=10, plural="bagels", category="food")
+        a.player.inventory = [self.food]
 
-    def test_eating_error(self):
-        food = Item("a bagel", quantity=10, plural="bagels", category="food")
-        a.player.inventory = [food]
-        self.assertTrue(a.player.inventory == [food])
+    def test_eat_a_bagel(self):
+        a.eat_food("a bagel")
+        assert len(a.player.inventory) == 1
+        assert a.player.inventory[0].quantity == 9
+        assert a.player.health > 50
+
+    def test_eating_all_food(self):
         a.eat_food("")
-        self.assertTrue(a.player.inventory[0].quantity == 10)
+        if a.player.inventory:
+            assert a.player.inventory[0].quantity < 10
+        assert a.player.health > 50
 
     def test_eating_too_many(self):
-        food = Item("a bagel", quantity=10, plural="bagels", category="food")
-        a.player.inventory = [food]
-        self.assertTrue(a.player.inventory == [food])
+        self.assertTrue(a.player.inventory == [self.food])
         a.eat_food("12 bagels")
-        self.assertTrue(a.player.inventory[0].quantity == 10)
+        assert not a.player.inventory
+        assert a.player.health > 50
 
     def test_magic_pill(self):
         a.player.health = 50
         food = Item("a magic pill", quantity=1, plural="magic pills", category="food")
         a.player.inventory = [food]
         a.eat_food("a magic pill")
-        self.assertTrue(a.player.health == 100)
+        self.assertTrue(a.player.health == 150)
 
 
 class TestSpecifics(unittest.TestCase):
@@ -254,6 +256,7 @@ class TestApplyForJob(unittest.TestCase):
         a.apply_for_job("drudgeon")
 
         assert a.player.job
+        assert not a.player.square.buildings[0].jobs
 
 
 class TestAttacks(unittest.TestCase):
@@ -566,12 +569,24 @@ class TestPlayer(unittest.TestCase):
 
     @mock.patch('app.common_functions.odds', return_value=True)
     @mock.patch('app.main_classes.dropper', return_value=1)
-    def test_phase_change_generates_new_mobs(self, dropper, odds):
+    def test_phase_change_does_not_generates_new_mobs_on_player_location(self, dropper, odds):
         mob = Mob(name="Bob", p=a.player, plural="Bobs", rarity="common")
         a.player.square.mobs = [mob]
         a.player.phase = "night"
         a.player.phase_change(a.map)
-        assert len(a.player.square.mobs) > 1
+        assert len(a.player.square.mobs) == 1
+
+    @mock.patch('time.sleep', return_value=None)
+    @mock.patch('app.common_functions.odds', return_value=True)
+    @mock.patch('app.main_classes.dropper', return_value=1)
+    def test_phase_change_generates_new_mobs(self, dropper, odds, sleep):
+        mob = Mob(name="Bob", p=a.player, plural="Bobs", rarity="common")
+        a.player.location = (0, 0)
+        a.change_direction('n')
+        a.map[(0, 0)].mobs = [mob]
+        a.player.phase = "night"
+        a.player.phase_change(a.map)
+        assert len(a.map[(0, 0)].mobs) > 1
 
     def test_inventory(self):
         a.player.equipped_weapon = None
