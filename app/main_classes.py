@@ -142,12 +142,19 @@ class MapSquare:
         pretty_map = []
         for r in map_coords:
             row = []
-            for cordinates in r:
-                if cordinates in the_map.keys():
-                    # TODO write a star if the square has the player's quest on it
-                    row.append("|{!s:10}|".format(the_map[cordinates].square_type))
+            for coordinates in r:
+                if coordinates in the_map.keys():
+                    if p.quest and p.job and p.quest[1] == coordinates and p.job.location == coordinates:
+                        star = '*$ '
+                    elif p.quest and p.quest[1] == coordinates:
+                        star = ' * '
+                    elif p.job and p.job.location == coordinates:
+                        star = ' $ '
+                    else:
+                        star = '  '
+                    row.append("|{!s:9}{}|".format(the_map[coordinates].square_type, star))
                 else:
-                    row.append("|{!s:10}|".format(' '))
+                    row.append("|{!s:12}|".format(' '))
             pretty_map.append(row)
         for row in pretty_map:
             print(''.join(row))
@@ -390,7 +397,7 @@ class Mob:
                     mobs.append(k)
             target = f"{mobs[random.randint(0, len(mobs)-1)]} named {names[random.randint(0, len(names)-1)]}"
             print(f"Well, we'll keep this off the record, but I can arrange for some money to find its way "
-                  f"into your account if you make {colored(target), 'yellow'} disappear, if you know what I mean...")
+                  f"into your account if you make {colored(target, 'yellow')} disappear, if you know what I mean...")
             self.p.hit_list.append(target)
             return False
 
