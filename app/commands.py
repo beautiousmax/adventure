@@ -294,6 +294,10 @@ class Adventure:
             if mastery:
                 print(f"You gained some skill mastery at work! {comma_separated(mastery)}%")
 
+        if self.player.job.name == 'lawn mower':
+            print(f"Thanks {self.player.name}, the lawn looks really great! Be sure to stop by again some time.")
+            self.player.job = None
+
     @staticmethod
     def find_specific_job(words, list_of_jobs):
         for job in list_of_jobs:
@@ -321,6 +325,24 @@ class Adventure:
 
             if job.inventory_needed and job.inventory_needed not in self.player.inventory:
                 print(f"You need {job.inventory_needed} for this job.")
+                return
+
+            job.application_attempts += 1
+
+            if 10 > job.application_attempts > 3 and odds(10 - job.application_attempts):
+                print("Haven't I seen you here before? I'm thinking you aren't as qualified as you think you are.")
+                if odds(2):
+                    depreciable_skills = ['intelligence', 'patience', 'science', 'communication']
+                    skill_to_lower = depreciable_skills[random.randint(0, len(depreciable_skills)-1)]
+                    try:
+                        self.player.skills[skill_to_lower] -= 5
+                    except KeyError:
+                        self.player.skills[skill_to_lower] = -5
+                    print(f"Your {skill_to_lower} went down 5%.")
+                return
+            if 10 <= job.application_attempts:
+                print("Please go away. We are interested in candidates that don't annoy us so much.")
+                self.player.increase_skill('self loathing', 10)
                 return
 
             match_score = 1

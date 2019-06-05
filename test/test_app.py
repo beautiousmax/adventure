@@ -572,7 +572,7 @@ class TestPlayer(unittest.TestCase):
     def test_phase_change_does_not_generates_new_mobs_on_player_location(self, dropper, odds):
         mob = Mob(name="Bob", p=a.player, plural="Bobs", rarity="common")
         a.player.square.mobs = [mob]
-        a.player.phase = "night"
+        a.player.phase = "day"
         a.player.phase_change(a.map)
         assert len(a.player.square.mobs) == 1
 

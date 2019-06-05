@@ -221,7 +221,7 @@ master:
     jobs:
       lawn mower:
         inventory_needed: lawn mower
-        skills_needed: strength
+        skills_learned: strength
     plural: houses
     rarity: common
   an office building:

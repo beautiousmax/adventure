@@ -190,10 +190,16 @@ class Player:
         for k, square in the_map.items():
             if self.location != k:
                 square.generate_items()
-            for b in square.buildings:
-                if self.building_local != b:
+                for b in square.buildings:
                     if b.ware_list:
                         b.wares = drop_item(b.ware_list)
+                    jobs = {}
+                    buiding_dict = add_dicts_together(buildings['master'], buildings[square.square_type])
+                    for key, v in buiding_dict.items():
+                        if v.get('jobs'):
+                            for name, values in v['jobs'].items():
+                                jobs[name] = values
+                    b.jobs = b.drop_job(jobs)
             if self.phase == 'day':
                 self.speed_bonus = False
                 for mob in square.mobs:
@@ -311,6 +317,7 @@ class Job:
         self.salary = salary or 0
         self.skills_learned = skills_learned or None
         self.inventory_needed = inventory_needed or None
+        self.application_attempts = 0
 
 
 class Mob:
