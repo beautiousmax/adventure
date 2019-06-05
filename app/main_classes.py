@@ -257,7 +257,7 @@ class Player:
             self.skills[skill] += increase
         except KeyError:
             self.skills[skill] = increase
-        print(f"You now have {increase}% mastery of {skill}.")
+        print(f"You have increased your mastery of {skill} by {increase}%.")
 
 
 class Item:

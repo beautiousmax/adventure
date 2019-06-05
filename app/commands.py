@@ -338,7 +338,7 @@ class Adventure:
                         self.player.skills[skill_to_lower] -= 5
                     except KeyError:
                         self.player.skills[skill_to_lower] = -5
-                    print(f"Your {skill_to_lower} went down 5%.")
+                    print(f"Your {skill_to_lower} skill went down 5%.")
                 return
             if 10 <= job.application_attempts:
                 print("Please go away. We are interested in candidates that don't annoy us so much.")
