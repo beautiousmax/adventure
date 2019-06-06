@@ -68,8 +68,9 @@ def drop_building(dictionary, p, limit=None):
     return drops_i
 
 
-def drop_mob(dictionary, p, limit=None):
-    limit = limit or len(names) - len(p.square.unique_mob_names)
+def drop_mob(dictionary, p, limit=None, square=None):
+    square = square or p.square
+    limit = limit or len(names) - len(square.unique_mob_names)
     drops_i = []
 
     for k, v in dictionary.items():
@@ -78,7 +79,7 @@ def drop_mob(dictionary, p, limit=None):
         limit -= quantity
         if quantity:
             if quantity > 1:
-                unique_names = find_unique_names(quantity, p.square.unique_mob_names)
+                unique_names = find_unique_names(quantity, square.unique_mob_names)
                 p.square.unique_mob_names += unique_names
                 for i in range(0, len(unique_names)):
                     drops_i.append(Mob(name=f"{k} named {unique_names[i]}", p=p, **v))
@@ -86,7 +87,7 @@ def drop_mob(dictionary, p, limit=None):
                 if k not in [n.name for n in p.square.mobs]:
                     drops_i.append(Mob(name=k, p=p, **v))
                 else:
-                    name = find_unique_names(1, p.square.unique_mob_names)[0]
+                    name = find_unique_names(1, square.unique_mob_names)[0]
                     drops_i.append(Mob(name=f"{k} named {name}", p=p, **v))
     return drops_i
 
@@ -211,7 +212,8 @@ class Player:
                         mob.quest = None if self.quest is None else mob.quest
                     limit = len(names) - len(self.square.unique_mob_names)
                     if len(square.mobs) < len(names) and self.location != k:
-                        square.mobs += drop_mob(add_dicts_together(wild_mobs["master"], wild_mobs[self.square.square_type]), self, limit)
+                        square.mobs += drop_mob(add_dicts_together(wild_mobs["master"], wild_mobs[self.square.square_type]),
+                                                self, limit, square=square)
 
     def formatted_inventory(self):
         formatted = []

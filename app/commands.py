@@ -643,12 +643,15 @@ class Adventure:
                     self.player.major_armor = w[0]
                 else:
                     if self.player.equipped_weapon is not None:
-                        self.add_item_to_inventory(self.player.equipped_weapon,
-                                                   self.player.equipped_weapon.quantity)
+                        weapon = self.player.equipped_weapon
+                        self.player.equipped_weapon = None
+                        self.add_item_to_inventory(weapon, weapon.quantity)
                     self.player.equipped_weapon = w[0]
             except AttributeError:
                 if self.player.equipped_weapon is not None:
-                    self.add_item_to_inventory(self.player.equipped_weapon, self.player.equipped_weapon.quantity)
+                    weapon = self.player.equipped_weapon
+                    self.player.equipped_weapon = None
+                    self.add_item_to_inventory(weapon, weapon.quantity)
                 self.player.equipped_weapon = w[0]
             print(f"Equipped {w[0].name if w[0].quantity == 1 else w[0].plural}")
             self.player.inventory.remove(w[0])
