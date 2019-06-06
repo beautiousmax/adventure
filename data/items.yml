@@ -112,7 +112,7 @@ master:
     plural: engraved bronze shields
     rarity: super rare
     defense: 2
-    catagory: minor armor
+    category: minor armor
   some broken glass:
     plural: piles of broken glass
     rarity: uncommon
@@ -143,5 +143,5 @@ swamp:
   a rusted helmet:
     plural: rusted helmets
     rarity: rare
-    catagory: minor armor
+    category: minor armor
     defense: 1
