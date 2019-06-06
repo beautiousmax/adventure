@@ -189,7 +189,8 @@ class Adventure:
             if len(angry_mob) <= 1:
                 if self.player.square.mobs[0].health > 50:
                     angry_mob = [self.player.square.mobs[0]]
-            return angry_mob
+            if angry_mob:
+                return angry_mob
         return False
 
     def pick_up(self, words):
