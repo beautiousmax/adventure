@@ -27,19 +27,19 @@ city:
         plural: bikini tops of gratuitous clevage
         category: major armor
         rarity: common
-        cost: 550
+        price: 550
         defense: 3
       an enormous japanese mech suit:
         plural: enormous japanese mech suits
         category: major armor
         rarity: super rare
-        cost: 1000000
+        price: 1000000
         defense: 5
       a cursed pair of steel gauntlets:
         plural: cursed pairs of steel gauntlets
         rarity: common
         category: minor armor
-        cost: 200
+        price: 200
         defense: 1
   a coffee shop:
     category: building
@@ -310,7 +310,7 @@ mountains:
     ware_list:
       a holy shingaurd blessed by the gods:
         plural: holy shingaurds blessed by the gods
-        cost: 2200
+        price: 2200
         rarity: rare
         category: minor armor
         defense: 4
