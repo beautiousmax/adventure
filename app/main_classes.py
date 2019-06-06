@@ -171,6 +171,8 @@ class Player:
         self.phase = "day"
 
     equipped_weapon = None
+    major_armor = None
+    minor_armor = None
     building_local = None
     inventory = []
     skills = {}
@@ -178,6 +180,8 @@ class Player:
     greeting_count = 0
     body_count = 0
     hit_list = []
+    death_count = 0
+    # TODO increase insurance cost every death?
     # TODO add a command to view hit list
     speed_bonus = False
 

@@ -478,10 +478,11 @@ class Adventure:
             else:
                 item.quantity -= q
         self.player.money -= cost
+        # TODO sell items
 
     def talk(self, words):
         """ Say hello to mobs and ask for quests """
-
+        # TODO trade items
         mobs = self.player.square.mobs if self.player.building_local is None else self.player.building_local.mobs
 
         if mobs and len(mobs) == 1:
@@ -600,6 +601,7 @@ class Adventure:
             m = comma_separated(formatted_items(attacking_mobs))
             print(f"Look out, {m[0].upper()}{m[1:]} {'is' if len(attacking_mobs) == 1 else 'are'} gearing up to fight!")
             for mob in attacking_mobs:
+                # TODO mobs should be able to wear armor too
                 w = mob.equipped_weapon
                 if mob.equipped_weapon is not None:
                     mob_id = the_name(mob.name)
@@ -627,15 +629,21 @@ class Adventure:
 
     def equip(self, words):
         """ Select item from player inventory to use as battle weapon """
-        if self.player.equipped_weapon is not None:
-            i = self.player.equipped_weapon
-            self.player.equipped_weapon = None
-            self.add_item_to_inventory(i, i.quantity)
         w = find_specifics(words, self.player.inventory)
         if w:
-            self.player.equipped_weapon = w[0]
-            self.player.inventory.remove(w[0])
-            # TODO standardize singular / plural nonsense
+            if w.category == 'minor armor':
+                if self.player.minor_armor is not None:
+                    self.add_item_to_inventory(self.player.minor_armor, self.player.minor_armor.quantity)
+                self.player.minor_armor = w[0]
+            elif w.category == 'major armor':
+                if self.player.major_armor is not None:
+                    self.add_item_to_inventory(self.player.major_armor, self.player.major_armor.quantity)
+                self.player.major_armor = w[0]
+            else:
+                if self.player.equipped_weapon is not None:
+                    self.add_item_to_inventory(self.player.equipped_weapon, self.player.equipped_weapon.quantity)
+                self.player.equipped_weapon = w[0]
             print(f"Equipped {w[0].name if w[0].quantity == 1 else w[0].plural}")
+            self.player.inventory.remove(w[0])
         else:
             print(f"Can't find {words} in your inventory.")

@@ -22,6 +22,25 @@ city:
     category: building
     plural: blacksmiths
     rarity: uncommon
+    ware_list:
+      a bikini top of gratuitous cleavage:
+        plural: bikini tops of gratuitous clevage
+        category: major armor
+        rarity: common
+        cost: 550
+        defense: 3
+      an enormous japanese mech suit:
+        plural: enormous japanese mech suits
+        category: major armor
+        rarity: super rare
+        cost: 1000000
+        defense: 5
+      a cursed pair of steel gauntlets:
+        plural: cursed pairs of steel gauntlets
+        rarity: common
+        category: minor armor
+        cost: 200
+        defense: 1
   a coffee shop:
     category: building
     plural: coffee shops
@@ -148,25 +167,25 @@ master:
         price: 1
         rarity: common
       a gleaming helmet of imperviousness:
-        category: armor
+        category: minor armor
         plural: gleaming helmets of imperviousness
         price: 3000
         rarity: rare
         defense: 5
       an unfading breastplate of rightous indignation:
-        category: armor
+        category: major armor
         plural: unfading breastplates of rightous indignation
         price: 5500
         rarity: rare
         defense: 5
       shining footware of ceaseless splendor:
-        category: armor
+        category: minor armor
         plural: pairs of shining footware of ceaseless splendor
         price: 3000
         rarity: rare
         defense: 5
       kevlar body armor:
-        category: armor
+        category: major armor
         plural: suits of kevlar body armor
         price: 1000
         defense: 3
@@ -293,7 +312,7 @@ mountains:
         plural: holy shingaurds blessed by the gods
         cost: 2200
         rarity: rare
-        category: armor
+        category: minor armor
         defense: 4
 ocean:
   a volcanic base:

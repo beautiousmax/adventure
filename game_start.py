@@ -42,15 +42,12 @@ while adventure.player.health > 0:
 
 # next version ideas
 
-# you can only work in the day time
-# inventory limits, square items and wares update at sunup and sundown
+# inventory limits
 # loose a bit of health if you don't sleep at night
 # possibility of highway robbery when travelling
 # sell inventory items for money
-# non-inventory based quests
 # mini games to earn money
 # have the interview process include drug testing - screen for mushrooms, magic pills, etc
-# jobs provide health insurance, at death - it will cost x dollars to revive you
 # multiplayer
 # hospital doctors can heal you (but you need health insurance probably)
 # adopt animals
