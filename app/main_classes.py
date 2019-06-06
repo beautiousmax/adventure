@@ -200,7 +200,7 @@ class Player:
                     jobs = {}
                     buiding_dict = add_dicts_together(buildings['master'], buildings[square.square_type])
                     for key, v in buiding_dict.items():
-                        if v.get('jobs'):
+                        if key == b.name and v.get('jobs'):
                             for name, values in v['jobs'].items():
                                 jobs[name] = values
                     b.jobs = b.drop_job(jobs)
