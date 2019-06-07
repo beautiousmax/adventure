@@ -25,6 +25,8 @@ while adventure.player.health > 0:
     while adventure.player.health > 0 and time.time() - cycle_start < 80:
         try:
             adventure.commands_manager(input())
+        except EOFError:
+            pass
         except Exception as err:
             print(colored(f"Holy moly, you came across a huge issues!", 'red'))
             with open(Path(os.path.abspath(os.path.dirname(__file__)), 'errors.log'), 'a', encoding='utf-8') as err_log:

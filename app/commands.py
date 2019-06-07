@@ -359,6 +359,8 @@ class Adventure:
                         break
 
             if odds(match_score):
+                if match_score == 15:
+                    print("Ok, we'll take a chance on you.")
                 print(f"Congratulations {self.player.name}, you got the job!")
                 self.player.job = job
                 self.player.building_local.jobs.remove(job)
@@ -403,6 +405,9 @@ class Adventure:
 
     def buy(self, words):
         """ Establish a transaction to purchase wares """
+        if not self.player.building_local or not self.player.building_local.wares:
+            print("Nothing to buy here.")
+            return
         wares = []
         haggle_for = True
         quantity, item_text = parse_inventory_action(words)
@@ -574,14 +579,13 @@ class Adventure:
                     self.add_item_to_inventory(item, quantity, mob)
 
                     skill = mob.skills[random.randint(0, len(mob.skills) - 1)]
-                    percentage = random.randint(1, 100)
+                    percentage = random.randint(10, 70)
                     print(f"In exchange, the {mob_name} teaches you some {skill}.")
                     self.player.increase_skill(skill, percentage)
                     self.player.quest = None
                     mob.quest = None
                 else:
                     # TODO you have to un-equip the thing to turn in if you are wielding it
-                    # TODO turning in the same quest twice doesn't seem to work if you have the item
                     print(f"You don't have enough {quest_item.plural}. The {mob_name} requested {quantity}, "
                           f"and you have {item.quantity}.")
                 break
@@ -601,7 +605,7 @@ class Adventure:
             for mob in attacking_mobs:
                 # TODO mobs should be able to wear armor too
                 w = mob.equipped_weapon
-                if mob.equipped_weapon is not None:
+                if mob.equipped_weapon:
                     mob_id = the_name(mob.name)
                     print(f"{mob_id} is wielding {w.name if w.quantity == 1 else w.plural}.")
             battle = Battle(adventure=self, list_of_attackers=attacking_mobs, list_of_defenders=defending_mobs,
@@ -619,9 +623,17 @@ class Adventure:
             print(f"Look out, {m[0].upper()}{m[1:]} {'is' if len(defending_mobs) == 1 else 'are'} gearing up to fight!")
             for mob in defending_mobs:
                 w = mob.equipped_weapon
-                if mob.equipped_weapon is not None:
+                major = mob.major_armor.defense if mob.major_armor else 0
+                minor = mob.minor_armor.defense if mob.minor_armor else 0
+                armor_defense = (major + minor) * 5
+                if mob.equipped_weapon:
                     mob_id = the_name(mob.name)
                     print(f"{mob_id} is wielding {w.name if w.quantity == 1 else w.plural}")
+                if armor_defense:
+                    armors = [mob.major_armor.name if mob.major_armor else None,
+                              mob.minor_armor.name if mob.minor_armor else None]
+
+                    print(f"{mob_id} is wearing {' and '.join(x for x in armors if x)} which reduces incoming damage by {armor_defense}")
             battle = Battle(adventure=self, list_of_attackers=[self.player], list_of_defenders=defending_mobs)
             battle.battle_loop()
 
@@ -631,21 +643,21 @@ class Adventure:
         if w:
             try:
                 if w[0].category == 'minor armor':
-                    if self.player.minor_armor is not None:
+                    if self.player.minor_armor:
                         self.add_item_to_inventory(self.player.minor_armor, self.player.minor_armor.quantity)
                     self.player.minor_armor = w[0]
                 elif w[0].category == 'major armor':
-                    if self.player.major_armor is not None:
+                    if self.player.major_armor:
                         self.add_item_to_inventory(self.player.major_armor, self.player.major_armor.quantity)
                     self.player.major_armor = w[0]
                 else:
-                    if self.player.equipped_weapon is not None:
+                    if self.player.equipped_weapon:
                         weapon = self.player.equipped_weapon
                         self.player.equipped_weapon = None
                         self.add_item_to_inventory(weapon, weapon.quantity)
                     self.player.equipped_weapon = w[0]
             except AttributeError:
-                if self.player.equipped_weapon is not None:
+                if self.player.equipped_weapon:
                     weapon = self.player.equipped_weapon
                     self.player.equipped_weapon = None
                     self.add_item_to_inventory(weapon, weapon.quantity)

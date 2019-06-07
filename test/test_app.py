@@ -207,6 +207,12 @@ class TestEquip(unittest.TestCase):
         assert a.player.major_armor.name == 'better armor'
         assert 'armor x' in [x.name for x in a.player.inventory]
 
+    def test_mob_equip_weapon_and_armor(self):
+        mob = Mob('Bob', plural='Bobs', p=a.player, rarity='rare', inventory=[self.weapon, self.armor])
+        assert mob.equipped_weapon.name == 'weapon x'
+        assert mob.major_armor.name == 'armor x'
+        assert mob.minor_armor is None
+
 
 class TestJob(unittest.TestCase):
     def setUp(self):
@@ -252,7 +258,7 @@ class TestJob(unittest.TestCase):
         assert a.player.money == 0
 
     def test_night_job_at_day(self):
-        job = Job(name="a night job", location=a.player.location, skills_learned=None, salary=45)
+        job = Job(name="bartender", location=a.player.location, skills_learned=None, salary=45)
         a.player.job = job
         a.go_to_work()
         assert a.player.money == 0

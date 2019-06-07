@@ -337,7 +337,7 @@ class Job:
 
 
 class Mob:
-    def __init__(self, name, p, plural, rarity):
+    def __init__(self, name, p, plural, rarity, inventory=None):
         self.name = name
         self.p = p
         self.plural = plural
@@ -347,9 +347,13 @@ class Mob:
         self.skills = self.skills()
         self.quest = None
 
-        self.inventory = drop_item(add_dicts_together(items['master'], items[p.square.square_type]))
+        self.inventory = inventory or drop_item(add_dicts_together(items['master'], items[p.square.square_type]))
         self.health = 100
         self.equipped_weapon = self.equip()
+        major = [x for x in self.inventory if x.category == 'major armor']
+        minor = [x for x in self.inventory if x.category == 'minor armor']
+        self.major_armor = major[0] if major else None
+        self.minor_armor = minor[0] if minor else None
         self.irritation_level = 0
 
     def equip(self):
@@ -370,7 +374,7 @@ class Mob:
     @staticmethod
     def skills():
         """ Pick the skills for a mob, these determine what a player can get from completing a quest """
-        all_skills = ["strength", "patience", "cleanliness", "leadership", "communication", "self loathing",
+        all_skills = ["strength", "patience", "cleanliness", "leadership", "communication",
                       "science", "math", "engineering", "intelligence", "driving"]
 
         random.shuffle(all_skills)
@@ -379,15 +383,7 @@ class Mob:
     def generate_quest(self):
         """
         inventory based
-        bring me 100 of super common object to learn patience
-        bring me a super rare object to learn patience
-        bring me 10 uncommon object to earn 20 dollars
-
-        or
-
-        win a game of go fish with random mob type to learn intelligence
-        say hello to 50 mobs to learn communication
-        murder a jellyfish to earn money
+        bring me x of an object to learn a skill
         """
 
         if odds(3):

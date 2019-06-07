@@ -76,12 +76,11 @@ class Battle:
                 except (AttributeError, TypeError):
                     damage = random.randint(usefulness[0][0], usefulness[0][1])
 
-                if hasattr(defender, 'major_armor'):
-                    major = defender.major_armor.defense if defender.major_armor else 0
-                    minor = defender.minor_armor.defense if defender.minor_armor else 0
-                    armor_defense = ((major + minor) * 5) / 100
-                    if armor_defense > 0:
-                        damage -= round(damage * armor_defense)
+                major = defender.major_armor.defense if defender.major_armor else 0
+                minor = defender.minor_armor.defense if defender.minor_armor else 0
+                armor_defense = ((major + minor) * 5) / 100
+                if armor_defense > 0:
+                    damage -= round(damage * armor_defense)
 
                 defender.health -= damage
                 print(f"{attacker.name.capitalize()} inflicted {damage} damage to {defender.name}. "
@@ -100,12 +99,11 @@ class Battle:
                 except AttributeError:
                     damage = random.randint(usefulness[0][0], usefulness[0][1])
 
-                if hasattr(defender, 'major_armor'):
-                    major = defender.major_armor.defense if defender.major_armor else 0
-                    minor = defender.minor_armor.defense if defender.minor_armor else 0
-                    armor_defense = ((major + minor) * 5) / 100
-                    if armor_defense > 0:
-                        damage -= round(damage * armor_defense)
+                major = defender.major_armor.defense if defender.major_armor else 0
+                minor = defender.minor_armor.defense if defender.minor_armor else 0
+                armor_defense = ((major + minor) * 5) / 100
+                if armor_defense > 0:
+                    damage -= round(damage * armor_defense)
 
                 defender.health -= damage
                 w.quantity -= 1
