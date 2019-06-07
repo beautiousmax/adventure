@@ -230,9 +230,17 @@ class Player:
 
     def pretty_inventory(self):
         w = self.equipped_weapon
+        major = self.major_armor.defense if self.major_armor else 0
+        minor = self.minor_armor.defense if self.minor_armor else 0
+        armor_defense = (major + minor) * 5
+
+        armors = [self.major_armor.name if self.major_armor else None, self.minor_armor.name if self.minor_armor else None]
+
         inventory = {'inventory_items': f"You have {self.formatted_inventory()} in your inventory.",
                      'weapon': f"You are wielding {int_to_words(w.quantity)} "
-                               f"{remove_little_words(w.name) if w.quantity == 1 else w.plural}." if w else None}
+                               f"{remove_little_words(w.name) if w.quantity == 1 else w.plural}." if w else None,
+                     'armor': f"You are wearing {' and '.join(x for x in armors if x)}, "
+                     f"giving you a {armor_defense}% reduction in incoming damage." if self.minor_armor or self.major_armor else None}
         return '\n'.join(v for v in inventory.values() if v)
 
     def status(self, p):

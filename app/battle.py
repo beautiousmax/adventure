@@ -65,6 +65,7 @@ class Battle:
 
     @staticmethod
     def attack(attackers, defenders):
+
         usefulness = [(0, 10), (10, 15), (15, 25), (25, 32), (32, 50), (50, 60)]
 
         for attacker in attackers:
@@ -74,6 +75,13 @@ class Battle:
                     damage = random.randint(usefulness[w.weapon_rating][0], usefulness[w.weapon_rating][1])
                 except (AttributeError, TypeError):
                     damage = random.randint(usefulness[0][0], usefulness[0][1])
+
+                if hasattr(defender, 'major_armor'):
+                    major = defender.major_armor.defense if defender.major_armor else 0
+                    minor = defender.minor_armor.defense if defender.minor_armor else 0
+                    armor_defense = ((major + minor) * 5) / 100
+                    if armor_defense > 0:
+                        damage *= armor_defense
 
                 defender.health -= damage
                 print(f"{attacker.name.capitalize()} inflicted {damage} damage to {defender.name}. "
@@ -91,6 +99,13 @@ class Battle:
                     damage = random.randint(usefulness[w.weapon_rating][0], usefulness[w.weapon_rating][1])
                 except AttributeError:
                     damage = random.randint(usefulness[0][0], usefulness[0][1])
+
+                if hasattr(defender, 'major_armor'):
+                    major = defender.major_armor.defense if defender.major_armor else 0
+                    minor = defender.minor_armor.defense if defender.minor_armor else 0
+                    armor_defense = ((major + minor) * 5) / 100
+                    if armor_defense > 0:
+                        damage *= armor_defense
 
                 defender.health -= damage
                 w.quantity -= 1
