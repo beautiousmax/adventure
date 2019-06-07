@@ -81,7 +81,7 @@ class Battle:
                     minor = defender.minor_armor.defense if defender.minor_armor else 0
                     armor_defense = ((major + minor) * 5) / 100
                     if armor_defense > 0:
-                        damage *= armor_defense
+                        damage -= round(damage * armor_defense)
 
                 defender.health -= damage
                 print(f"{attacker.name.capitalize()} inflicted {damage} damage to {defender.name}. "
@@ -105,7 +105,7 @@ class Battle:
                     minor = defender.minor_armor.defense if defender.minor_armor else 0
                     armor_defense = ((major + minor) * 5) / 100
                     if armor_defense > 0:
-                        damage *= armor_defense
+                        damage -= round(damage * armor_defense)
 
                 defender.health -= damage
                 w.quantity -= 1

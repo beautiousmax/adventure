@@ -612,9 +612,17 @@ class TestPlayer(unittest.TestCase):
     def test_inventory(self):
         a.player.equipped_weapon = None
         a.player.inventory = [Item("a rock", quantity=3, plural="rocks", rarity="common")]
+        a.player.major_armor = None
         assert a.player.pretty_inventory() == "You have three rocks in your inventory."
 
+    def test_inventory_with_armor(self):
+        a.player.equipped_weapon = None
+        a.player.inventory = [Item("a rock", quantity=3, plural="rocks", rarity="common")]
+        a.player.major_armor = Item("armor", quantity=1, plural="armors", rarity="common", category="major armor", defense=5)
+        assert a.player.pretty_inventory() == "You have three rocks in your inventory.\nYou are wearing armor, giving you a 25% reduction in incoming damage."
+
     def test_inventory_with_weapon(self):
+        a.player.major_armor = None
         a.player.inventory = [Item("an emerald necklace", rarity="super rare", plural="necklaces", quantity=3)]
         a.player.equipped_weapon = Item("a rock", quantity=3, plural="rocks", rarity="common")
         assert a.player.pretty_inventory() == "You have three necklaces in your inventory.\nYou are wielding three rocks."
@@ -733,5 +741,6 @@ class TestSortTheDead(unittest.TestCase):
 class TestDropper(unittest.TestCase):
     @mock.patch('app.main_classes.dropper', return_value=25)
     def test_drop_with_limit(self, _):
-        list_of_mobs = drop_mob(wild_mobs['master'], a.player, limit=20)
+        a.player.location = (1, 1)
+        list_of_mobs = drop_mob(wild_mobs['master'], a.player, limit=20, square=a.map[(0, 0)])
         assert len(list_of_mobs) == 20

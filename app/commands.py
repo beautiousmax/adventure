@@ -261,15 +261,16 @@ class Adventure:
             print("Sorry, you don't have a job. Try applying for one.")
             return
 
-        if self.player.phase != "day" and "night" not in self.player.job.name:
+        night_jobs = ['bartender', 'night stocker', 'security guard']
+        if self.player.phase != "day" and self.player.job.name not in night_jobs:
             print("You can only work in the daytime.")
             return
-        elif self.player.phase != "night" and "night" in self.player.job.name:
+        elif self.player.phase != "night" and self.player.job.name in night_jobs:
             print("You can only work in the nighttime.")
             return
 
         if self.player.job.location != self.player.location:
-            print(f"Your job is not here. You need to go here: {self.player.job.location}")
+            print(f"Your job is not here. You need to go here: {self.player.job.location}. Check your map for the '$' symbol.")
             return
 
         sys.stdout.write("Working . . .")
@@ -285,15 +286,10 @@ class Adventure:
         self.player.money += self.player.job.salary
         if self.player.job.skills_learned:
             for skill in self.player.job.skills_learned:
-                percentage = random.randint(0, 20)
-                try:
-                    self.player.skills[skill] += percentage
-                except KeyError:
-                    self.player.skills[skill] = percentage
-
-            mastery = [f"{s} - {m}" for s, m in self.player.skills.items()]
-            if mastery:
-                print(f"You gained some skill mastery at work! {comma_separated(mastery)}%")
+                percentage = random.randint(0, 5)
+                if odds(3) and percentage:
+                    print("You gained some skill mastery at work!")
+                    self.player.increase_skill(skill, percentage)
 
         if self.player.job.name == 'lawn mower':
             print(f"Thanks {self.player.name}, the lawn looks really great! Be sure to stop by again some time.")
@@ -484,6 +480,7 @@ class Adventure:
     def talk(self, words):
         """ Say hello to mobs and ask for quests """
         # TODO trade items
+        # TODO talk to everyone in turn for talk to everyone
         mobs = self.player.square.mobs if self.player.building_local is None else self.player.building_local.mobs
 
         if mobs and len(mobs) == 1:

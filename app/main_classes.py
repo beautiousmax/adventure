@@ -152,7 +152,7 @@ class MapSquare:
                     elif p.job and p.job.location == coordinates:
                         star = ' $ '
                     else:
-                        star = '  '
+                        star = '   '
                     row.append("|{!s:9}{}|".format(the_map[coordinates].square_type, star))
                 else:
                     row.append("|{!s:12}|".format(' '))
@@ -209,6 +209,7 @@ class Player:
                     self.speed_bonus = False
                     for mob in square.mobs:
                         mob.health = 100
+                        mob.irritation_level = 0
                         mob.quest = None if self.quest is None else mob.quest
                     limit = len(names) - len(self.square.unique_mob_names)
                     if len(square.mobs) < len(names) and self.location != k:
@@ -271,7 +272,7 @@ class Player:
             self.skills[skill] += increase
         except KeyError:
             self.skills[skill] = increase
-        print(f"You have increased your mastery of {skill} by {increase}%.")
+        print(f"You have increased your mastery of {skill} by {increase}% for a total of {self.skills[skill]}%.")
 
 
 class Item:
