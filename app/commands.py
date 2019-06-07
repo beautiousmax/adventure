@@ -633,11 +633,11 @@ class Adventure:
         w = find_specifics(words, self.player.inventory)
         if w:
             try:
-                if w.category == 'minor armor':
+                if w[0].category == 'minor armor':
                     if self.player.minor_armor is not None:
                         self.add_item_to_inventory(self.player.minor_armor, self.player.minor_armor.quantity)
                     self.player.minor_armor = w[0]
-                elif w.category == 'major armor':
+                elif w[0].category == 'major armor':
                     if self.player.major_armor is not None:
                         self.add_item_to_inventory(self.player.major_armor, self.player.major_armor.quantity)
                     self.player.major_armor = w[0]

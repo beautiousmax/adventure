@@ -162,12 +162,13 @@ class TestSpecifics(unittest.TestCase):
 class TestEquip(unittest.TestCase):
     def setUp(self):
         self.weapon = Item("weapon x", quantity=10, plural="weapons", weapon_rating=5)
-        a.player.inventory = [self.weapon]
+        self.armor = Item("armor x", quantity=5, plural="armors", defense=1, category="major armor")
+        a.player.inventory = [self.weapon, self.armor]
         a.player.equipped_weapon = None
 
     def test_equip(self):
         a.equip('weapon x')
-        assert a.player.inventory == []
+        assert len(a.player.inventory) == 1
         assert a.player.equipped_weapon == self.weapon
         assert a.player.equipped_weapon.weapon_rating == 5
 
@@ -175,9 +176,9 @@ class TestEquip(unittest.TestCase):
         weapon_b = Item("weapon b", quantity=10, plural="weapons")
         a.player.equipped_weapon = weapon_b
         a.equip('weapon x')
-        assert len(a.player.inventory) == 1
+        assert len(a.player.inventory) == 2
         assert a.player.equipped_weapon.name == 'weapon x'
-        assert a.player.inventory[0].name == 'weapon b'
+        assert 'weapon b' in [x.name for x in a.player.inventory]
 
     def test_cant_find_to_equip(self):
         weapon = Item("weapon x", quantity=10, plural="weapons")
@@ -185,6 +186,26 @@ class TestEquip(unittest.TestCase):
         a.equip('a dragon')
         assert len(a.player.inventory) == 1
         assert a.player.equipped_weapon is None
+
+    def test_equip_armor(self):
+        a.equip('armor x')
+        assert len(a.player.inventory) == 1
+        assert a.player.major_armor == self.armor
+
+    def test_equip_armor_and_weapon(self):
+        a.equip('weapon x')
+        a.equip('armor x')
+        assert a.player.inventory == []
+        assert a.player.equipped_weapon == self.weapon
+        assert a.player.major_armor == self.armor
+
+    def test_equip_different_armor(self):
+        armor = Item("better armor", quantity=5, plural="armors", defense=1, category="major armor")
+        a.player.inventory.append(armor)
+        a.equip('armor x')
+        a.equip('better armor')
+        assert a.player.major_armor.name == 'better armor'
+        assert 'armor x' in [x.name for x in a.player.inventory]
 
 
 class TestJob(unittest.TestCase):
