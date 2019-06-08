@@ -201,6 +201,8 @@ class Player:
                 for b in square.buildings:
                     if b.ware_list:
                         b.wares = drop_item(b.ware_list)
+                        while not b.wares:
+                            b.wares = drop_item(b.ware_list)
                     jobs = {}
                     buiding_dict = add_dicts_together(buildings['master'], buildings[square.square_type])
                     for key, v in buiding_dict.items():
@@ -339,6 +341,21 @@ class Building(object):
             if odds(2):
                 drops_i.append(Job(name=k, location=self.p.location, **v))
         return drops_i
+
+    def boss_mobs(self):
+        if self.name in ('a castle', 'a volcanic base'):
+            boss_major_armors = []
+            boss_minor_armors = []
+            boss_weapons = [Item('an apache helicopter', plural='apache helicopters', weapon_rating=6, quantity=1)]
+            boss_names = ["the Terrifying Dragon of Soul Slaying", "the Great Salamander of Darkness", "the Squirrel of Destiny", ]
+            random.shuffle(boss_names)
+            random.shuffle(boss_weapons)
+
+            boss = Mob(boss_names[0], self.p, plural=boss_names[0], rarity='super rare')
+            boss.health = 1000
+            boss.equipped_weapon = boss_weapons[0]
+            boss.major_armor = boss_major_armors[0]
+            boss.minor_armor = boss_minor_armors[0]
 
 
 class Job:

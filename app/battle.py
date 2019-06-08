@@ -66,7 +66,7 @@ class Battle:
     @staticmethod
     def attack(attackers, defenders):
 
-        usefulness = [(0, 10), (10, 15), (15, 25), (25, 32), (32, 50), (50, 60)]
+        usefulness = [(0, 10), (10, 15), (15, 25), (25, 32), (32, 50), (50, 60), (100, 150)]
 
         for attacker in attackers:
             for defender in defenders:
