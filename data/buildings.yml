@@ -61,6 +61,13 @@ desert:
     category: residence
     plural: silk tents
     rarity: uncommon
+    jobs:
+      servant:
+        salary: 80
+        skills_needed:
+          - strength
+          - patience
+          - cleanliness
 forest:
   a hunting lodge:
     category: building
@@ -104,21 +111,6 @@ master:
         rarity: rare
   a castle:
     category: building
-    jobs:
-      security guard:
-        salary: 90
-        skills_needed:
-        - strength
-      servant:
-        salary: 80
-        skills_needed:
-        - strength
-        - patience
-        - cleanliness
-    mobs:
-      a servant girl:
-        plural: servants
-        rarity: uncommon
     plural: castles
     rarity: super rare
   a convenience store:
@@ -247,6 +239,10 @@ master:
         - patience
         - cleanliness
         - intelligence
+      security guard:
+        salary: 90
+        skills_needed:
+          - strength
     mobs:
       a sick old man:
         plural: sick people
@@ -283,6 +279,10 @@ master:
         salary: 57
         skills_needed:
         - communication
+      security guard:
+        salary: 90
+        skills_needed:
+          - strength
     mobs:
       an employee:
         plural: employees
@@ -301,6 +301,12 @@ mountains:
         skills_needed:
         - patience
         - intelligence
+      servant:
+        salary: 80
+        skills_needed:
+          - strength
+          - patience
+          - cleanliness
     mobs:
       a sage old man:
         plural: sage old men
@@ -317,14 +323,6 @@ mountains:
 ocean:
   a volcanic base:
     category: building
-    jobs:
-      evil overlord:
-        salary: 550
-        skills_needed:
-        - communication
-        - strength
-        - science
-        - intelligence
     plural: volcanic bases
     rarity: super rare
 swamp:

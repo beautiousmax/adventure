@@ -326,6 +326,9 @@ class Building(object):
         self.mobs = drop_mob(mobs, p) if mobs else None
         self.jobs = self.drop_job(jobs) if jobs else None
 
+        if self.name in ('a castle', 'a volcanic base'):
+            self.boss_mobs_and_jobs()
+
     def drop_wares(self):
         if self.ware_list:
             wares = drop_item(self.ware_list)
@@ -342,20 +345,32 @@ class Building(object):
                 drops_i.append(Job(name=k, location=self.p.location, **v))
         return drops_i
 
-    def boss_mobs(self):
-        if self.name in ('a castle', 'a volcanic base'):
-            boss_major_armors = []
-            boss_minor_armors = []
-            boss_weapons = [Item('an apache helicopter', plural='apache helicopters', weapon_rating=6, quantity=1)]
-            boss_names = ["the Terrifying Dragon of Soul Slaying", "the Great Salamander of Darkness", "the Squirrel of Destiny", ]
-            random.shuffle(boss_names)
-            random.shuffle(boss_weapons)
+    def boss_mobs_and_jobs(self):
+        boss_major_armors = [Item('a coat of impervious dragon scales', plural='coats of dragon scales', quantity=1, category='major armor', rarity='super rare', defense=5),
+                             Item('an enchanted leather duster', plural='enchanted leather dusters', quantity=1, category='major armor', defense=5, rarity='super rare'),
+                             Item('a coat of actual live grizzly bears', plural='coats of actual live grizzly bears', quantity=1, category='major armor', defense=5, rarity='super rare')]
+        boss_minor_armors = [Item('wings of an angel', plural='wings of angels', quantity=1, rarity='super rare', category='minor armor', defense=5),
+                             Item('an OSHA approved hard hat', plural='OSHA approved hard hats', quantity=1, rarity='super rare', category='minor armor', defense=5),
+                             Item('a pair boots that were made for walkin', plural='pairs of boots that were made for walkin', quantity=1, rarity='super rare', category='minor armor', defense=5)]
+        boss_weapons = [Item('an apache helicopter', plural='apache helicopters', rarity='super rare', weapon_rating=6, quantity=1),
+                        Item('a trebuchet', plural='trebuchets', weapon_rating=6, quantity=1, rarity='super rare'),
+                        Item('an army of attacking wizards', plural='armies of attacking wizards', weapon_rating=6, quantity=1, rarity='super rare')]
+        boss_names = ["the Terrifying Dragon of Soul Slaying", "the Great Salamander of Darkness", "the Squirrel of Destiny", ]
+        random.shuffle(boss_names)
+        random.shuffle(boss_weapons)
+        random.shuffle(boss_major_armors)
+        random.shuffle(boss_minor_armors)
 
-            boss = Mob(boss_names[0], self.p, plural=boss_names[0], rarity='super rare')
-            boss.health = 1000
-            boss.equipped_weapon = boss_weapons[0]
-            boss.major_armor = boss_major_armors[0]
-            boss.minor_armor = boss_minor_armors[0]
+        boss = Mob(boss_names[0], self.p, plural=boss_names[0], rarity='super rare')
+        boss.health = 1000
+        boss.equipped_weapon = boss_weapons[0]
+        boss.major_armor = boss_major_armors[0]
+        boss.minor_armor = boss_minor_armors[0]
+        boss.irritation_level = 15
+        if self.name == 'a castle':
+            self.jobs = [Job('king of the realm', location=self.p.location, salary=1100)]
+        if self.name == 'a volcanic base':
+            self.jobs = [Job('evil overlord', location=self.p.location, salary=1100)]
 
 
 class Job:

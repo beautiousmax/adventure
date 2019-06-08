@@ -324,6 +324,11 @@ class Adventure:
                 print("You already have this job.")
                 return
 
+            if job.name in ('king of the realm', 'evil overlord'):
+                if self.player.building_local.mobs:
+                    print("There's a horrible monster in the way here that you have to kill first!")
+                    return
+
             if job.inventory_needed and job.inventory_needed not in self.player.inventory:
                 print(f"You need {job.inventory_needed} for this job.")
                 return
