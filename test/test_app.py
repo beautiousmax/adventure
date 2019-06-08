@@ -749,3 +749,9 @@ class TestDropper(unittest.TestCase):
         a.player.location = (1, 1)
         list_of_mobs = drop_mob(wild_mobs['master'], a.player, limit=20, square=a.map[(0, 0)])
         assert len(list_of_mobs) == 20
+
+    def test_scary_mobs_are_generated(self):
+        a.map[(2, 2)] = MapSquare('ocean')
+        a.map[(2, 2)].buildings = [Building('a volcanic base', a.player, plural='volcanic bases')]
+        assert a.map[(2, 2)].buildings[0].jobs[0].name == 'evil overlord'
+        assert a.map[(2, 2)].buildings[0].mobs[0].health == 1000

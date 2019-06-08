@@ -105,9 +105,9 @@ def drop_item(dictionary):
 
 
 class MapSquare:
-    def __init__(self, name=""):
+    def __init__(self, name="", square_type=None):
         square_types = ["forest", "mountains", "desert", "city", "swamp", "ocean"]
-        self.square_type = square_types[random.randint(0, len(square_types) - 1)]
+        self.square_type = square_type or square_types[random.randint(0, len(square_types) - 1)]
         self.name = name
         self.unique_mob_names = []
         self.unique_building_names = []
@@ -367,6 +367,7 @@ class Building(object):
         boss.major_armor = boss_major_armors[0]
         boss.minor_armor = boss_minor_armors[0]
         boss.irritation_level = 15
+        self.mobs = [boss]
         if self.name == 'a castle':
             self.jobs = [Job('king of the realm', location=self.p.location, salary=1100)]
         if self.name == 'a volcanic base':
