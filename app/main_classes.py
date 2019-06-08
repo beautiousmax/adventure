@@ -180,8 +180,11 @@ class Player:
     health = 100
     greeting_count = 0
     body_count = 0
+    assassination_count = 0
     hit_list = []
     death_count = 0
+    food_count = 0
+    run_away_count = 0
     # TODO increase insurance cost every death?
     # TODO add a command to view hit list
     speed_bonus = False
@@ -244,8 +247,8 @@ class Player:
                      f"giving you a {armor_defense}% reduction in incoming damage." if self.minor_armor or self.major_armor else None}
         return '\n'.join(v for v in inventory.values() if v)
 
-    def status(self, p):
-        skills = [f"You have mastered {k}." if v >= 100 else f"You have learned {v}% of {k}." for k, v in self.skills.items()]
+    def status(self):
+        skills = [f"{k} - {v}%." for k, v in self.skills.items()]
 
         job = f"You have a job as a {self.job.name}." if self.job else None
         quest = "You have a quest." if self.quest else None
@@ -260,12 +263,25 @@ class Player:
             'health': f'Currently, you have {self.health} health.',
             'location': f'You are located on map coordinates {self.location}, '
                         f'which is {self.square.square_type}.',
-            'building_local': f'You are inside {p.building_local.name}.' if p.building_local else None,
+            'building_local': f'You are inside {self.building_local.name}.' if self.building_local else None,
             'skills': '\n'.join(skills) if skills else "You don't have any skills.",
             'money': f"You have ${self.money} in your wallet.",
             'job': job_string}
 
         return '\n'.join(v for v in status_string.values() if v)
+
+    def statistics(self):
+        print(f"You have killed {self.body_count} mobs.")
+        print(f"You have ran away from {self.run_away_count} battles.")
+        print(f"You have eaten {self.food_count} items.")
+        print(f"You have performed {self.assassination_count} assassinations.")
+        print(f"You have talked to mobs {self.greeting_count} times.")
+
+    def view_hit_list(self):
+        if self.hit_list:
+            print(f"If you ever run across these shady characters, be sure to take their names off your list: {comma_separated(self.hit_list)}")
+        else:
+            print("Looks like you don't know of anyone who needs to be dead.")
 
     def increase_skill(self, skill, increase):
         try:

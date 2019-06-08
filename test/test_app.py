@@ -96,7 +96,7 @@ class TestEat(unittest.TestCase):
     def test_eating_too_many(self):
         self.assertTrue(a.player.inventory == [self.food])
         a.eat_food("12 bagels")
-        assert not a.player.inventory
+        assert not a.player.inventory or a.player.health == 100
         assert a.player.health > 50
 
     def test_magic_pill(self):
@@ -224,11 +224,10 @@ class TestJob(unittest.TestCase):
 
     @mock.patch('time.sleep', return_value=None)
     def test_job(self, _):
-        job = Job(name="a job", location=a.player.location, skills_learned=['communication'], salary=45)
+        job = Job(name="a job", location=a.player.location, salary=45)
         a.player.job = job
         a.go_to_work()
         assert a.player.money == 45
-        assert a.player.skills['communication'] >= 0
 
     @mock.patch('time.sleep', return_value=None)
     def test_job_no_skills(self, _):
@@ -647,7 +646,7 @@ class TestPlayer(unittest.TestCase):
             f"is {a.player.square.square_type}.\nYou don't have any skills." \
             f"\nYou have $0 in your wallet.\nYou do not have a job, and you are not contributing to society."
 
-        assert a.player.status(a.player) == s
+        assert a.player.status() == s
 
     def test_status_with_quest(self):
         a.player.building_local = None
@@ -661,7 +660,7 @@ class TestPlayer(unittest.TestCase):
         a.player.job = None
         a.player.quest = True
 
-        assert 'quest' in a.player.status(a.player)
+        assert 'quest' in a.player.status()
 
 
 class TestTalk(unittest.TestCase):

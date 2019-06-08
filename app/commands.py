@@ -27,6 +27,8 @@ class Adventure:
                         "go <southwest>": True,
                         "inventory": True,
                         "status": True,
+                        "statistics": True,
+                        "hit list": True,
                         "pick up <something>": bool(self.player.square.items and self.player.building_local is None),
                         "eat <something>": bool([x for x in self.player.inventory if x.category == "food"]),
                         "visit <a building>": bool(self.player.square.buildings),
@@ -67,7 +69,9 @@ class Adventure:
             "go to work": (self.go_to_work, []),
             "leave": (self.leave_building, []),
             "inventory": (print, [self.player.pretty_inventory()]),
-            "status": (print, [self.player.status(self.player)]),
+            "status": (print, [self.player.status()]),
+            "statistics": (self.player.statistics, []),
+            "hit list": (self.player.view_hit_list, []),
             "ls": (print, ["What, you think this is Linux?"]),
             "^attack": (self.battle_kickoff, [" ".join(words[1:])]),
             "^fight": (self.battle_kickoff, [" ".join(words[1:])]),
@@ -560,7 +564,7 @@ class Adventure:
         mob = self.player.quest[0]
 
         if self.player.quest[1] != self.player.location:
-            print(f"The {mob_name} who gave you your quest is not here. You need to go to {self.player.quest[1]}.")
+            print(f"The {mob_name} who gave you your quest is not here. You need to go to {self.player.quest[1]}. Check your map for the '*' symbol.")
             return
 
         if mob not in self.player.square.mobs:

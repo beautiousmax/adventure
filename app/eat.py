@@ -36,11 +36,12 @@ class Eat:
     def eat_foods(self):
         for food, quantity in self.list_of_food_objects_to_eat:
             if self.adventure.player.health < 100:
-                for i in self.adventure.player.inventory:
-                    if i.name == food.name:
-                        i.quantity -= quantity
                 for _ in range(0, quantity):
                     if self.adventure.player.health < 100:
+                        self.adventure.player.food_count += 1
+                        for i in self.adventure.player.inventory:
+                            if i.name == food.name:
+                                i.quantity -= 1
                         regenerate = self.determine_restorative_properties(food)
                         self.adventure.player.health += regenerate
                         print(f"Regenerated {regenerate} health by eating {food.name}. "

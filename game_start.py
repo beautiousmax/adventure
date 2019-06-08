@@ -16,7 +16,7 @@ adventure = Adventure(name)
 print(f"Nice to meet you, {name}!\nUse commands to interact with your world. At any time, type 'help' to see all "
       f"available commands.\nHere is your current status: \n")
 
-print(adventure.player.status(adventure.player))
+print(adventure.player.status())
 print()
 adventure.look_around()
 
@@ -58,3 +58,14 @@ while adventure.player.health > 0:
 # home base on spawn to store stuff
 # armor to not die as fast
 # magic spells
+
+
+# win the game
+# kill the evil volcano base / castle uber boss, become king / evil overlord
+# achievements
+# win the game without running away from any battles
+# kill x mobs
+# intelligence over 300%
+# perform 3 assassinations
+# eat x food items
+# talk to x mobs

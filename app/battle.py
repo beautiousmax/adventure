@@ -19,8 +19,7 @@ class Battle:
         command_list = {"attack": True,
                         "throw": bool(self.adventure.player.equipped_weapon),
                         "eat <something>": bool([x for x in self.adventure.player.inventory if x.category == "food"]),
-                        "run away": True,
-                        "leave": bool(self.adventure.player in self.attackers),
+                        "run away": bool(self.adventure.player not in self.attackers),
                         "inventory": True,
                         "equip": bool(self.adventure.player.inventory),
                         "status": True}
@@ -52,6 +51,7 @@ class Battle:
                     reward = random.randint(100, 500)
                     self.adventure.player.money += reward
                     self.adventure.player.hit_list.remove(mob.name)
+                    self.adventure.player.assassination_count += 1
                     print(f"You have eliminated the pesky {remove_little_words(mob.name)}. For your troubles, you earn {reward}.")
                 if self.adventure.player.body_count % 5 == 0:
                     print("You've really been racking up the body count.")
@@ -121,6 +121,7 @@ class Battle:
         else:
             self.coward = True
             self.attackers = []
+            self.adventure.player.run_away_count += 1
             print("You run away in a cowardly panic.")
             dirs = ["north", "south", "east", "west"]
             random_dir = dirs[random.randint(0, len(dirs) - 1)]
@@ -188,7 +189,7 @@ class Battle:
             battle_paused_commands = {
                 "help": (self.battle_help, []),
                 "^eat.*": (self.adventure.eat_food, [" ".join(words[1:])]),
-                "status": (print, [self.adventure.player.status(self.adventure.player)]),
+                "status": (print, [self.adventure.player.status()]),
                 "inventory": (print, [self.adventure.player.pretty_inventory()]),
                 "run away": (self.run_away, []),
                 "equip": (self.adventure.equip, [" ".join(words[1:])])
