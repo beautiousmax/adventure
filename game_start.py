@@ -41,8 +41,8 @@ while adventure.player.health > 0:
             adventure.player.phase_change(adventure.map)
             print(colored(f"It is now {adventure.player.phase}time.", "blue"))
 
-if input('Press enter to exit.'):
-    sys.exit(0)
+input('Press enter to exit.')
+sys.exit(0)
 
 # next version ideas
 
