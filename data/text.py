@@ -1,10 +1,14 @@
 from pathlib import Path
 import os
+import sys
 
 import ruamel.yaml as yaml
 
-
-here = os.path.abspath(os.path.dirname(__file__))
+try:
+    # If running as pyinstaller (uses temp folder with path in _MEIPASS)
+    here = os.path.join(sys._MEIPASS, 'data')
+except AttributeError:
+    here = os.path.abspath(os.path.dirname(__file__))
 
 
 def safe_load_local_file(filename):

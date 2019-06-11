@@ -1,9 +1,9 @@
-import time
 import os
 from pathlib import Path
-import traceback
-
+import sys
+import time
 from termcolor import colored
+import traceback
 
 from app.commands import Adventure
 
@@ -41,6 +41,8 @@ while adventure.player.health > 0:
             adventure.player.phase_change(adventure.map)
             print(colored(f"It is now {adventure.player.phase}time.", "blue"))
 
+input('Press enter to exit.')
+sys.exit(0)
 
 # next version ideas
 
