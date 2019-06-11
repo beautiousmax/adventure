@@ -177,7 +177,7 @@ class Player:
     building_local = None
     inventory = []
     skills = {}
-    health = 100
+    health = 0
     greeting_count = 0
     body_count = 0
     assassination_count = 0

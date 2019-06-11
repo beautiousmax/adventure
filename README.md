@@ -49,7 +49,7 @@ All available commands can be viewed anytime by typing "help"
 | visit \<place\>              | Go into a shop, place of worship, workplace or even people's houses |
 | apply *for a* \<job>         | Apply for a job opening  |
 | *go to* work                 | Earn some money by working at your job |
-| equip \<object\>             | Choose your weapon for battle! |
+| equip \<object\>             | Choose your weapon and armor for battle! |
 | battle \<mob\>               | Pick a fight with someone |
 | ask \<mob\> *for a* quest    | Bother almost anything for the possibility of a quest |
 | turn in quest                | Complete a quest, you must be on the map square you picked it up from  | 
