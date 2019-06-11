@@ -166,7 +166,7 @@ class Player:
         self.name = name
         self.location = location
         self.square = None
-        self.money = 0
+        self.money = 100
         self.quest = None
         self.job = None
         self.phase = "day"
@@ -372,7 +372,7 @@ class Building(object):
         random.shuffle(boss_minor_armors)
 
         boss = Mob(boss_names[0], self.p, plural=boss_names[0], rarity='super rare')
-        boss.health = 1000
+        boss.health = 500
         boss.equipped_weapon = boss_weapons[0]
         boss.major_armor = boss_major_armors[0]
         boss.minor_armor = boss_minor_armors[0]

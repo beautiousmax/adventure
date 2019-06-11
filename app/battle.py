@@ -29,7 +29,7 @@ class Battle:
 
     def sort_the_dead(self, list_of_mobs):
         alive_mobs = []
-        for mob in list_of_mobs:
+        for mob in list_of_mobs.copy():
             if mob.health > 0:
                 alive_mobs.append(mob)
             else:

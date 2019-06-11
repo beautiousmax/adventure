@@ -472,9 +472,16 @@ class Adventure:
             print("Purchase complete")
 
         elif price > price_offered > 0:
-            if odds(price - price_offered) is True:
-                print("Ok, sounds like a deal.")
-                self.buy_items(items, quantity, price_offered)
+            discount = {2: price - (price * .1),
+                        3: price - (price * .2),
+                        4: price - (price * .3),
+                        5: price - (price * .5)}
+            for k, v in discount.items():
+                if round(v) <= price_offered:
+                    if odds(k):
+                        print("Ok, sounds like a deal.")
+                        self.buy_items(items, quantity, price_offered)
+                    break
             else:
                 print("Sorry, I can't sell for that price.")
         else:
