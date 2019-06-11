@@ -608,7 +608,6 @@ class Adventure:
                     self.player.quest = None
                     mob.quest = None
                 else:
-                    # TODO you have to un-equip the thing to turn in if you are wielding it
                     print(f"You don't have enough {quest_item.plural}. The {mob_name} requested {quantity}, "
                           f"and you have {item.quantity}.")
                 break
@@ -626,7 +625,6 @@ class Adventure:
             m = comma_separated(formatted_items(attacking_mobs))
             print(f"Look out, {m[0].upper()}{m[1:]} {'is' if len(attacking_mobs) == 1 else 'are'} gearing up to fight!")
             for mob in attacking_mobs:
-                # TODO mobs should be able to wear armor too
                 w = mob.equipped_weapon
                 if mob.equipped_weapon:
                     mob_id = the_name(mob.name)

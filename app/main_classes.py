@@ -166,7 +166,7 @@ class Player:
         self.name = name
         self.location = location
         self.square = None
-        self.money = 100
+        self.money = 0
         self.quest = None
         self.job = None
         self.phase = "day"
@@ -177,7 +177,7 @@ class Player:
     building_local = None
     inventory = []
     skills = {}
-    health = 0
+    health = 100
     greeting_count = 0
     body_count = 0
     assassination_count = 0
@@ -186,7 +186,6 @@ class Player:
     food_count = 0
     run_away_count = 0
     # TODO increase insurance cost every death?
-    # TODO add a command to view hit list
     speed_bonus = False
     game_won = False
 
