@@ -605,14 +605,14 @@ class TestPlayer(unittest.TestCase):
     @mock.patch('time.sleep', return_value=None)
     @mock.patch('app.common_functions.odds', return_value=True)
     @mock.patch('app.main_classes.dropper', return_value=1)
-    def test_phase_change_generates_new_mobs(self, dropper, odds, sleep):
+    def test_phase_change_doesnt_generate_new_mobs_on_squares_with_mobs(self, dropper, odds, sleep):
         mob = Mob(name="Bob", p=a.player, plural="Bobs", rarity="common")
         a.player.location = (0, 0)
         a.change_direction('n')
         a.map[(0, 0)].mobs = [mob]
         a.player.phase = "night"
         a.player.phase_change(a.map)
-        assert len(a.map[(0, 0)].mobs) > 1
+        assert len(a.map[(0, 0)].mobs) == 1
 
     def test_inventory(self):
         a.player.equipped_weapon = None
@@ -754,4 +754,4 @@ class TestDropper(unittest.TestCase):
         a.map[(2, 2)] = MapSquare('ocean')
         a.map[(2, 2)].buildings = [Building('a volcanic base', a.player, plural='volcanic bases')]
         assert a.map[(2, 2)].buildings[0].jobs[0].name == 'evil overlord'
-        assert a.map[(2, 2)].buildings[0].mobs[0].health == 1000
+        assert a.map[(2, 2)].buildings[0].mobs[0].health == 500
