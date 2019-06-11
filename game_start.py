@@ -1,31 +1,60 @@
-from app.main_classes import p
-from app.commands import commands_manager, look_around
+import time
+import os
+from pathlib import Path
+import traceback
+
+from termcolor import colored
+
+from app.commands import Adventure
 
 
-p.name = input("Welcome to the world, adventurer! What name would you like to be "
-               "known as in this land? \n")
+name = input("Welcome to the world, adventurer! What name would you like to be "
+             "known as in this land? \n")
 
-print(f"Nice to meet you, {p.name}!")
+adventure = Adventure(name)
+
+print(f"Nice to meet you, {name}!\nUse commands to interact with your world. At any time, type 'help' to see all "
+      f"available commands.\nHere is your current status: \n")
+
+print(adventure.player.status())
 print()
-print("Use commands to interact with your world. At any time, type 'help' "
-      "to see all available commands.")
-print("Here is your current status: \n")
-p.status()
-print()
-look_around()
-while p.health > 0:
-    commands_manager(input())
+adventure.look_around()
+
+while adventure.player.health > 0:
+    cycle_start = time.time()
+    while adventure.player.health > 0 and time.time() - cycle_start < 80:
+        try:
+            adventure.commands_manager(input())
+        except EOFError:
+            pass
+        except Exception as err:
+            print(colored(f"Holy moly, you came across a huge issues!", 'red'))
+            with open(Path(os.path.abspath(os.path.dirname(__file__)), 'errors.log'), 'a', encoding='utf-8') as err_log:
+                err_log.write(traceback.format_exc())
+                err_log.write("\n\n")
+            print('We wrote the issue to "errors.log", I will try to keep going, but I am unsure if it will work')
+
+        if adventure.player.health <= 0:
+            break
+    else:
+        if adventure.player.health > 0:
+            adventure.player.phase_change(adventure.map)
+            print(colored(f"It is now {adventure.player.phase}time.", "blue"))
 
 
-# things I want to add
+# next version ideas
 
 # inventory limits
-# word wrap?
-# travel - in a car, on foot, swim, boat
-# non-inventory based quests
+# loose a bit of health if you don't sleep at night
+# possibility of highway robbery when travelling
+# sell inventory items for money
 # mini games to earn money
-# add time dimension - takes x seconds to travel, night / day
 # have the interview process include drug testing - screen for mushrooms, magic pills, etc
 # multiplayer
-# steal wares, have cops chase you - criminal record that prevents you from getting certain jobs
-# set stuff on fire
+# hospital doctors can heal you (but you need health insurance probably)
+# adopt animals
+# have multiple choice conversations with mobs, trade items, etc
+# map items evolve over time as player levels up
+# home base on spawn to store stuff
+# armor to not die as fast
+# magic spells

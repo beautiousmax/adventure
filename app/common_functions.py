@@ -1,7 +1,9 @@
-from data.text import *
-from termcolor import colored
-import re
 import random
+import re
+
+from termcolor import colored
+
+from data.text import numbers, names
 
 
 def formatted_items(item_list):
@@ -15,6 +17,7 @@ def formatted_items(item_list):
 
 
 def comma_separated(words):
+    """ Takes a list of words and returns a string """
     if len(words) >= 3:
         commas = ", ".join(words[0:-1])
         return f"{commas} and {words[-1]}"
@@ -66,17 +69,13 @@ def parse_inventory_action(words):
 
 
 def remove_little_words(phrase):
-    if type(phrase) != list:
+    if not isinstance(phrase, list):
         phrase = phrase.split(" ")
-    phrase_words = []
-    for word in phrase:
-        if word not in ('a', 'an', 'the', 'that', 'this'):
-            phrase_words.append(word)
-    return " ".join(phrase_words)
+    return " ".join([word for word in phrase if word.lower() not in ('a', 'an', 'the', 'that', 'this', 'to')])
 
 
 def odds(x):
-    return True if random.randint(1, x) == 1 else False
+    return bool(random.randint(1, int(x)) == 1)
 
 
 def are_is(noun_list):
@@ -92,24 +91,33 @@ def capitalize_first(string):
 
 
 def find_specifics(words, list_of_objects):
+    # TODO first assume player spelled the thing right, then sort through everything
     specifics = []
     if list_of_objects is None:
         return specifics
-    if words in ('all', 'everyone', 'everything') or words is None or words == '':
+    if words is None or words == '':
         return list_of_objects
-    for word in remove_little_words(words).split(' '):
+    words = remove_little_words(words).split(' ')
+    if any(word in ('all', 'everyone', 'everything') for word in words):
+        return list_of_objects
+    for word in words:
         for o in list_of_objects:
             for individual_word in remove_little_words(o.name).lower().split(' '):
-                if word.lower() in individual_word.lower() or word.lower() == individual_word.lower() or \
-                        word.lower() == o.plural.lower() or word.lower() in o.plural:
+                if (word.lower() in individual_word.lower() or word.lower() == individual_word.lower() or
+                        word.lower() == o.plural.lower() or word.lower() in o.plural):
                     specifics.append(o)
                     break
-    return specifics
+    specifics = list(set(specifics))
+    more_specifics = None
+    if len(specifics) > 1:
+        more_specifics = [x for x in specifics if x.name == ' '.join(words) or x.plural == ' '.join(words)]
+    return specifics if not more_specifics else more_specifics
 
 
-def the_name(n):
+def the_name(unique_name):
+    """ Returns a shortened version of unique_name - Bob the squirrel becomes Bob, a cat becomes the cat"""
     for name in names:
-        if name in n:
+        if name in unique_name:
             return name
     else:
-        return f"the {remove_little_words(n)}"
+        return f"the {remove_little_words(unique_name)}"
