@@ -1,0 +1,332 @@
+city:
+  a bar:
+    category: building
+    jobs:
+      bartender:
+        salary: 40
+        skills_learned:
+        - patience
+        - intelligence
+        skills_needed:
+        - communication
+    plural: bars
+    rarity: common
+    ware_list:
+      a shot of whiskey:
+        category: food
+        perishable: true
+        plural: shots of whiskey
+        price: 3
+        rarity: common
+  a blacksmith:
+    category: building
+    plural: blacksmiths
+    rarity: uncommon
+    ware_list:
+      a bikini top of gratuitous cleavage:
+        plural: bikini tops of gratuitous clevage
+        category: major armor
+        rarity: common
+        price: 550
+        defense: 3
+      an enormous japanese mech suit:
+        plural: enormous japanese mech suits
+        category: major armor
+        rarity: super rare
+        price: 1000000
+        defense: 5
+      a cursed pair of steel gauntlets:
+        plural: cursed pairs of steel gauntlets
+        rarity: common
+        category: minor armor
+        price: 200
+        defense: 1
+  a coffee shop:
+    category: building
+    plural: coffee shops
+    rarity: common
+    ware_list:
+      cup of coffee:
+        category: food
+        plural: cups of coffee
+        price: 5
+        rarity: super common
+      fat free muffin:
+        category: food
+        plural: fat free muffins
+        price: 4
+        rarity: super common
+desert:
+  a silk tent:
+    category: residence
+    plural: silk tents
+    rarity: uncommon
+    jobs:
+      servant:
+        salary: 80
+        skills_needed:
+          - strength
+          - patience
+          - cleanliness
+forest:
+  a hunting lodge:
+    category: building
+    plural: hunting lodges
+    rarity: uncommon
+master:
+  a car dealership:
+    category: building
+    jobs:
+      car salesman:
+        salary: 117
+        skills_needed:
+        - communication
+        - self loathing
+      general manager:
+        salary: 318
+        skills_needed:
+        - leadership
+        - communication
+    mobs:
+      a shopper:
+        plural: shoppers
+        rarity: uncommon
+    plural: car dealerships
+    rarity: rare
+    ware_list:
+      a grey honda civic:
+        category: vehicle
+        plural: grey honda civics
+        price: 18887
+        rarity: common
+      a white lamborghini:
+        category: vehicle
+        plural: white lamborhinis
+        price: 487999
+        rarity: super rare
+      an orange lamborghini:
+        category: vehicle
+        plural: orange lamborghinis
+        price: 479888
+        rarity: rare
+  a castle:
+    category: building
+    plural: castles
+    rarity: super rare
+  a convenience store:
+    category: building
+    jobs:
+      cashier:
+        salary: 85
+        skills_learned:
+        - self loathing
+        - math
+        - communication
+        - patience
+        skills_needed:
+        - communication
+    plural: convenience stores
+    rarity: uncommon
+    ware_list:
+      a bottle of water:
+        category: food
+        plural: bottles of water
+        price: 4
+        rarity: common
+      a box of matches:
+        plural: boxes of matches
+        price: 2
+        rarity: common
+      a gallon of milk:
+        category: food
+        perishable: true
+        plural: gallons of milk
+        price: 3
+        rarity: common
+      a gun:
+        plural: guns
+        price: 345
+        rarity: uncommon
+        weapon_rating: 5
+      a mars bar:
+        category: food
+        plural: mars bars
+        price: 1
+        rarity: common
+      an apple:
+        category: food
+        plural: apples
+        price: 1
+        rarity: common
+      a gleaming helmet of imperviousness:
+        category: minor armor
+        plural: gleaming helmets of imperviousness
+        price: 3000
+        rarity: rare
+        defense: 5
+      an unfading breastplate of rightous indignation:
+        category: major armor
+        plural: unfading breastplates of rightous indignation
+        price: 5500
+        rarity: rare
+        defense: 5
+      shining footware of ceaseless splendor:
+        category: minor armor
+        plural: pairs of shining footware of ceaseless splendor
+        price: 3000
+        rarity: rare
+        defense: 5
+      kevlar body armor:
+        category: major armor
+        plural: suits of kevlar body armor
+        price: 1000
+        defense: 3
+        rarity: uncommon
+  a food mart:
+    category: building
+    jobs:
+      cashier:
+        salary: 85
+        skills_learned:
+        - self loathing
+        - math
+        - communication
+        - patience
+        skills_needed:
+        - communication
+      delivery driver:
+        salary: 75
+        skills_needed:
+        - driving
+      night stocker:
+        salary: 45
+        skills_needed:
+        - strength
+    plural: food marts
+    rarity: common
+    ware_list:
+      a gallon of milk:
+        category: food
+        perishable: true
+        plural: gallons of milk
+        price: 3
+        rarity: common
+      a mars bar:
+        category: food
+        plural: mars bars
+        price: 1
+        rarity: common
+      an apple:
+        category: food
+        plural: apples
+        price: 1
+        rarity: common
+      beef:
+        category: food
+        perishable: true
+        plural: beef
+        price: 10
+        rarity: uncommon
+  a hospital:
+    category: building
+    jobs:
+      doctor:
+        salary: 526
+        skills_needed:
+        - science
+        - math
+        - communication
+        - patience
+        - cleanliness
+        - intelligence
+      security guard:
+        salary: 90
+        skills_needed:
+          - strength
+    mobs:
+      a sick old man:
+        plural: sick people
+        rarity: uncommon
+    plural: hospitals
+    rarity: rare
+    ware_list:
+      miracle pill:
+        category: medicine
+        plural: miracle pills
+        price: 100
+        rarity: uncommon
+  a house:
+    category: residence
+    jobs:
+      lawn mower:
+        inventory_needed: lawn mower
+        skills_learned: strength
+    plural: houses
+    rarity: common
+  an office building:
+    category: building
+    jobs:
+      human resources manager:
+        salary: 283
+        skills_needed:
+        - communication
+      software developer:
+        salary: 279
+        skills_needed:
+        - communication
+        - engineering
+      telemarketer:
+        salary: 57
+        skills_needed:
+        - communication
+      security guard:
+        salary: 90
+        skills_needed:
+          - strength
+    mobs:
+      an employee:
+        plural: employees
+        rarity: common
+    plural: hospitals
+    rarity: uncommon
+mountains:
+  a wind power farm:
+    category: building
+    plural: wind power farms
+    rarity: rare
+  an ancient temple:
+    category: building
+    jobs:
+      priest:
+        skills_needed:
+        - patience
+        - intelligence
+      servant:
+        salary: 80
+        skills_needed:
+          - strength
+          - patience
+          - cleanliness
+    mobs:
+      a sage old man:
+        plural: sage old men
+        rarity: common
+    plural: ancient temples
+    rarity: super rare
+    ware_list:
+      a holy shingaurd blessed by the gods:
+        plural: holy shingaurds blessed by the gods
+        price: 2200
+        rarity: rare
+        category: minor armor
+        defense: 4
+ocean:
+  a volcanic base:
+    category: building
+    plural: volcanic bases
+    rarity: super rare
+swamp:
+  a shed:
+    category: building
+    plural: sheds
+    rarity: uncommon

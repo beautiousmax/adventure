@@ -1,47 +1,55 @@
 import time
+import os
+from pathlib import Path
+import traceback
 
 from termcolor import colored
 
-from app.commands import commands_manager, look_around
-from app.main_classes import p
+from app.commands import Adventure
 
 
-def game_loop():
-    """Loop that accepts player commands while player is alive"""
-    cycle_start = time.time()
-    while p.health > 0 and time.time() - cycle_start < 80:
-        commands_manager(input())
-    else:
-        if p.health > 0:
-            p.phase_change()
-            print(colored(f"It is now {p.phase}time.", "blue"))
-            game_loop()
+name = input("Welcome to the world, adventurer! What name would you like to be "
+             "known as in this land? \n")
 
+adventure = Adventure(name)
 
-p.name = input("Welcome to the world, adventurer! What name would you like to be "
-               "known as in this land? \n")
-
-print(f"Nice to meet you, {p.name}!\nUse commands to interact with your world. At any time, type 'help' to see all "
+print(f"Nice to meet you, {name}!\nUse commands to interact with your world. At any time, type 'help' to see all "
       f"available commands.\nHere is your current status: \n")
 
-print(p.status())
+print(adventure.player.status())
 print()
-look_around()
-game_loop()
+adventure.look_around()
+
+while adventure.player.health > 0:
+    cycle_start = time.time()
+    while adventure.player.health > 0 and time.time() - cycle_start < 80:
+        try:
+            adventure.commands_manager(input())
+        except EOFError:
+            pass
+        except Exception as err:
+            print(colored(f"Holy moly, you came across a huge issues!", 'red'))
+            with open(Path(os.path.abspath(os.path.dirname(__file__)), 'errors.log'), 'a', encoding='utf-8') as err_log:
+                err_log.write(traceback.format_exc())
+                err_log.write("\n\n")
+            print('We wrote the issue to "errors.log", I will try to keep going, but I am unsure if it will work')
+
+        if adventure.player.health <= 0:
+            break
+    else:
+        if adventure.player.health > 0:
+            adventure.player.phase_change(adventure.map)
+            print(colored(f"It is now {adventure.player.phase}time.", "blue"))
 
 
 # next version ideas
 
-# night and day
-# you can only work in the day time
-# inventory limits, square items and wares update at sunup and sundown
+# inventory limits
 # loose a bit of health if you don't sleep at night
 # possibility of highway robbery when travelling
 # sell inventory items for money
-# non-inventory based quests
 # mini games to earn money
 # have the interview process include drug testing - screen for mushrooms, magic pills, etc
-# jobs provide health insurance, at death - it will cost x dollars to revive you
 # multiplayer
 # hospital doctors can heal you (but you need health insurance probably)
 # adopt animals

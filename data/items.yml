@@ -1,0 +1,147 @@
+city:
+  a cigarette butt:
+    plural: cigarette butts
+    rarity: super common
+  a magic pill:
+    category: food
+    plural: magic pills
+    rarity: rare
+  a phone book:
+    plural: phone books
+    rarity: uncommon
+    weapon_rating: 1
+  a souvenir magnet:
+    plural: souvenir magnets
+    rarity: rare
+  a wad of gum:
+    plural: wads of gum
+    rarity: super common
+desert:
+  a cactus:
+    plural: cacti
+    rarity: common
+    weapon_rating: 1
+  a dinosaur bone:
+    plural: dinosaur bones
+    rarity: rare
+    weapon_rating: 4
+  a tumbleweed:
+    plural: tumbleweeds
+    rarity: common
+  some sand:
+    plural: mounds of sand
+    rarity: super common
+forest:
+  a hunting knife:
+    plural: hunting knives
+    rarity: uncommon
+    weapon_rating: 5
+  a mushroom:
+    category: food
+    plural: mushrooms
+    rarity: uncommon
+  a pinecone:
+    flammable: true
+    plural: pinecones
+    rarity: super common
+  a stick:
+    flammable: true
+    plural: sticks
+    rarity: common
+    weapon_rating: 3
+  an acorn:
+    plural: acorns
+    rarity: common
+  some kindling:
+    flammable: true
+    plural: piles of kindling
+    rarity: common
+  some mysterious berries:
+    category: food
+    plural: bushes full of mysterious berries
+    rarity: uncommon
+master:
+  a bagel:
+    category: food
+    plural: bagels
+    rarity: common
+  a box of kleenex:
+    flammable: true
+    plural: boxes of kleenex
+    rarity: rare
+  a deck of cards:
+    plural: decks of cards
+    rarity: rare
+  a handful of almonds:
+    category: food
+    plural: handfuls of almonds
+    rarity: uncommon
+  a laptop:
+    plural: laptops
+    rarity: rare
+  a rock:
+    plural: rocks
+    rarity: super common
+    weapon_rating: 1
+  a shovel:
+    plural: shovels
+    rarity: uncommon
+    weapon_rating: 4
+  a spool of thread:
+    plural: spools of thread
+    rarity: rare
+  a spoon:
+    plural: spoons
+    rarity: uncommon
+    weapon_rating: 3
+  a teapot:
+    plural: teapots
+    rarity: uncommon
+  a toothbrush:
+    plural: toothbrushes
+    rarity: uncommon
+    weapon_rating: 1
+  an arrowhead:
+    plural: arrowheads
+    rarity: super rare
+    weapon_rating: 2
+  an emerald necklace:
+    plural: emerald necklaces
+    rarity: super rare
+  an engraved bronze shield:
+    plural: engraved bronze shields
+    rarity: super rare
+    defense: 2
+    category: minor armor
+  some broken glass:
+    plural: piles of broken glass
+    rarity: uncommon
+    weapon_rating: 1
+  a lawn mower:
+    plural: lawn mowers
+    rarity: super rare
+    weapon_rating: 3
+mountains:
+  a glacier:
+    plural: glaciers
+    rarity: super rare
+ocean:
+  a sea shell:
+    plural: sea shells
+    rarity: common
+  some drift wood:
+    flammable: true
+    plural: pieces of drift wood
+    rarity: uncommon
+swamp:
+  some moss:
+    plural: patches of moss
+    rarity: common
+  some mud:
+    plural: piles of mud
+    rarity: common
+  a rusted helmet:
+    plural: rusted helmets
+    rarity: rare
+    category: minor armor
+    defense: 1
