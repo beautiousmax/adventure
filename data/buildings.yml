@@ -250,9 +250,9 @@ master:
     plural: hospitals
     rarity: rare
     ware_list:
-      miracle pill:
+      a magic pill:
         category: medicine
-        plural: miracle pills
+        plural: magic pills
         price: 100
         rarity: uncommon
   a house:

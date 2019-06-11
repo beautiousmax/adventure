@@ -214,13 +214,14 @@ class Player:
                         b.wares = drop_item(b.ware_list)
                         while not b.wares:
                             b.wares = drop_item(b.ware_list)
-                    jobs = {}
-                    buiding_dict = add_dicts_together(buildings['master'], buildings[square.square_type])
-                    for key, v in buiding_dict.items():
-                        if key == b.name and v.get('jobs'):
-                            for name, values in v['jobs'].items():
-                                jobs[name] = values
-                    b.jobs = b.drop_job(jobs)
+                    if b.name not in ('a castle', 'a volcanic base'):
+                        jobs = {}
+                        buiding_dict = add_dicts_together(buildings['master'], buildings[square.square_type])
+                        for key, v in buiding_dict.items():
+                            if key == b.name and v.get('jobs'):
+                                for name, values in v['jobs'].items():
+                                    jobs[name] = values
+                        b.jobs = b.drop_job(jobs)
                 if self.phase == 'day':
                     self.speed_bonus = False
                     for mob in square.mobs:
