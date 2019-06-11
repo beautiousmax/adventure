@@ -94,8 +94,7 @@ class Adventure:
         elif words[0] == "exit" and self.player.building_local is None:
             self.player.health = 0
             print("Goodbye!")
-            # TODO save game before exiting?
-            # TODO shouldn't be able to work back to back
+            # TODO save game before exiting
             # TODO add inventory limit
         else:
             print("I don't know that command.")
@@ -372,6 +371,8 @@ class Adventure:
                     print("Ok, we'll take a chance on you.")
                 print(f"Congratulations {self.player.name}, you got the job!")
                 self.player.job = job
+                if job.name in ('evil overlord', 'king of the realm'):
+                    self.player.game_over()
                 self.player.building_local.jobs.remove(job)
 
             else:
@@ -558,6 +559,8 @@ class Adventure:
             if self.player.greeting_count % 15 == 0:
                 print(f"By the way, you have been really outgoing lately!")
                 self.player.increase_skill('communication', random.randint(1, 5))
+            if self.player.greeting_count == 500:
+                print("Congratulations, you have been voted Time's Person of the Year, nominated for a Nobel Peace Prize, and have earned the Chattiest Adventurer achievement.")
 
     def turn_in_quest(self):
         """ Complete the quest if criteria is met, otherwise help player remember quest details """

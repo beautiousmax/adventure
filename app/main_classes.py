@@ -188,6 +188,17 @@ class Player:
     # TODO increase insurance cost every death?
     # TODO add a command to view hit list
     speed_bonus = False
+    game_won = False
+
+    def game_over(self):
+        if self.game_won is False:
+            self.game_won = True
+            print(colored("You have won the game!", "green"))
+            print("You may continue playing to earn more achievements if you wish.")
+            if self.run_away_count == 0:
+                print("Congratulations, you have achieved the True Bravery achievement, having won the game without ever running away from a fight.")
+            if self.run_away_count > 100:
+                print("Congratulations, you have achieved the True Cowardice achievement, having won the game after running away from over 100 battles.")
 
     def clean_up_inventory(self):
         """ Remove items with quantity of zero from the map inventory"""
@@ -216,10 +227,9 @@ class Player:
                         mob.health = 100
                         mob.irritation_level = 0
                         mob.quest = None if self.quest is None else mob.quest
-                    limit = len(names) - len(self.square.unique_mob_names)
-                    if len(square.mobs) < len(names) and self.location != k:
-                        square.mobs += drop_mob(add_dicts_together(wild_mobs["master"], wild_mobs[self.square.square_type]),
-                                                self, limit, square=square)
+                    if not square.mobs:
+                        square.mobs = drop_mob(add_dicts_together(wild_mobs["master"], wild_mobs[self.square.square_type]),
+                                               self, limit=len(names), square=square)
 
     def formatted_inventory(self):
         formatted = []

@@ -39,6 +39,8 @@ class Eat:
                 for _ in range(0, quantity):
                     if self.adventure.player.health < 100:
                         self.adventure.player.food_count += 1
+                        if self.adventure.player.food_count == 500:
+                            print("Congratulations, you have earned the Vigorous Snacker achievement.")
                         for i in self.adventure.player.inventory:
                             if i.name == food.name:
                                 i.quantity -= 1

@@ -41,6 +41,8 @@ class Battle:
                 s = f" You add {comma_separated(formatted_items(stuff))} to your " \
                     f"inventory." if stuff else ''
                 print(f"You killed {mob_id}.{s}")
+                if self.adventure.player.body_count == 500:
+                    print('Congratulations, you have achieved the Body Count of Gruesome Proportions achievement.')
                 for i in stuff:
                     self.adventure.add_item_to_inventory(i, i.quantity)
 
@@ -53,6 +55,8 @@ class Battle:
                     self.adventure.player.hit_list.remove(mob.name)
                     self.adventure.player.assassination_count += 1
                     print(f"You have eliminated the pesky {remove_little_words(mob.name)}. For your troubles, you earn {reward}.")
+                    if self.adventure.player.assassination_count == 3:
+                        print("Congratulations, you have earned the Ruthless Bounty Hunter achievement.")
                 if self.adventure.player.body_count % 5 == 0:
                     print("You've really been racking up the body count.")
                     self.adventure.player.increase_skill('self loathing', random.randint(2, 8))
