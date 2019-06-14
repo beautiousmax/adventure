@@ -421,6 +421,7 @@ class Adventure:
         wares = []
         haggle_for = True
         quantity, item_text = parse_inventory_action(words)
+        quantity = 'all' if not quantity else quantity
 
         if quantity == 'all' and item_text is None:
             wares = [x for x in self.player.building_local.wares]
@@ -481,7 +482,10 @@ class Adventure:
                     if odds(k):
                         print("Ok, sounds like a deal.")
                         self.buy_items(items, quantity, price_offered)
+                    else:
+                        print("Sorry, I can't sell for that price.")
                     break
+
             else:
                 print("Sorry, I can't sell for that price.")
         else:
@@ -643,8 +647,8 @@ class Adventure:
                 major = mob.major_armor.defense if mob.major_armor else 0
                 minor = mob.minor_armor.defense if mob.minor_armor else 0
                 armor_defense = (major + minor) * 5
+                mob_id = the_name(mob.name)
                 if mob.equipped_weapon:
-                    mob_id = the_name(mob.name)
                     print(f"{mob_id} is wielding {w.name if w.quantity == 1 else w.plural}")
                 if armor_defense:
                     armors = [mob.major_armor.name if mob.major_armor else None,
@@ -656,6 +660,7 @@ class Adventure:
 
     def equip(self, words):
         """ Select item from player inventory to use as battle weapon """
+        # TODO unequip
         w = find_specifics(words, self.player.inventory)
         if w:
             try:

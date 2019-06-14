@@ -5,7 +5,7 @@ from app.commands import Adventure
 from app.battle import Battle
 from app.common_functions import *
 from app.main_classes import *
-from data.text import wild_mobs
+from app.load_data import wild_mobs
 
 
 a = Adventure('player')
