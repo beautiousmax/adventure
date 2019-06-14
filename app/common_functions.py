@@ -3,7 +3,7 @@ import re
 
 from termcolor import colored
 
-from data.text import numbers, names
+from app.load_data import numbers, names
 
 
 def formatted_items(item_list):
