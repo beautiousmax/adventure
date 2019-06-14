@@ -253,7 +253,7 @@ class Player:
         return '\n'.join(v for v in inventory.values() if v)
 
     def status(self):
-        skills = [f"{k} - {v}%." for k, v in self.skills.items()]
+        skills = [f"{k}: {v}%." for k, v in self.skills.items()]
 
         job = f"You have a job as a {self.job.name}." if self.job else None
         quest = "You have a quest." if self.quest else None
