@@ -3,7 +3,7 @@ import random
 from termcolor import colored
 
 from app.common_functions import find_specifics, parse_inventory_action
-from data.text import buildings
+from app.load_data import buildings
 
 
 class Eat:

@@ -5,20 +5,14 @@ from termcolor import colored
 from reusables.string_manipulation import int_to_words
 
 from app.common_functions import comma_separated, add_dicts_together, remove_little_words, odds
-from data.text import items, buildings, wild_mobs, names, adjectives
+from app.load_data import items, buildings, wild_mobs, names, adjectives
 
 
 colorama.init()
 
 
-def find_unique_adjectives(quantity, taken_names):
-    free_adjectives = [x for x in adjectives if x not in taken_names]
-    random.shuffle(free_adjectives)
-    return free_adjectives[:quantity]
-
-
-def find_unique_names(quantity, taken_names):
-    free_names = [x for x in names if x not in taken_names]
+def find_unique_names(quantity, name_list, taken_names):
+    free_names = [x for x in name_list if x not in taken_names]
     random.shuffle(free_names)
     return free_names[:quantity]
 
@@ -49,17 +43,17 @@ def drop_building(dictionary, p, limit=None):
         if quantity:
             if quantity > 1 and v['category'] != 'residence':
                 n = random.randint(0, quantity)
-                unique_names = find_unique_names(quantity - n, p.square.unique_building_names)
+                unique_names = find_unique_names(quantity - n, names, p.square.unique_building_names)
                 p.square.unique_building_names += unique_names
                 for i in range(0, quantity - n):
                     drops_i.append(Building(name=f"{unique_names[i]}'s {remove_little_words(k).capitalize()}", p=p, **v))
-                unique_adjectives = find_unique_adjectives(n, p.square.unique_building_names)
+                unique_adjectives = find_unique_names(n, adjectives, p.square.unique_building_names)
                 p.square.unique_building_names += unique_adjectives
                 for i in range(0, n):
                     drops_i.append(Building(name=f"the {unique_adjectives[i]} {remove_little_words(k).capitalize()}", p=p, **v))
 
             elif quantity > 1 and v['category'] == 'residence':
-                unique_house_names = find_unique_names(quantity, p.square.unique_house_names)
+                unique_house_names = find_unique_names(quantity, names, p.square.unique_house_names)
                 p.square.unique_house_names += unique_house_names
                 for i in range(0, quantity):
                     drops_i.append(Building(name=f"{unique_house_names[i]}'s {remove_little_words(k)}", p=p, **v))
@@ -79,7 +73,7 @@ def drop_mob(dictionary, p, limit=None, square=None):
         limit -= quantity
         if quantity:
             if quantity > 1:
-                unique_names = find_unique_names(quantity, square.unique_mob_names)
+                unique_names = find_unique_names(quantity, names, square.unique_mob_names)
                 p.square.unique_mob_names += unique_names
                 for i in range(0, len(unique_names)):
                     drops_i.append(Mob(name=f"{k} named {unique_names[i]}", p=p, **v))
@@ -87,7 +81,7 @@ def drop_mob(dictionary, p, limit=None, square=None):
                 if k not in [n.name for n in p.square.mobs]:
                     drops_i.append(Mob(name=k, p=p, **v))
                 else:
-                    name = find_unique_names(1, square.unique_mob_names)[0]
+                    name = find_unique_names(1, names, square.unique_mob_names)[0]
                     drops_i.append(Mob(name=f"{k} named {name}", p=p, **v))
     return drops_i
 
@@ -170,24 +164,23 @@ class Player:
         self.quest = None
         self.job = None
         self.phase = "day"
-
-    equipped_weapon = None
-    major_armor = None
-    minor_armor = None
-    building_local = None
-    inventory = []
-    skills = {}
-    health = 100
-    greeting_count = 0
-    body_count = 0
-    assassination_count = 0
-    hit_list = []
-    death_count = 0
-    food_count = 0
-    run_away_count = 0
-    # TODO increase insurance cost every death?
-    speed_bonus = False
-    game_won = False
+        self.equipped_weapon = None
+        self.major_armor = None
+        self.minor_armor = None
+        self.building_local = None
+        self.inventory = []
+        self.skills = {}
+        self.health = 100
+        self.greeting_count = 0
+        self.body_count = 0
+        self.assassination_count = 0
+        self.hit_list = []
+        self.death_count = 0
+        # TODO increase insurance cost every death?
+        self.food_count = 0
+        self.run_away_count = 0
+        self.speed_bonus = False
+        self.game_won = False
 
     def game_over(self):
         if self.game_won is False:
@@ -376,7 +369,7 @@ class Building(object):
         boss.equipped_weapon = boss_weapons[0]
         boss.major_armor = boss_major_armors[0]
         boss.minor_armor = boss_minor_armors[0]
-        boss.irritation_level = 15
+        boss.irritation_level = 10
         self.mobs = [boss]
         if self.name == 'a castle':
             self.jobs = [Job('king of the realm', location=self.p.location, salary=1100)]
